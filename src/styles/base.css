@@ -1,0 +1,544 @@
+/* ================================================================
+   AIRSKID RACING // BASE DESIGN SYSTEM & GLOBAL RESETS
+   ================================================================ */
+    /* ================================================================
+       BRUTOPIA // NEO-BRUTALIST MARIO YELLOW DESIGN SYSTEM
+       ================================================================ */
+    :root {
+      --brut-yellow: #FFDE59;
+      --brut-yellow-dark: #F59E0B;
+      --brut-black: #000000;
+      --brut-white: #FFFFFF;
+      --brut-cream: #FFFDF5;
+      --brut-red: #FF385C;
+      --brut-green: #10B981;
+      --brut-cyan: #00D2FF;
+      --brut-purple: #A855F7;
+      --brut-gray: #E5E7EB;
+      --brut-border: 3.5px solid #000000;
+      --brut-shadow: 5px 5px 0px #000000;
+      --brut-shadow-lg: 8px 8px 0px #000000;
+      --brut-shadow-sm: 3px 3px 0px #000000;
+      --font-display: 'Fredoka', 'Bungee', cursive, sans-serif;
+      --font-telemetry: 'Rajdhani', 'Space Grotesk', sans-serif;
+      --font-digital: 'Teko', sans-serif;
+
+      /* Universal Dynamic Game UI Scaler Variables */
+      --ui-scale: 1;
+      --badge-scale: 1;   /* Side badges — always min 0.70, slightly above ui-scale */
+      --topbar-scale: 1;
+      --modal-scale: 1;
+      --deck-scale: 1;
+      --vw: 1vw;
+      --vh: 1vh;
+      --bottom-hub-height: 130px; /* JS overrides this with exact measured value */
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+      outline: none;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      height: 100dvh;
+      overflow: hidden !important;
+      overscroll-behavior: none !important;
+      background-color: var(--brut-yellow);
+      font-family: var(--font-telemetry);
+      touch-action: none !important;
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      user-select: none;
+      /* iPhone Notch, Dynamic Island & Android Gesture Navigation Safe Areas */
+      padding-top: env(safe-area-inset-top, 0px);
+      padding-right: env(safe-area-inset-right, 0px);
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+      padding-left: env(safe-area-inset-left, 0px);
+      box-sizing: border-box;
+    }
+
+    #game-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+      z-index: 1;
+    }
+
+    /* ── CHUNKY NEO-BRUTALIST BUTTONS ── */
+    .brut-btn {
+      font-family: var(--font-display);
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--brut-black);
+      background: var(--brut-yellow);
+      border: var(--brut-border);
+      box-shadow: var(--brut-shadow);
+      border-radius: 12px;
+      padding: 10px 20px;
+      cursor: pointer;
+      transition: transform 0.08s ease, box-shadow 0.08s ease, background 0.15s;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .brut-btn:hover {
+      transform: translate(-2px, -2px);
+      box-shadow: 7px 7px 0px #000000;
+    }
+    .brut-btn:active {
+      transform: translate(3px, 3px);
+      box-shadow: 2px 2px 0px #000000;
+    }
+    .brut-btn.btn-red {
+      background: var(--brut-red);
+      color: #fff;
+    }
+    .brut-btn.btn-green {
+      background: var(--brut-green);
+      color: #fff;
+    }
+    .brut-btn.btn-cyan {
+      background: var(--brut-cyan);
+      color: #000;
+    }
+    .brut-btn.btn-white {
+      background: var(--brut-white);
+      color: #000;
+    }
+
+    /* ── TOP AUDIO & MULTIPLAYER STATUS BAR ── */
+    #top-bar {
+      position: absolute;
+      top: 16px;
+      right: 170px;
+      display: flex;
+      gap: 10px;
+      z-index: 25;
+      pointer-events: auto;
+    }
+    #sound-toggle, #btn-in-game-settings, #fullscreen-btn {
+      font-size: 13px;
+      padding: 6px 14px;
+      background: var(--brut-white);
+      border: var(--brut-border);
+      box-shadow: var(--brut-shadow-sm);
+      border-radius: 10px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: all 0.1s ease;
+      font-family: var(--font-telemetry);
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    #sound-toggle:active, #btn-in-game-settings:active, #fullscreen-btn:active {
+      transform: translate(2px, 2px);
+      box-shadow: 1px 1px 0px #000;
+    }
+    #room-badge {
+      display: none;
+      font-size: 13px;
+      padding: 6px 14px;
+      background: var(--brut-yellow);
+      border: var(--brut-border);
+      box-shadow: var(--brut-shadow-sm);
+      border-radius: 10px;
+      font-weight: 800;
+      letter-spacing: 1px;
+    }
+    #mp-ping-badge {
+      display: none;
+      font-size: 12px;
+      padding: 6px 12px;
+      background: var(--brut-white);
+      border: var(--brut-border);
+      box-shadow: var(--brut-shadow-sm);
+      border-radius: 10px;
+      font-weight: 900;
+      letter-spacing: 0.5px;
+      font-family: var(--font-telemetry);
+      align-items: center;
+      gap: 6px;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    #mp-ping-badge .ping-dot {
+      font-size: 11px;
+      line-height: 1;
+      color: #10b981;
+    }
+    #mp-ping-badge .ping-val {
+      color: #000;
+      font-weight: 900;
+    }
+
+
+/* ================================================================
+   LOADING SCREEN, NOTIFICATIONS & COUNTDOWN OVERLAY
+   ================================================================ */
+    /* ── PRO RACING LOADING SCREEN (SUNNY SKY ARCADE // YELLOW + WHITE + SKY BLUE) ── */
+    #loading-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle at 50% 38%, #FFF9C4 0%, #FFDE59 45%, #F59E0B 85%, #D97706 100%);
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.5s;
+    }
+    #loading-screen.fade-out {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+    .loader-card {
+      background: #FFFDF5;
+      border: 4px solid #000;
+      box-shadow: 10px 10px 0px #000;
+      border-radius: 28px;
+      padding: 26px 32px;
+      max-width: 520px;
+      width: 100%;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      position: relative;
+      overflow: hidden;
+    }
+    .loader-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 6px;
+      background: linear-gradient(90deg, #FFDE59 0%, #00D2FF 50%, #FFDE59 100%);
+    }
+    .loader-logo-wrap {
+      width: 100%;
+      max-width: 440px;
+      display: flex;
+      justify-content: center;
+    }
+    .loader-logo-wrap svg,
+    .loader-logo-wrap img {
+      width: 100%;
+      height: auto;
+      max-height: 120px;
+      object-fit: contain;
+    }
+    .loader-wheel-stage {
+      position: relative;
+      width: 140px;
+      height: 140px;
+      margin: 2px 0;
+    }
+    .loader-wheel-stage svg {
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+    }
+    @keyframes spinRacerWheel {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .spinning-rim {
+      transform-origin: 100px 100px;
+      animation: spinRacerWheel 0.65s linear infinite;
+    }
+    @keyframes smokeDriftLeft {
+      0% { transform: translate(0, 0) scale(0.6); opacity: 0.7; }
+      50% { opacity: 0.9; }
+      100% { transform: translate(-30px, -14px) scale(1.6); opacity: 0; }
+    }
+    @keyframes smokeDriftRight {
+      0% { transform: translate(0, 0) scale(0.6); opacity: 0.7; }
+      50% { opacity: 0.9; }
+      100% { transform: translate(30px, -14px) scale(1.6); opacity: 0; }
+    }
+    .smoke-puff-left {
+      transform-origin: 85px 182px;
+      animation: smokeDriftLeft 0.9s ease-out infinite;
+    }
+    .smoke-puff-right {
+      transform-origin: 115px 182px;
+      animation: smokeDriftRight 0.9s ease-out infinite 0.45s;
+    }
+    @keyframes sparkFlicker {
+      0%, 100% { opacity: 0.2; transform: scale(0.8); }
+      50% { opacity: 1; transform: scale(1.2); }
+    }
+    .burnout-spark {
+      animation: sparkFlicker 0.18s infinite alternate;
+    }
+
+    /* RPM Tachometer Rev Dashboard (Clean Arcade White & Yellow) */
+    .loader-rpm-dashboard {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      background: #FFFFFF;
+      border: 2.5px solid #000;
+      box-shadow: 3px 3px 0 #000;
+      border-radius: 14px;
+      padding: 7px 14px;
+      box-sizing: border-box;
+    }
+    .rpm-meter-cluster {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .rpm-label {
+      font-family: var(--font-telemetry);
+      font-size: 11px;
+      font-weight: 900;
+      color: #000;
+      letter-spacing: 1px;
+      margin-right: 4px;
+    }
+    .rpm-segment {
+      width: 11px;
+      height: 16px;
+      background: #E2E8F0;
+      border: 1px solid #CBD5E1;
+      border-radius: 2px;
+      transform: skewX(-15deg);
+      transition: all 0.12s ease;
+    }
+    .rpm-segment.green.active {
+      background: #10B981;
+      border-color: #047857;
+      box-shadow: 0 0 6px rgba(16, 185, 129, 0.6);
+    }
+    .rpm-segment.yellow.active {
+      background: #FFDE59;
+      border-color: #D97706;
+      box-shadow: 0 0 6px rgba(255, 222, 89, 0.8);
+    }
+    .rpm-segment.red.active {
+      background: #EF4444;
+      border-color: #B91C1C;
+      box-shadow: 0 0 8px rgba(239, 68, 68, 0.7);
+    }
+    .rpm-digital-val {
+      font-family: var(--font-digital);
+      font-size: 15px;
+      font-weight: 900;
+      color: #0284C7;
+      letter-spacing: 1px;
+    }
+    .rpm-pct-val {
+      font-family: var(--font-display);
+      font-size: 12px;
+      font-weight: 900;
+      color: #000;
+      background: #FFDE59;
+      border: 1.5px solid #000;
+      border-radius: 6px;
+      padding: 2px 8px;
+      letter-spacing: 0.5px;
+    }
+    .loader-bar-bg {
+      width: 100%;
+      height: 16px;
+      background: #FFFFFF;
+      border: 2.5px solid #000;
+      box-shadow: 3px 3px 0 #000;
+      border-radius: 10px;
+      overflow: hidden;
+      margin-top: 2px;
+      position: relative;
+    }
+    .loader-bar-fill {
+      width: 15%;
+      height: 100%;
+      background: linear-gradient(90deg, #FFDE59 0%, #00D2FF 100%);
+      border-right: 2px solid #000;
+      transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .loader-status {
+      font-family: var(--font-display);
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 1.5px;
+      color: #0F172A;
+      text-transform: uppercase;
+    }
+    .loader-tap-hint {
+      font-family: var(--font-display);
+      font-size: 13px;
+      font-weight: 900;
+      letter-spacing: 1px;
+      color: #000;
+      background: #FFDE59;
+      border: 2.5px solid #000;
+      box-shadow: 3.5px 3.5px 0 #000;
+      border-radius: 12px;
+      padding: 7px 20px;
+      cursor: pointer;
+      transition: transform 0.08s ease;
+    }
+    .loader-tap-hint:active {
+      transform: translate(2px, 2px);
+      box-shadow: 1.5px 1.5px 0 #000;
+    }
+
+    /* Screen Notifications (Sleek, Unobtrusive Top Badge) */
+    #alert-banner {
+      position: absolute;
+      top: 62px;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0);
+      font-family: var(--font-display);
+      font-size: 19px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      color: var(--brut-black);
+      background: var(--brut-yellow);
+      border: 3px solid #000;
+      box-shadow: 4px 4px 0px #000;
+      border-radius: 12px;
+      padding: 6px 20px;
+      text-align: center;
+      pointer-events: none;
+      transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.25s;
+      opacity: 0;
+      z-index: 10000;
+      white-space: nowrap;
+      max-width: 90vw;
+    }
+    #alert-banner.active {
+      transform: translate(-50%, -50%) scale(1);
+      opacity: 1;
+    }
+    #alert-banner.smash {
+      background: var(--brut-yellow);
+      color: var(--brut-black);
+    }
+    #alert-banner.recoil {
+      background: var(--brut-red);
+      color: #fff;
+    }
+    #alert-banner.respawn {
+      background: var(--brut-cyan);
+      color: #000;
+    }
+
+    /* Countdown Overlay */
+    #countdown-overlay {
+      position: absolute;
+      top: 40%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-family: var(--font-display);
+      font-size: 140px;
+      font-weight: 900;
+      color: var(--brut-yellow);
+      -webkit-text-stroke: 4px #000;
+      text-shadow: 8px 8px 0px #000;
+      display: none;
+      z-index: 25;
+      pointer-events: none;
+    }
+
+    /* Hero Combat Smash Overlay (Exact Start-Game SMASH! Typography) */
+    #smash-combat-overlay {
+      position: absolute;
+      top: 38%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.4);
+      font-family: var(--font-display);
+      font-size: 56px;
+      font-weight: 900;
+      letter-spacing: 1.5px;
+      color: var(--brut-yellow);
+      -webkit-text-stroke: 3.5px #000;
+      text-shadow: 6px 6px 0px #000;
+      display: none;
+      z-index: 26;
+      pointer-events: none;
+      text-align: center;
+      white-space: nowrap;
+      text-transform: uppercase;
+      opacity: 0;
+      transition: transform 0.22s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.22s;
+    }
+    #smash-combat-overlay.active {
+      display: block;
+      transform: translate(-50%, -50%) scale(1.0);
+      opacity: 1;
+    }
+    #smash-combat-overlay.double {
+      color: #00F0FF;
+      font-size: 68px;
+      -webkit-text-stroke: 4px #000;
+      text-shadow: 8px 8px 0px #000;
+    }
+    #smash-combat-overlay.triple {
+      color: #FF385C;
+      font-size: 76px;
+      -webkit-text-stroke: 4.5px #000;
+      text-shadow: 9px 9px 0px #000;
+    }
+    #smash-combat-overlay.mega {
+      color: #FFE600;
+      font-size: 82px;
+      -webkit-text-stroke: 5px #000;
+      text-shadow: 10px 10px 0px #000;
+      animation: smashMegaPulse 0.3s infinite alternate;
+    }
+    @keyframes smashMegaPulse {
+      from { transform: translate(-50%, -50%) scale(1.0); }
+      to { transform: translate(-50%, -50%) scale(1.08); }
+    }
+
+    /* Flashing Wrong-Way Warning Banner */
+    #wrong-way-banner {
+      position: absolute;
+      top: 20%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-family: var(--font-display);
+      font-size: 32px;
+      font-weight: 900;
+      letter-spacing: 2px;
+      color: #fff;
+      background: var(--brut-red);
+      border: var(--brut-border);
+      box-shadow: var(--brut-shadow-lg);
+      border-radius: 18px;
+      padding: 12px 30px;
+      display: none;
+      z-index: 35;
+      pointer-events: none;
+      animation: wrongWayFlash 0.35s infinite alternate;
+    }
+
+    @keyframes wrongWayFlash {
+      0% { transform: translate(-50%, -50%) scale(0.96); opacity: 0.95; }
+      100% { transform: translate(-50%, -50%) scale(1.04); opacity: 1; background: #000; color: var(--brut-red); }
+    }

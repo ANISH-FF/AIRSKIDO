@@ -1,0 +1,991 @@
+/* ================================================================
+   AIRSKID RACING // IN-GAME HUD & TELEMETRY SYSTEMS
+   ================================================================ */
+    /* ── IN-GAME BRUTOPIA HUD ── */
+    #hud-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 10;
+      display: none;
+    }
+
+    /* Top Left: Position & Laps */
+    .top-left-hud {
+      position: absolute;
+      top: 16px;
+      left: 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .pos-badge {
+      background: var(--brut-yellow);
+      color: var(--brut-black);
+      padding: 6px 16px;
+      border-radius: 14px;
+      font-family: var(--font-display);
+      font-size: 34px;
+      font-weight: 800;
+      border: var(--brut-border);
+      box-shadow: var(--brut-shadow);
+      line-height: 1;
+      transform: rotate(-2deg);
+    }
+
+    .lap-box {
+      background: var(--brut-white);
+      border: var(--brut-border);
+      box-shadow: var(--brut-shadow-sm);
+      border-radius: 12px;
+      padding: 6px 14px;
+      color: var(--brut-black);
+    }
+    .lap-title {
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: #666;
+    }
+    .lap-num {
+      font-family: var(--font-display);
+      font-size: 24px;
+      font-weight: 800;
+      line-height: 1.1;
+      color: var(--brut-black);
+    }
+
+    /* Top Right: Minimap */
+    .top-right-hud {
+      position: absolute;
+      top: 16px;
+      right: 20px;
+    }
+
+    .minimap-card {
+      background: var(--brut-white);
+      border: var(--brut-border);
+      box-shadow: var(--brut-shadow);
+      border-radius: 18px;
+      padding: 6px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .minimap-title {
+      font-family: var(--font-display);
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 1.5px;
+      color: var(--brut-black);
+      text-transform: uppercase;
+      text-align: center;
+      width: 100%;
+    }
+
+    #minimap-canvas {
+      width: 130px;
+      height: 130px;
+      background: #0d121c;
+      border-radius: 12px;
+      border: 2.5px solid #000;
+      display: block;
+    }
+
+    /* ── LIVE STANDINGS & LAPS CARD ── */
+    .live-standings-card {
+      position: absolute;
+      top: 86px;
+      left: 20px;
+      background: var(--brut-white);
+      border: var(--brut-border);
+      box-shadow: var(--brut-shadow-sm);
+      border-radius: 14px;
+      padding: 6px 10px;
+      min-width: 175px;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .standings-title {
+      font-size: 10px;
+      font-weight: 900;
+      letter-spacing: 1.5px;
+      color: #666;
+      text-transform: uppercase;
+      border-bottom: 1.5px solid #eee;
+      padding-bottom: 2px;
+    }
+    .standings-list {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .standing-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 800;
+      padding: 2px 5px;
+      border-radius: 6px;
+      background: #f7f7f7;
+    }
+    .standing-row.is-player {
+      background: var(--brut-yellow);
+      color: #000;
+      box-shadow: 1px 1px 0px #000;
+    }
+    .standing-row.is-spectated {
+      outline: 2px solid #00f0ff;
+    }
+    .standing-rank-badge {
+      font-family: var(--font-display);
+      font-size: 12px;
+      font-weight: 900;
+      min-width: 16px;
+    }
+    .standing-name-text {
+      flex: 1;
+      text-align: left;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 82px;
+    }
+    .standing-lap-tag {
+      font-family: var(--font-display);
+      font-size: 10.5px;
+      font-weight: 900;
+      padding: 1px 5px;
+      background: #000;
+      color: #fff;
+      border-radius: 4px;
+    }
+    .standing-lap-tag.finished {
+      background: #00D26A;
+      color: #000;
+    }
+    .standing-lap-tag.final-lap {
+      background: #FF385C;
+      color: #fff;
+    }
+
+    /* ── FINISH COUNTDOWN BANNER ── */
+    #finish-countdown-banner {
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #FF385C;
+      color: #fff;
+      border: 3px solid #000;
+      box-shadow: 4px 4px 0px #000;
+      border-radius: 24px;
+      padding: 6px 18px;
+      font-family: var(--font-display);
+      font-size: 17px;
+      font-weight: 900;
+      letter-spacing: 1px;
+      display: none;
+      align-items: center;
+      gap: 8px;
+      z-index: 35;
+      animation: finishPulse 1.0s infinite alternate ease-in-out;
+    }
+    @keyframes finishPulse {
+      0% { transform: translateX(-50%) scale(0.97); }
+      100% { transform: translateX(-50%) scale(1.03); }
+    }
+
+    /* ── SPECTATOR MODE OVERLAY ── */
+    #spectator-overlay {
+      position: absolute;
+      bottom: 95px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(13, 18, 28, 0.92);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 3px solid #000;
+      box-shadow: 4px 4px 0px #000;
+      border-radius: 18px;
+      padding: 8px 16px;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      z-index: 40;
+      pointer-events: auto;
+    }
+    .spectator-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: var(--font-display);
+      font-size: 14px;
+      font-weight: 900;
+      color: #fff;
+      letter-spacing: 1px;
+    }
+    .spectator-live-dot {
+      color: #ff3366;
+      font-size: 16px;
+      animation: liveBlink 1s infinite alternate;
+    }
+    @keyframes liveBlink {
+      0% { opacity: 0.3; }
+      100% { opacity: 1.0; }
+    }
+    .spectator-pos-tag {
+      background: var(--brut-yellow);
+      color: #000;
+      padding: 1px 6px;
+      border-radius: 6px;
+      font-size: 13px;
+      border: 1.5px solid #000;
+    }
+    .spectator-controls {
+      display: flex;
+      gap: 8px;
+    }
+    .spectator-btn {
+      background: var(--brut-white);
+      color: #000;
+      border: 2px solid #000;
+      box-shadow: 2px 2px 0px #000;
+      border-radius: 8px;
+      padding: 4px 12px;
+      font-family: var(--font-display);
+      font-size: 12px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: all 0.08s ease;
+    }
+    .spectator-btn:active {
+      transform: translate(2px, 2px);
+      box-shadow: 0px 0px 0px #000;
+    }
+    .spectator-btn-leave {
+      background: #ff3366;
+      color: #fff;
+    }
+    .spectator-btn-leave:hover {
+      background: #ff0044;
+    }
+
+    /* Bottom Right: Neo-Brutalist Speedometer & Nitro HUD */
+    .speedo-container {
+      position: absolute;
+      bottom: 24px;
+      right: 24px;
+      background: var(--brut-white);
+      border: var(--brut-border);
+      box-shadow: var(--brut-shadow);
+      border-radius: 18px;
+      padding: 12px 18px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-width: 175px;
+    }
+
+    .speedo-digits-col {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      width: 100%;
+    }
+
+    .speed-value {
+      font-family: var(--font-digital);
+      font-size: 64px;
+      color: var(--brut-black);
+      line-height: 0.85;
+      letter-spacing: 1px;
+    }
+    .speed-unit {
+      font-family: var(--font-display);
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--brut-red);
+      letter-spacing: 2px;
+      margin-top: 2px;
+    }
+
+    .nitro-card {
+      width: 100%;
+      margin-top: 10px;
+      padding-top: 8px;
+      border-top: 2.5px solid #000;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .nitro-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      font-family: var(--font-display);
+    }
+
+    .nitro-card-title {
+      font-size: 13px;
+      font-weight: 900;
+      color: #000;
+      letter-spacing: 1px;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+
+    .nitro-card-count {
+      font-size: 13px;
+      font-weight: 900;
+      color: #000;
+      background: #00f0ff;
+      border: 1.5px solid #000;
+      border-radius: 6px;
+      padding: 1px 7px;
+      letter-spacing: 0.5px;
+      box-shadow: 1.5px 1.5px 0px #000;
+    }
+
+    .nitro-card-count.depleted {
+      color: #777;
+      background: #eee;
+      box-shadow: none;
+    }
+
+    .nitro-card-hint {
+      font-size: 10px;
+      font-weight: 900;
+      color: #222;
+      background: #ffe600;
+      border: 1.5px solid #000;
+      border-radius: 5px;
+      padding: 1px 5px;
+      letter-spacing: 0.5px;
+    }
+
+    .nitro-pips-container {
+      display: flex;
+      gap: 6px;
+      width: 100%;
+      justify-content: center;
+    }
+    .nitro-pip {
+      flex: 1;
+      height: 10px;
+      background: #2a2c38;
+      border: 2px solid #000;
+      border-radius: 5px;
+      transition: background 0.15s ease, box-shadow 0.15s ease;
+    }
+    .nitro-pip.active {
+      background: #00f0ff;
+      box-shadow: 0 0 10px rgba(0, 240, 255, 0.85);
+    }
+
+    .nitro-bar-container {
+      width: 100%;
+      height: 8px;
+      background: #1a1a22;
+      border-radius: 5px;
+      overflow: hidden;
+      border: 1.5px solid #000;
+    }
+    .nitro-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #00f0ff, #ffe600);
+      transition: width 0.08s linear;
+    }
+
+    /* Mobile Responsive Speedometer: Low-profile, sleek HUD readout (Never blocks the kart!) */
+    @media (max-width: 950px), (max-height: 520px), (hover: none) and (pointer: coarse) {
+      .speedo-container {
+        position: absolute;
+        bottom: 8px;
+        left: 50%;
+        right: auto;
+        transform: translateX(-50%);
+        min-width: 0;
+        width: auto;
+        padding: 3px 12px;
+        background: rgba(15, 23, 42, 0.88);
+        border: 2px solid #000;
+        box-shadow: 2.5px 2.5px 0px #000;
+        border-radius: 12px;
+        z-index: 15;
+        flex-direction: row;
+        align-items: baseline;
+        gap: 6px;
+      }
+      .speedo-digits-col {
+        flex-direction: row;
+        align-items: baseline;
+        justify-content: center;
+        gap: 4px;
+        width: auto;
+      }
+      .speed-value {
+        font-family: var(--font-digital);
+        font-size: 26px;
+        color: #FFDE59;
+        line-height: 1;
+        letter-spacing: 0.5px;
+        text-shadow: 1px 1px 0 #000;
+      }
+      .speed-unit {
+        font-family: var(--font-display);
+        font-size: 9px;
+        font-weight: 900;
+        color: #FFFFFF;
+        letter-spacing: 1px;
+        margin-top: 0;
+      }
+      /* Hide redundant desktop nitro widget on mobile — touch button controls nitro! */
+      .nitro-card {
+        display: none !important;
+      }
+    }
+
+
+/* ================================================================
+   MOBILE TOUCH CONTROLS & HUD CLUSTER
+   ================================================================ */
+    /* ── MOBILE TOUCH CONTROLS (NFS / Asphalt Mobile Arcade Style) ── */
+    #touch-controls {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      display: none;
+      z-index: 15;
+    }
+
+    /* ── RIGHT CLUSTER: Throttle, Brake, Nitro & Drift Pedals ── */
+    .touch-pedal-cluster {
+      position: absolute;
+      bottom: 20px;
+      right: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      align-items: flex-end;
+      pointer-events: auto;
+      touch-action: none;
+      z-index: 15;
+    }
+
+    .touch-pedal-top-row {
+      display: flex;
+      width: 100%;
+      align-items: center;
+      justify-content: stretch;
+    }
+
+    .touch-pedal-row {
+      display: flex;
+      gap: 10px;
+      align-items: flex-end;
+      justify-content: flex-end;
+    }
+
+    /* ── COMMON CLEAN SEMI-TRANSPARENT BUTTON BASE (ZERO GLOW) ── */
+    .touch-ctrl-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-display);
+      font-weight: 900;
+      border: 1.5px solid rgba(255, 255, 255, 0.25);
+      background: rgba(14, 18, 28, 0.38);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+      color: #fff;
+      touch-action: none;
+      user-select: none;
+      -webkit-user-select: none;
+      transition: transform 0.04s ease, border-color 0.08s ease, background 0.08s ease;
+      cursor: pointer;
+      pointer-events: auto;
+    }
+    .touch-ctrl-btn:active, .touch-ctrl-btn.pressed {
+      transform: scale(0.94);
+      box-shadow: none !important;
+    }
+
+    /* Square Gas Pedal */
+    .btn-gas-square {
+      width: 76px;
+      height: 82px;
+      border-radius: 18px;
+      background: rgba(0, 210, 106, 0.28);
+      border-color: rgba(0, 255, 136, 0.45);
+    }
+    .btn-gas-square .ctrl-icon-gas {
+      font-size: 24px;
+      line-height: 1;
+      color: #00ff88;
+    }
+    .btn-gas-square .ctrl-label-gas {
+      font-size: 13px;
+      letter-spacing: 1px;
+      font-weight: 900;
+      color: #fff;
+    }
+    .gas-pedal-grooves {
+      display: flex;
+      gap: 3px;
+      margin-top: 4px;
+    }
+    .gas-pedal-grooves span {
+      display: inline-block;
+      width: 12px;
+      height: 2.5px;
+      background: rgba(255, 255, 255, 0.35);
+      border-radius: 2px;
+    }
+    .btn-gas-square:active, .btn-gas-square.pressed {
+      background: rgba(0, 210, 106, 0.55);
+      border-color: rgba(0, 255, 136, 0.75);
+      box-shadow: none !important;
+    }
+
+    /* Square Brake Pedal */
+    .btn-brake-square {
+      width: 66px;
+      height: 70px;
+      border-radius: 16px;
+      background: rgba(255, 56, 92, 0.26);
+      border-color: rgba(255, 70, 100, 0.45);
+    }
+    .btn-brake-square .ctrl-icon {
+      font-size: 18px;
+      line-height: 1;
+      color: #ff385c;
+    }
+    .btn-brake-square .ctrl-label {
+      font-size: 10px;
+      letter-spacing: 1px;
+      color: #fff;
+    }
+    .btn-brake-square:active, .btn-brake-square.pressed {
+      background: rgba(255, 56, 92, 0.55);
+      border-color: rgba(255, 70, 100, 0.75);
+      box-shadow: none !important;
+    }
+
+    /* Nitro Pill Button (Spans cleanly across steering cluster on LEFT side) */
+    .touch-steer-top-row {
+      width: 100%;
+    }
+    .btn-nitro {
+      width: 100%;
+      height: 42px;
+      padding: 0 16px;
+      border-radius: 14px;
+      background: rgba(0, 240, 255, 0.28);
+      border: 1.5px solid rgba(0, 240, 255, 0.55);
+      box-shadow: 0 2px 10px rgba(0, 240, 255, 0.25);
+      display: flex;
+      flex-direction: row;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 900;
+      letter-spacing: 0.8px;
+      cursor: pointer;
+    }
+    .btn-nitro .ctrl-icon-sm {
+      font-size: 16px;
+      color: #ffe600;
+    }
+    .btn-nitro:active, .btn-nitro.pressed {
+      background: rgba(0, 240, 255, 0.55);
+      border-color: rgba(0, 240, 255, 0.85);
+      box-shadow: none !important;
+    }
+    .btn-nitro.depleted {
+      opacity: 0.35;
+      filter: grayscale(0.9);
+    }
+
+    /* ── LEFT CLUSTER: Dual Steering Buttons + Top Nitro ── */
+    .touch-steer-container {
+      position: absolute;
+      bottom: 20px;
+      left: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      align-items: center;
+      width: 156px;
+      pointer-events: auto;
+      touch-action: none;
+      z-index: 15;
+    }
+
+    .touch-steer-cluster {
+      display: flex;
+      gap: 12px;
+      width: 100%;
+      justify-content: space-between;
+      align-items: center;
+      touch-action: none;
+    }
+    .btn-steer {
+      width: 72px;
+      height: 72px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.10);
+      border: 1.5px solid rgba(255, 255, 255, 0.25);
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
+      color: #fff;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+    .btn-steer .ctrl-icon {
+      font-size: 26px;
+      line-height: 1;
+    }
+    .btn-steer .ctrl-sub {
+      font-size: 9px;
+      letter-spacing: 1px;
+      margin-top: 2px;
+      font-weight: 800;
+      color: rgba(255, 255, 255, 0.75);
+    }
+    .btn-steer:active, .btn-steer.pressed {
+      transform: scale(0.93);
+      background: rgba(255, 255, 255, 0.22);
+      border-color: rgba(255, 255, 255, 0.45);
+      box-shadow: none !important;
+    }
+
+
+
+
+/* ================================================================
+   RUMBLE ARENA SCOREBOARD & COMBAT KILLFEED
+   ================================================================ */
+    /* ── RUMBLE ARENA SCOREBOARD (NEO-BRUTALIST ARCADE THEME) ── */
+    .rumble-hud-bar {
+      position: absolute;
+      top: 14px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      z-index: 25;
+      pointer-events: none;
+    }
+    .rumble-team-box {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--brut-white);
+      border: var(--brut-border);
+      box-shadow: var(--brut-shadow);
+      border-radius: 14px;
+      padding: 6px 16px;
+      font-family: var(--font-display);
+    }
+    .rumble-team-box.frost-box,
+    .rumble-team-box.cyan-box {
+      border-color: #000;
+      background: linear-gradient(135deg, #e0f9ff 0%, #ffffff 100%);
+    }
+    .rumble-team-box.blaze-box,
+    .rumble-team-box.crimson-box {
+      border-color: #000;
+      background: linear-gradient(135deg, #ffe5eb 0%, #ffffff 100%);
+    }
+    .rumble-team-name {
+      font-size: 14px;
+      font-weight: 900;
+      letter-spacing: 1px;
+    }
+    .frost-box .rumble-team-name,
+    .cyan-box .rumble-team-name { color: #0088cc; }
+    .blaze-box .rumble-team-name,
+    .crimson-box .rumble-team-name { color: #dd2211; }
+    .rumble-team-score {
+      font-family: var(--font-digital);
+      font-size: 32px;
+      font-weight: 900;
+      line-height: 1;
+      padding: 0 4px;
+    }
+    .frost-box .rumble-team-score,
+    .cyan-box .rumble-team-score { color: #0099dd; }
+    .blaze-box .rumble-team-score,
+    .crimson-box .rumble-team-score { color: #dd2211; }
+
+    .team-glow-indicator.frost-indicator,
+    .team-glow-indicator.cyan-indicator {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #00f0ff;
+      box-shadow: 0 0 10px #00f0ff;
+    }
+    .team-glow-indicator.blaze-indicator,
+    .team-glow-indicator.crimson-indicator {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #ff3344;
+      box-shadow: 0 0 10px #ff3344;
+    }
+
+    .rumble-center-badge {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: var(--brut-yellow);
+      border: var(--brut-border);
+      box-shadow: var(--brut-shadow);
+      border-radius: 14px;
+      padding: 4px 14px;
+      text-align: center;
+    }
+    .rumble-match-title {
+      font-family: var(--font-display);
+      font-size: 10px;
+      font-weight: 900;
+      letter-spacing: 1px;
+      color: #000;
+      text-transform: uppercase;
+    }
+    .rumble-timer-display {
+      font-family: var(--font-telemetry);
+      font-size: 16px;
+      font-weight: 900;
+      color: #000;
+      letter-spacing: 1px;
+    }
+
+    /* ── HIGH-CONTRAST ARCADE KILLFEED (VALORANT DARK-GLASS THEME) ── */
+    .killfeed-container {
+      position: absolute;
+      top: 76px;
+      left: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      align-items: flex-start;
+      z-index: 45;
+      pointer-events: none;
+      max-width: 440px;
+    }
+    .killfeed-entry {
+      background: rgba(12, 16, 26, 0.90);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      color: #fff;
+      border: 2px solid #000;
+      border-radius: 12px;
+      padding: 5px 12px;
+      font-family: var(--font-display);
+      font-size: 12.5px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      box-shadow: 3px 3px 0px #000;
+      animation: killfeedSlideCute 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      white-space: nowrap;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    @keyframes killfeedSlideCute {
+      from { transform: translateX(-24px) scale(0.9); opacity: 0; }
+      to { transform: translateX(0) scale(1.0); opacity: 1; }
+    }
+    .killfeed-entry.self-kill {
+      border-color: #FFE600 !important;
+      box-shadow: 0 0 12px rgba(255, 230, 0, 0.45), 3px 3px 0px #000 !important;
+    }
+    .killfeed-tag {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1px 6px;
+      border-radius: 6px;
+      border: 1.5px solid #000;
+      font-size: 9.5px;
+      font-weight: 900;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+    .killfeed-tag.smash {
+      background: var(--brut-yellow);
+      color: #000;
+    }
+    .killfeed-tag.fall {
+      background: var(--brut-red);
+      color: #fff;
+    }
+    .killfeed-name {
+      font-weight: 900;
+    }
+    .killfeed-name.team-frost,
+    .killfeed-name.team-cyan {
+      color: #00f0ff;
+      text-shadow: 0 0 6px rgba(0, 240, 255, 0.5);
+    }
+    .killfeed-name.team-blaze,
+    .killfeed-name.team-crimson {
+      color: #ff3344;
+      text-shadow: 0 0 6px rgba(255, 51, 68, 0.5);
+    }
+    .killfeed-name.team-solo {
+      color: #ffe600;
+    }
+    .killfeed-verb {
+      color: #e2e8f0;
+      font-weight: 700;
+      font-style: italic;
+    }
+    .killfeed-sub {
+      color: #94a3b8;
+      font-weight: 600;
+    }
+
+    /* ── SKY RUMBLE OUTRO VICTORY BANNER (NEO-BRUTALIST) ── */
+    #rumble-victory-banner {
+      position: absolute;
+      top: 38%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 50;
+      pointer-events: none;
+      text-align: center;
+      animation: victoryPopSpring 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+
+    @keyframes victoryPopSpring {
+      0% { transform: translate(-50%, -50%) scale(0.4); opacity: 0; }
+      75% { transform: translate(-50%, -50%) scale(1.08); opacity: 1; }
+      100% { transform: translate(-50%, -50%) scale(1.0); opacity: 1; }
+    }
+
+    .rumble-banner-subtag {
+      font-family: var(--font-display);
+      font-size: 13px;
+      font-weight: 900;
+      letter-spacing: 2.5px;
+      background: #000;
+      color: #FFF;
+      padding: 4px 16px;
+      border-radius: 8px;
+      border: 2px solid #000;
+      box-shadow: 2.5px 2.5px 0 #000;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    .rumble-banner-title {
+      font-family: var(--font-display);
+      font-size: 76px;
+      font-weight: 900;
+      line-height: 0.95;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      -webkit-text-stroke: 4px #000;
+      text-shadow: 7px 7px 0px #000;
+      white-space: nowrap;
+    }
+
+    #rumble-victory-banner.theme-frost .rumble-banner-title {
+      color: #00F0FF;
+    }
+    #rumble-victory-banner.theme-blaze .rumble-banner-title {
+      color: #FF385C;
+    }
+    #rumble-victory-banner.theme-solo .rumble-banner-title {
+      color: #FFE600;
+    }
+    #rumble-victory-banner.theme-draw .rumble-banner-title {
+      color: #FFFFFF;
+    }
+
+    .rumble-banner-subtext {
+      font-family: var(--font-display);
+      font-size: 16px;
+      font-weight: 900;
+      letter-spacing: 1.5px;
+      background: #FFF;
+      color: #000;
+      border: 3px solid #000;
+      box-shadow: 4px 4px 0 #000;
+      border-radius: 12px;
+      padding: 6px 22px;
+      margin-top: 10px;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .rumble-banner-timer-pill {
+      font-family: var(--font-telemetry);
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: 1px;
+      color: #E2E8F0;
+      background: rgba(15, 23, 42, 0.92);
+      border: 2px solid #000;
+      border-radius: 14px;
+      padding: 3px 14px;
+      margin-top: 10px;
+      box-shadow: 2px 2px 0 #000;
+      text-transform: uppercase;
+      animation: bannerPillPulse 1s infinite alternate ease-in-out;
+    }
+
+    @keyframes bannerPillPulse {
+      0% { opacity: 0.8; transform: scale(0.98); }
+      100% { opacity: 1.0; transform: scale(1.02); }
+    }
+
+    @media (max-width: 768px) {
+      .rumble-banner-title {
+        font-size: 44px;
+        -webkit-text-stroke: 2.5px #000;
+        text-shadow: 4px 4px 0 #000;
+      }
+      .rumble-banner-subtext {
+        font-size: 12px;
+        padding: 4px 14px;
+        border-width: 2px;
+      }
+      .rumble-banner-subtag {
+        font-size: 11px;
+        padding: 3px 10px;
+      }
+    }
+
+

@@ -1,0 +1,707 @@
+/* ================================================================
+   AIRSKID RACING // NAME SYSTEM & RACER CALLSIGN MODAL
+   ================================================================ */
+
+/* ── Lobby Top Bar Pilot Card ─────────────────────────────────── */
+.lobby-pilot-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #FFFFFF;
+  border: 2px solid #000000;
+  box-shadow: 2.5px 2.5px 0px #000000;
+  border-radius: 12px;
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.12s ease;
+  user-select: none;
+  text-align: left;
+}
+
+.lobby-pilot-card:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 3.5px 3.5px 0px #000000;
+  background: #FFFDF0;
+}
+
+.lobby-pilot-card:active {
+  transform: translate(1px, 1px);
+  box-shadow: 1.5px 1.5px 0px #000000;
+}
+
+.pilot-avatar-badge {
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  background: #FFE600;
+  border: 1.8px solid #000000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.pilot-info-col {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 90px;
+}
+
+.pilot-name-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pilot-name {
+  font-family: var(--font-display, 'Rajdhani', sans-serif);
+  font-size: 15px;
+  font-weight: 900;
+  color: #000000;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  max-width: 110px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pilot-edit-chip {
+  background: #FFE600;
+  border: 1.2px solid #000000;
+  border-radius: 6px;
+  padding: 1px 5px;
+  font-family: var(--font-telemetry, 'Space Grotesk', sans-serif);
+  font-size: 9px;
+  font-weight: 900;
+  color: #000000;
+  letter-spacing: 0.4px;
+}
+
+.pilot-id-tag {
+  font-family: var(--font-telemetry, 'Space Grotesk', monospace);
+  font-size: 11px;
+  font-weight: 700;
+  color: #64748B;
+  letter-spacing: 0.3px;
+}
+
+/* ── Change Name Modal Specifics ──────────────────────────────── */
+.name-modal-card {
+  background: #FFFFFF !important;
+  border: 3px solid #000000 !important;
+  box-shadow: 6px 6px 0px #000000 !important;
+  border-radius: 18px !important;
+}
+
+.name-meta-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  background: #F8FAFC;
+  border: 2px solid #000000;
+  box-shadow: 2px 2px 0px #000000;
+  border-radius: 12px;
+  padding: 10px 14px;
+  margin-bottom: 14px;
+}
+
+.name-meta-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.name-meta-lbl {
+  font-family: var(--font-telemetry, 'Space Grotesk', sans-serif);
+  font-size: 10px;
+  font-weight: 800;
+  color: #64748B;
+  letter-spacing: 0.5px;
+}
+
+.name-meta-val {
+  font-family: var(--font-display, 'Rajdhani', sans-serif);
+  font-size: 16px;
+  font-weight: 900;
+  color: #000000;
+  letter-spacing: 0.5px;
+}
+
+.name-meta-divider {
+  width: 2px;
+  height: 28px;
+  background: #E2E8F0;
+}
+
+.name-input-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+  text-align: left;
+}
+
+.name-input-label {
+  font-family: var(--font-display, 'Rajdhani', sans-serif);
+  font-size: 12px;
+  font-weight: 900;
+  color: #1E293B;
+  letter-spacing: 0.8px;
+}
+
+.name-text-input {
+  width: 100%;
+  box-sizing: border-box;
+  background: #FFFFFF;
+  border: 2.5px solid #000000;
+  box-shadow: 3px 3px 0px #000000;
+  border-radius: 10px;
+  padding: 11px 14px;
+  font-family: var(--font-display, 'Rajdhani', sans-serif);
+  font-size: 20px;
+  font-weight: 900;
+  color: #000000;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.name-text-input:focus {
+  border-color: #000000;
+  box-shadow: 3.5px 3.5px 0px #FFE600;
+  background: #FFFDF0;
+}
+
+.name-text-input::placeholder {
+  color: #94A3B8;
+  font-size: 16px;
+  letter-spacing: 0.5px;
+  text-transform: none;
+}
+
+/* ── Live Status Badge (Clean typography, ZERO emojis) ────────── */
+.name-status-badge {
+  font-family: var(--font-display, 'Rajdhani', sans-serif);
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 0.6px;
+  text-align: center;
+  padding: 8px 12px;
+  border-radius: 9px;
+  border: 2px solid #000000;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  transition: all 0.15s ease;
+}
+
+.name-status-badge.status-idle {
+  background: #F1F5F9;
+  border-color: #CBD5E1;
+  color: #64748B;
+  box-shadow: none;
+}
+
+.name-status-badge.status-valid {
+  background: #D1FAE5;
+  border-color: #059669;
+  color: #065F46;
+  box-shadow: 2px 2px 0px #059669;
+}
+
+.name-status-badge.status-invalid {
+  background: #FEE2E2;
+  border-color: #DC2626;
+  color: #991B1B;
+  box-shadow: 2px 2px 0px #DC2626;
+}
+
+.name-status-badge.status-taken {
+  background: #FEF3C7;
+  border-color: #D97706;
+  color: #92400E;
+  box-shadow: 2px 2px 0px #D97706;
+}
+
+.name-status-badge.status-checking {
+  background: #E0F2FE;
+  border-color: #0284C7;
+  color: #0369A1;
+  box-shadow: 2px 2px 0px #0284C7;
+}
+
+.name-rules-hint {
+  font-family: var(--font-telemetry, 'Space Grotesk', sans-serif);
+  font-size: 10px;
+  font-weight: 700;
+  color: #64748B;
+  letter-spacing: 0.4px;
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+/* ── Modal Action Buttons ─────────────────────────────────────── */
+.name-actions-row {
+  display: grid;
+  grid-template-columns: 1fr 1.6fr;
+  gap: 10px;
+}
+
+.name-btn-cancel {
+  background: #FFFFFF;
+  border: 2px solid #000000;
+  box-shadow: 2.5px 2.5px 0px #000000;
+  border-radius: 12px;
+  padding: 12px;
+  font-family: var(--font-display, 'Rajdhani', sans-serif);
+  font-size: 14px;
+  font-weight: 900;
+  color: #000000;
+  cursor: pointer;
+  letter-spacing: 0.5px;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.name-btn-cancel:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 3px 3px 0px #000000;
+}
+
+.name-btn-cancel:active {
+  transform: translate(1px, 1px);
+  box-shadow: 1.5px 1.5px 0px #000000;
+}
+
+.name-btn-save {
+  background: #FFE600;
+  border: 2px solid #000000;
+  box-shadow: 3px 3px 0px #000000;
+  border-radius: 12px;
+  padding: 12px;
+  font-family: var(--font-display, 'Rajdhani', sans-serif);
+  font-size: 15px;
+  font-weight: 900;
+  color: #000000;
+  cursor: pointer;
+  letter-spacing: 0.8px;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.12s ease;
+}
+
+.name-btn-save:hover:not(:disabled) {
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0px #000000;
+  background: #FFED4A;
+}
+
+.name-btn-save:active:not(:disabled) {
+  transform: translate(1.5px, 1.5px);
+  box-shadow: 1.5px 1.5px 0px #000000;
+}
+
+.name-btn-save:disabled,
+.name-btn-save.btn-disabled {
+  background: #E2E8F0 !important;
+  color: #94A3B8 !important;
+  border-color: #CBD5E1 !important;
+  box-shadow: none !important;
+  cursor: not-allowed !important;
+  transform: none !important;
+}
+
+/* ── Google Navbar Button ─────────────────────────────────────── */
+.lobby-google-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #FFFFFF;
+  border: 2px solid #000000;
+  box-shadow: 2.5px 2.5px 0px #000000;
+  border-radius: 12px;
+  padding: 5px 10px;
+  cursor: pointer;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.12s ease;
+  user-select: none;
+  text-align: left;
+}
+
+.lobby-google-btn:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 3.5px 3.5px 0px #000000;
+  background: #F8FAFC;
+}
+
+.lobby-google-btn:active {
+  transform: translate(1px, 1px);
+  box-shadow: 1.5px 1.5px 0px #000000;
+}
+
+.lobby-google-btn.google-linked {
+  background: #F0FDF4;
+  border-color: #000000;
+}
+
+.google-logo-box {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: #FFFFFF;
+  border: 1.5px solid #000000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.google-logo-badge {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: #FFFFFF;
+  border: 2px solid #000000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 2px 2px 0px #000000;
+}
+
+.google-btn-text {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.google-btn-title {
+  font-family: var(--font-display, 'Rajdhani', sans-serif);
+  font-size: 13px;
+  font-weight: 900;
+  color: #000000;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  max-width: 95px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.google-btn-sub {
+  font-family: var(--font-telemetry, 'Space Grotesk', sans-serif);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+}
+
+.google-btn-sub.sub-unlinked {
+  color: #64748B;
+}
+
+.google-btn-sub.sub-linked {
+  color: #16A34A;
+}
+
+/* ── Google Modal Styles ──────────────────────────────────────── */
+.google-benefit-card {
+  background: #F8FAFC;
+  border: 2px solid #000000;
+  box-shadow: 2.5px 2.5px 0px #000000;
+  border-radius: 12px;
+  padding: 12px 14px;
+  text-align: left;
+}
+
+.google-benefit-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.google-benefit-tag {
+  font-family: var(--font-telemetry, 'Space Grotesk', sans-serif);
+  font-size: 10px;
+  font-weight: 800;
+  color: #64748B;
+  letter-spacing: 0.5px;
+}
+
+.google-benefit-val {
+  font-family: var(--font-display, 'Rajdhani', sans-serif);
+  font-size: 16px;
+  font-weight: 900;
+  color: #000000;
+}
+
+.google-benefit-desc {
+  font-family: var(--font-telemetry, 'Space Grotesk', sans-serif);
+  font-size: 11px;
+  font-weight: 600;
+  color: #475569;
+  line-height: 1.45;
+  margin: 0;
+}
+
+.google-action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  background: #FFFFFF;
+  border: 2.5px solid #000000;
+  box-shadow: 3.5px 3.5px 0px #000000;
+  border-radius: 12px;
+  padding: 13px;
+  font-family: var(--font-display, 'Rajdhani', sans-serif);
+  font-size: 15px;
+  font-weight: 900;
+  color: #000000;
+  cursor: pointer;
+  letter-spacing: 0.8px;
+  margin-top: 14px;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.12s ease;
+}
+
+.google-action-btn:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 4.5px 4.5px 0px #000000;
+  background: #F8FAFC;
+}
+
+.google-action-btn:active {
+  transform: translate(1.5px, 1.5px);
+  box-shadow: 1.5px 1.5px 0px #000000;
+}
+
+.google-linked-card {
+  background: #F0FDF4;
+  border: 2px solid #000000;
+  box-shadow: 2.5px 2.5px 0px #000000;
+  border-radius: 12px;
+  padding: 14px;
+  text-align: left;
+}
+
+.google-linked-header {
+  margin-bottom: 10px;
+}
+
+.google-status-pill {
+  background: #D1FAE5;
+  border: 1.5px solid #059669;
+  border-radius: 7px;
+  padding: 3px 8px;
+  font-family: var(--font-display, 'Rajdhani', sans-serif);
+  font-size: 12px;
+  font-weight: 900;
+  color: #065F46;
+  letter-spacing: 0.5px;
+}
+
+.google-linked-info-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.google-info-unit {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #DCFCE7;
+  padding-bottom: 4px;
+}
+
+.google-info-unit:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.google-unit-label {
+  font-family: var(--font-telemetry, 'Space Grotesk', sans-serif);
+  font-size: 10px;
+  font-weight: 800;
+  color: #64748B;
+  letter-spacing: 0.4px;
+}
+
+.google-unit-val {
+  font-family: var(--font-display, 'Rajdhani', sans-serif);
+  font-size: 14px;
+  font-weight: 900;
+  color: #000000;
+}
+
+.google-signout-btn {
+  background: #FEE2E2;
+  border: 2px solid #000000;
+  box-shadow: 2.5px 2.5px 0px #000000;
+  border-radius: 12px;
+  padding: 10px 14px;
+  font-family: var(--font-display, 'Rajdhani', sans-serif);
+  font-size: 13px;
+  font-weight: 900;
+  color: #DC2626;
+  cursor: pointer;
+  letter-spacing: 0.5px;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.google-signout-btn:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 3.5px 3.5px 0px #000000;
+  background: #FECACA;
+}
+
+.google-signout-btn:active {
+  transform: translate(1px, 1px);
+  box-shadow: 1.5px 1.5px 0px #000000;
+}
+
+/* ── Unified Modal Section Divider ────────────────────────────── */
+.modal-divider-row {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 18px 0 12px 0;
+  position: relative;
+}
+
+.modal-divider-row::before,
+.modal-divider-row::after {
+  content: '';
+  flex: 1;
+  border-bottom: 2px dashed #CBD5E1;
+}
+
+.modal-divider-label {
+  padding: 0 10px;
+  font-family: var(--font-telemetry, 'Space Grotesk', sans-serif);
+  font-size: 10px;
+  font-weight: 800;
+  color: #64748B;
+  letter-spacing: 0.8px;
+}
+
+.google-modal-subcard {
+  background: #F8FAFC;
+  border: 2px solid #000000;
+  box-shadow: 3px 3px 0px #000000;
+  border-radius: 14px;
+  padding: 14px;
+  margin-top: 6px;
+}
+
+.google-env-notice {
+  background: #FEF3C7;
+  border: 1.5px solid #F59E0B;
+  border-radius: 10px;
+  padding: 8px 12px;
+  margin-bottom: 12px;
+  text-align: left;
+}
+
+.env-notice-title {
+  font-family: var(--font-display, 'Rajdhani', sans-serif);
+  font-size: 12px;
+  font-weight: 900;
+  color: #B45309;
+  letter-spacing: 0.5px;
+}
+
+.env-notice-desc {
+  font-family: var(--font-telemetry, 'Space Grotesk', sans-serif);
+  font-size: 11px;
+  font-weight: 600;
+  color: #78350F;
+  margin-top: 2px;
+}
+
+.google-account-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.google-user-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: #4285F4;
+  color: #FFFFFF;
+  border: 2px solid #000000;
+  font-family: var(--font-display, 'Rajdhani', sans-serif);
+  font-size: 18px;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.google-user-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.google-user-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.google-user-name {
+  font-family: var(--font-display, 'Rajdhani', sans-serif);
+  font-size: 15px;
+  font-weight: 900;
+  color: #000000;
+  line-height: 1.1;
+}
+
+.google-user-email {
+  font-family: var(--font-telemetry, 'Space Grotesk', sans-serif);
+  font-size: 11px;
+  font-weight: 700;
+  color: #64748B;
+}
+
+.google-stats-strip {
+  display: flex;
+  align-items: center;
+  background: #FFFFFF;
+  border: 1.5px solid #000000;
+  border-radius: 10px;
+  padding: 8px 12px;
+  margin-top: 10px;
+}
+
+.google-stat-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.google-stat-lbl {
+  font-family: var(--font-telemetry, 'Space Grotesk', sans-serif);
+  font-size: 9px;
+  font-weight: 800;
+  color: #64748B;
+  letter-spacing: 0.5px;
+}
+
+.google-stat-val {
+  font-family: var(--font-display, 'Rajdhani', sans-serif);
+  font-size: 14px;
+  font-weight: 900;
+  color: #000000;
+}
+
+.google-stat-divider {
+  width: 1.5px;
+  height: 24px;
+  background: #E2E8F0;
+  margin: 0 10px;
+}
+

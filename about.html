@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AirSkid — About Us // How I Built AirSkid</title>
+  <meta name="description" content="The story of AirSkid Racing: How solo indie developer Anish built a high-octane 3D browser racer using Three.js, WASM physics, and WebRTC." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700;800&family=Rajdhani:wght@700;800;900&family=Space+Grotesk:wght@600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg-canvas: #FAF6EE;
+      --card-bg: #FFFFFF;
+      --ink: #000000;
+      --yellow: #FFE600;
+      --cyan: #00D2FF;
+      --coral: #FF385C;
+      --green: #10B981;
+      --purple: #8B5CF6;
+      --muted: #64748B;
+      --border-thick: 3.5px solid #000000;
+      --shadow-base: 5px 5px 0px #000000;
+      --shadow-lg: 8px 8px 0px #000000;
+      --shadow-btn: 3.5px 3.5px 0px #000000;
+      --radius-card: 20px;
+      --radius-pill: 999px;
+      --font-display: 'Rajdhani', sans-serif;
+      --font-telemetry: 'Space Grotesk', sans-serif;
+      --font-fun: 'Fredoka', sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      background-color: var(--bg-canvas);
+      color: var(--ink);
+      font-family: var(--font-telemetry);
+    }
+
+    body {
+      min-height: 100vh;
+      background-color: var(--bg-canvas);
+      background-image: radial-gradient(rgba(0, 0, 0, 0.15) 1.5px, transparent 1.5px);
+      background-size: 24px 24px;
+      line-height: 1.65;
+      font-size: 15px;
+      padding-bottom: 70px;
+    }
+
+    /* ── TOP STICKY BRUTOPIA NAV ── */
+    .brut-nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: #FFFFFF;
+      border-bottom: var(--border-thick);
+      padding: 14px 24px;
+      box-shadow: 0 4px 0 rgba(0, 0, 0, 0.05);
+    }
+
+    .brut-nav-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+    }
+
+    .brand-logo-img {
+      height: 34px;
+      width: auto;
+      object-fit: contain;
+    }
+
+    .brand-pill {
+      background: var(--coral);
+      color: #FFFFFF;
+      font-family: var(--font-display);
+      font-size: 12px;
+      font-weight: 900;
+      padding: 4px 10px;
+      border: 2px solid #000;
+      border-radius: var(--radius-pill);
+      box-shadow: 2px 2px 0 #000;
+      letter-spacing: 0.5px;
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .nav-link {
+      font-family: var(--font-display);
+      font-size: 14px;
+      font-weight: 800;
+      color: #000;
+      text-decoration: none;
+      padding: 6px 14px;
+      border: 2px solid transparent;
+      border-radius: 10px;
+      transition: all 0.12s ease;
+    }
+
+    .nav-link:hover {
+      background: #F1F5F9;
+      border-color: #000;
+    }
+
+    .btn-play-game {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--yellow);
+      color: #000;
+      text-decoration: none;
+      font-family: var(--font-display);
+      font-size: 15px;
+      font-weight: 900;
+      letter-spacing: 0.5px;
+      padding: 8px 18px;
+      border: 2.5px solid #000;
+      border-radius: 12px;
+      box-shadow: var(--shadow-btn);
+      transition: all 0.1s ease;
+      cursor: pointer;
+    }
+
+    .btn-play-game:hover {
+      transform: translate(-1.5px, -1.5px);
+      box-shadow: 5px 5px 0 #000;
+      background: #FFF066;
+    }
+
+    .btn-play-game:active {
+      transform: translate(2px, 2px);
+      box-shadow: 1.5px 1.5px 0 #000;
+    }
+
+    /* ── CONTAINER ── */
+    .page-container {
+      max-width: 1020px;
+      margin: 36px auto 0;
+      padding: 0 20px;
+    }
+
+    /* ── HERO BANNER CARD ── */
+    .hero-card {
+      background: #FFFFFF;
+      border: var(--border-thick);
+      border-radius: var(--radius-card);
+      box-shadow: var(--shadow-lg);
+      padding: 38px 36px 32px;
+      margin-bottom: 28px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-strip {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+
+    .badge-pill {
+      font-family: var(--font-display);
+      font-size: 13px;
+      font-weight: 900;
+      padding: 4px 12px;
+      border: 2px solid #000;
+      border-radius: var(--radius-pill);
+      box-shadow: 2px 2px 0 #000;
+    }
+
+    .badge-yellow { background: var(--yellow); color: #000; }
+    .badge-cyan { background: var(--cyan); color: #000; }
+    .badge-coral { background: var(--coral); color: #FFF; }
+    .badge-purple { background: #DDD6FE; color: #5B21B6; }
+
+    .hero-title {
+      font-family: var(--font-display);
+      font-size: 42px;
+      font-weight: 900;
+      line-height: 1.1;
+      letter-spacing: 0.5px;
+      color: #000;
+      margin-bottom: 14px;
+    }
+
+    .hero-desc {
+      font-size: 16.5px;
+      color: #334155;
+      font-weight: 600;
+      max-width: 860px;
+      margin-bottom: 20px;
+    }
+
+    /* ── CREATOR STATS BAR ── */
+    .stats-bar-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 14px;
+      margin-top: 18px;
+    }
+
+    .stat-pill-card {
+      background: #F8FAFC;
+      border: 2.5px solid #000;
+      border-radius: 14px;
+      padding: 12px 16px;
+      box-shadow: 3px 3px 0 #000;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .stat-icon {
+      font-size: 26px;
+      flex-shrink: 0;
+    }
+
+    .stat-meta {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .stat-val {
+      font-family: var(--font-display);
+      font-size: 18px;
+      font-weight: 900;
+      color: #000;
+      line-height: 1.1;
+    }
+
+    .stat-lbl {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* ── STORY CARDS ── */
+    .story-card {
+      background: #FFFFFF;
+      border: var(--border-thick);
+      border-radius: var(--radius-card);
+      box-shadow: var(--shadow-base);
+      padding: 32px 34px;
+      margin-bottom: 26px;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 2.5px solid #000;
+      padding-bottom: 12px;
+      margin-bottom: 20px;
+    }
+
+    .section-icon-box {
+      width: 44px;
+      height: 44px;
+      border: 2.5px solid #000;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      flex-shrink: 0;
+      box-shadow: 2px 2px 0 #000;
+    }
+
+    .section-title {
+      font-family: var(--font-display);
+      font-size: 24px;
+      font-weight: 900;
+      color: #000;
+      letter-spacing: 0.5px;
+    }
+
+    .prose p {
+      font-size: 15.5px;
+      color: #1E293B;
+      font-weight: 500;
+      margin-bottom: 16px;
+      line-height: 1.7;
+    }
+
+    .prose strong {
+      color: #000;
+      font-weight: 800;
+    }
+
+    /* ── TECH STACK SHOWCASE GRID ── */
+    .tech-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+      margin: 20px 0;
+    }
+
+    .tech-item-card {
+      background: #FFFFFF;
+      border: 2.5px solid #000;
+      border-radius: 16px;
+      padding: 18px;
+      box-shadow: 4px 4px 0 #000;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      transition: transform 0.1s ease;
+    }
+
+    .tech-item-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 5px 5px 0 #000;
+    }
+
+    .tech-badge-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .tech-badge {
+      font-family: var(--font-display);
+      font-size: 12px;
+      font-weight: 900;
+      padding: 2px 8px;
+      border: 1.5px solid #000;
+      border-radius: 6px;
+      background: var(--yellow);
+    }
+
+    .tech-icon {
+      font-size: 24px;
+    }
+
+    .tech-title {
+      font-family: var(--font-display);
+      font-size: 18px;
+      font-weight: 900;
+      color: #000;
+    }
+
+    .tech-desc {
+      font-size: 13px;
+      color: #475569;
+      font-weight: 600;
+      line-height: 1.5;
+    }
+
+    /* ── HIGHLIGHT CALLOUT BOXES ── */
+    .callout-box {
+      border: 2.5px solid #000;
+      border-radius: 14px;
+      padding: 18px 20px;
+      margin: 18px 0;
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      box-shadow: 3.5px 3.5px 0 #000;
+    }
+
+    .callout-box.callout-yellow { background: #FEF9C3; }
+    .callout-box.callout-cyan { background: #E0F2FE; }
+    .callout-box.callout-green { background: #DCFCE7; }
+    .callout-box.callout-coral { background: #FFE4E6; }
+
+    .callout-icon {
+      font-size: 26px;
+      line-height: 1;
+    }
+
+    .callout-text h4 {
+      font-family: var(--font-display);
+      font-size: 18px;
+      font-weight: 900;
+      color: #000;
+      margin-bottom: 4px;
+    }
+
+    .callout-text p {
+      font-size: 14px;
+      color: #334155;
+      margin-bottom: 0;
+      font-weight: 600;
+      line-height: 1.55;
+    }
+
+    /* ── BIG PLAY CTA BANNER ── */
+    .cta-banner {
+      background: var(--yellow);
+      border: var(--border-thick);
+      border-radius: var(--radius-card);
+      box-shadow: var(--shadow-lg);
+      padding: 40px 32px;
+      text-align: center;
+      margin-top: 36px;
+    }
+
+    .cta-title {
+      font-family: var(--font-display);
+      font-size: 38px;
+      font-weight: 900;
+      color: #000;
+      margin-bottom: 8px;
+      letter-spacing: 0.5px;
+    }
+
+    .cta-desc {
+      font-size: 16px;
+      color: #1E293B;
+      font-weight: 700;
+      max-width: 600px;
+      margin: 0 auto 24px;
+    }
+
+    .btn-big-race {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      background: #000000;
+      color: #FFFFFF;
+      text-decoration: none;
+      font-family: var(--font-display);
+      font-size: 20px;
+      font-weight: 900;
+      padding: 14px 34px;
+      border: 3px solid #000000;
+      border-radius: 16px;
+      box-shadow: 5px 5px 0px rgba(0, 0, 0, 0.35);
+      transition: all 0.12s ease;
+      cursor: pointer;
+    }
+
+    .btn-big-race:hover {
+      background: #18181B;
+      transform: translate(-2px, -2px);
+      box-shadow: 7px 7px 0px rgba(0, 0, 0, 0.45);
+    }
+
+    .btn-big-race:active {
+      transform: translate(2px, 2px);
+      box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.25);
+    }
+
+    /* ── FOOTER ── */
+    .brut-footer {
+      max-width: 1020px;
+      margin: 40px auto 0;
+      padding: 24px;
+      background: #FFFFFF;
+      border: var(--border-thick);
+      border-radius: var(--radius-card);
+      box-shadow: var(--shadow-base);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .footer-left {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .footer-brand {
+      font-family: var(--font-display);
+      font-size: 18px;
+      font-weight: 900;
+      color: #000;
+    }
+
+    .footer-copy {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--muted);
+    }
+
+    .footer-links {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .footer-link {
+      font-family: var(--font-display);
+      font-size: 14px;
+      font-weight: 800;
+      color: #000;
+      text-decoration: none;
+      transition: color 0.1s ease;
+    }
+
+    .footer-link:hover {
+      color: var(--coral);
+      text-decoration: underline;
+    }
+
+    @media (max-width: 768px) {
+      .hero-title { font-size: 32px; }
+      .hero-card { padding: 24px 20px; }
+      .story-card { padding: 22px 18px; }
+      .tech-grid { grid-template-columns: 1fr; }
+      .cta-title { font-size: 28px; }
+      .brut-footer { flex-direction: column; text-align: center; }
+      .footer-links { justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ── 1. BRUTOPIA ARCADE NAVBAR ── -->
+  <header class="brut-nav">
+    <div class="brut-nav-inner">
+      <a href="index.html" class="brand-group" title="Back to AirSkid Game">
+        <img src="/src/logo/airskid_logo.webp" alt="AIRSKID" class="brand-logo-img" />
+        <span class="brand-pill">DEVELOPER STORY</span>
+      </a>
+
+      <div class="nav-actions">
+        <a href="privacy.html" class="nav-link">Privacy Policy</a>
+        <a href="terms.html" class="nav-link">Terms of Service</a>
+        <a href="index.html" class="btn-play-game">
+          <span>🏎️</span>
+          <span>PLAY AIRSKID</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- ── 2. MAIN CONTAINER ── -->
+  <main class="page-container">
+
+    <!-- Hero Card -->
+    <div class="hero-card">
+      <div class="hero-strip">
+        <span class="badge-pill badge-yellow">INDIE GAME DEV</span>
+        <span class="badge-pill badge-cyan">HOW I BUILT THIS</span>
+        <span class="badge-pill badge-coral">THREE.JS + WASM</span>
+        <span class="badge-pill badge-purple">BY ANISH</span>
+      </div>
+      <h1 class="hero-title">HOW I BUILT AIRSKID RACING</h1>
+      <p class="hero-desc">
+        Hey racers! I'm <strong>Anish</strong>, the solo indie creator and engineer behind AirSkid.
+        Here is the deep-dive story of how I engineered a console-grade, 60-FPS 3D arcade racer with real-time WebRTC multiplayer, 
+        Trackmania-style time sprint leaderboards, and chaotic Mario Kart-style party brawls — entirely inside the browser with zero downloads.
+      </p>
+
+      <!-- Key Tech Metrics -->
+      <div class="stats-bar-grid">
+        <div class="stat-pill-card">
+          <span class="stat-icon">⚡</span>
+          <div class="stat-meta">
+            <span class="stat-val">60 FPS WASM</span>
+            <span class="stat-lbl">Rapier3D Physics</span>
+          </div>
+        </div>
+
+        <div class="stat-pill-card">
+          <span class="stat-icon">🏎️</span>
+          <div class="stat-meta">
+            <span class="stat-val">1 MASTER CHASSIS</span>
+            <span class="stat-lbl">Universal Car Physics</span>
+          </div>
+        </div>
+
+        <div class="stat-pill-card">
+          <span class="stat-icon">🌐</span>
+          <div class="stat-meta">
+            <span class="stat-val">P2P WEBRTC</span>
+            <span class="stat-lbl">Zero-Lag Multiplayer</span>
+          </div>
+        </div>
+
+        <div class="stat-pill-card">
+          <span class="stat-icon">🎨</span>
+          <div class="stat-meta">
+            <span class="stat-val">BRUTOPIA UI</span>
+            <span class="stat-lbl">Neo-Brutalist Arcade</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chapter 1: The Spark & Vision -->
+    <section class="story-card">
+      <div class="section-header">
+        <div class="section-icon-box" style="background: var(--yellow);">💡</div>
+        <h2 class="section-title">1. THE VISION — WHY BUILD A 3D WEB RACER?</h2>
+      </div>
+      <div class="prose">
+        <p>
+          Most browser games today are either lightweight 2D hyper-casual titles or bloated web ports that take forever to download.
+          I wanted to push the boundaries of what is possible on the modern open web: 
+          <strong>What if you could open a browser tab, share a 6-digit room code with your friends on Discord or WhatsApp, and immediately jump into an intense 60-FPS 3D racing brawl with no launcher, no login wall, and zero friction?</strong>
+        </p>
+        <p>
+          I combined two distinct gameplay obsessions that I love:
+        </p>
+        <ul>
+          <li><strong>Trackmania’s micro-second obsession:</strong> Perfect apex lines, 1-lap Time Sprint trials, and global milliseconds leaderboards.</li>
+          <li><strong>Smash Karts & Mario Kart’s laugh-out-loud party mayhem:</strong> Bumper ramming, slipstream drafting, arena sumo knockouts, and high-impact physical chaos.</li>
+        </ul>
+        <div class="callout-box callout-yellow">
+          <div class="callout-icon">🎯</div>
+          <div class="callout-text">
+            <h4>The Single Universal Car Decision</h4>
+            <p>Early on, I experimented with multiple car classes. But I quickly realized that the best competitive games — from Rocket League to Trackmania — succeed because <em>everyone drives the exact same fair physics chassis</em>. Winning comes down purely to drift control, boost timing, and line mastery. Customization should be 100% cosmetic (Paints, Shades, Trails)!</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Chapter 2: The Physics & Engineering Engine -->
+    <section class="story-card">
+      <div class="section-header">
+        <div class="section-icon-box" style="background: var(--cyan);">⚙️</div>
+        <h2 class="section-title">2. THE ENGINEERING — WASM RAPIER3D PHYSICS</h2>
+      </div>
+      <div class="prose">
+        <p>
+          The hardest part of any 3D driving game is vehicle physics. Standard JavaScript physics engines often suffer from garbage collection (GC) micro-stutters, causing cars to glitch or fall through track floor colliders during high-speed loops.
+        </p>
+        <p>
+          To solve this, I compiled <strong>Rapier3D (written in Rust) directly into WebAssembly (WASM)</strong>. 
+          Running physics inside WASM unlocked unbelievable benefits:
+        </p>
+        <ul>
+          <li><strong>Zero Floor Clipping:</strong> Continuous collision detection (CCD) prevents cars from sinking or falling off bankings even at 150 km/h.</li>
+          <li><strong>Authentic Drift Momentum:</strong> True tire lateral slip simulation that dynamically kicks the rear out during handbrake turns while allowing snappy counter-steering.</li>
+          <li><strong>Air Launch & Recoil Trajectories:</strong> When you hit a kicker ramp or get rammed in Sky Rumble, realistic 3D torque vectors spin and tumble the car through the clouds.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- Chapter 3: Multiplayer WebRTC Architecture -->
+    <section class="story-card">
+      <div class="section-header">
+        <div class="section-icon-box" style="background: var(--coral); color: #FFF;">🌐</div>
+        <h2 class="section-title">3. ZERO-LAG MULTIPLAYER — WEBRTC MESH</h2>
+      </div>
+      <div class="prose">
+        <p>
+          Instead of hosting expensive, centralized game servers that add artificial ping delay, AirSkid uses a <strong>decentralized Peer-to-Peer (P2P) WebRTC mesh</strong>.
+        </p>
+        <div class="callout-box callout-cyan">
+          <div class="callout-icon">🚀</div>
+          <div class="callout-text">
+            <h4>How P2P Room Sync Works</h4>
+            <p>One player acts as Room Host, and peers connect directly over UDP data channels. We use client-side prediction, dead-reckoning extrapolation, and Hermite quaternion interpolation so opponent cars move buttery smooth at 60 FPS even across high-ping cellular networks!</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Chapter 4: The Brutopia Aesthetic -->
+    <section class="story-card">
+      <div class="section-header">
+        <div class="section-icon-box" style="background: var(--purple); color: #FFF;">🎨</div>
+        <h2 class="section-title">4. THE BRUTOPIA ART STYLE & UI SCALE MATRIX</h2>
+      </div>
+      <div class="prose">
+        <p>
+          Tired of generic, dark, washed-out tech UI, I crafted the <strong>Brutopia Design System</strong> specifically for AirSkid:
+        </p>
+        <ul>
+          <li><strong>Chunky Neo-Brutalist Lines:</strong> Bold 3.5px solid black borders and tactile 5px hard drop shadows that physically depress when clicked.</li>
+          <li><strong>High-Energy Arcade Primaries:</strong> Golden Neo-Yellow (`#FFE600`), Electric Cyan (`#00D2FF`), and Coral Smash Red (`#FF385C`).</li>
+          <li><strong>Universal Screen Matrix (`UIScaleEngine`):</strong> Whether you're playing on a 4K desktop monitor, an iPad, or a budget Android smartphone, the entire UI auto-scales dynamically with zero overlapping cards.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- Chapter 5: Tech Stack Breakdown -->
+    <section class="story-card">
+      <div class="section-header">
+        <div class="section-icon-box" style="background: var(--green); color: #FFF;">💻</div>
+        <h2 class="section-title">5. THE FULL TECHNOLOGY STACK</h2>
+      </div>
+      <div class="prose">
+        <p>Here are the core technologies and engines powering AirSkid behind the scenes:</p>
+      </div>
+
+      <div class="tech-grid">
+        <div class="tech-item-card">
+          <div class="tech-badge-row">
+            <span class="tech-badge">3D GRAPHICS</span>
+            <span class="tech-icon">🎮</span>
+          </div>
+          <h3 class="tech-title">Three.js (WebGL)</h3>
+          <p class="tech-desc">Custom camera smoothing, procedural skybox clouds, real-time shadow cascades, and dynamic burnout smoke particles.</p>
+        </div>
+
+        <div class="tech-item-card">
+          <div class="tech-badge-row">
+            <span class="tech-badge">PHYSICS</span>
+            <span class="tech-icon">🦀</span>
+          </div>
+          <h3 class="tech-title">Rapier3D WASM</h3>
+          <p class="tech-desc">Rust-compiled WebAssembly physics engine running at an unwavering 60Hz tick rate for authentic vehicle kinematics.</p>
+        </div>
+
+        <div class="tech-item-card">
+          <div class="tech-badge-row">
+            <span class="tech-badge">NETWORKING</span>
+            <span class="tech-icon">🌐</span>
+          </div>
+          <h3 class="tech-title">WebRTC & PeerJS</h3>
+          <p class="tech-desc">Decentralized peer-to-peer data channels transmitting car transforms and bumper impulse packets at low latency.</p>
+        </div>
+
+        <div class="tech-item-card">
+          <div class="tech-badge-row">
+            <span class="tech-badge">LANGUAGE</span>
+            <span class="tech-icon">⚡</span>
+          </div>
+          <h3 class="tech-title">TypeScript & Vite</h3>
+          <p class="tech-desc">Strictly-typed modular architecture built with Vite for lightning-fast HMR and minified sub-second builds.</p>
+        </div>
+
+        <div class="tech-item-card">
+          <div class="tech-badge-row">
+            <span class="tech-badge">BACKEND</span>
+            <span class="tech-icon">🔥</span>
+          </div>
+          <h3 class="tech-title">Google Firebase</h3>
+          <p class="tech-desc">Firestore dual-track sprint leaderboards (Normal & Hardcore) and Google OAuth for persistent cloud garages.</p>
+        </div>
+
+        <div class="tech-item-card">
+          <div class="tech-badge-row">
+            <span class="tech-badge">AUDIO</span>
+            <span class="tech-icon">🔊</span>
+          </div>
+          <h3 class="tech-title">Web Audio Synth</h3>
+          <p class="tech-desc">Procedural oscillator synthesis for engine rev pitch-shifting, drift tire screeches, and celebratory arcade jingles.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Chapter 6: Personal Note from Anish -->
+    <section class="story-card">
+      <div class="section-header">
+        <div class="section-icon-box" style="background: var(--yellow);">❤️</div>
+        <h2 class="section-title">6. A NOTE FROM THE CREATOR</h2>
+      </div>
+      <div class="prose">
+        <p>
+          Building AirSkid has been a labor of true passion. Every single curve of the sky track, every spark emitted from a high-speed wall scrape, and every UI pixel was hand-crafted to make web gaming feel energetic, joyous, and polished.
+        </p>
+        <p>
+          I want to thank every pilot who hops in for a race, challenges their friends to a Sky Rumble battle, or grinds for the #1 spot on the global sprint leaderboards. You make this journey worth every line of code!
+        </p>
+        <div class="callout-box callout-green">
+          <div class="callout-icon">📬</div>
+          <div class="callout-text">
+            <h4>Want to chat or share feedback?</h4>
+            <p>Drop me an email at <strong>anish@airskid.io</strong>. I'd love to hear your fastest lap times, gameplay clips, and ideas for Season 2!</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── 3. BIG CALL TO ACTION ── -->
+    <div class="cta-banner">
+      <h2 class="cta-title">READY TO HIT THE SKY TRACK?</h2>
+      <p class="cta-desc">
+        Jump behind the wheel, master the drift curves, and claim your place in the AirSkid Hall of Fame right now!
+      </p>
+      <a href="index.html" class="btn-big-race">
+        <span>🏎️</span>
+        <span>LAUNCH AIRSKID & RACE NOW!</span>
+        <span>🏁</span>
+      </a>
+    </div>
+
+    <!-- ── 4. FOOTER ── -->
+    <footer class="brut-footer">
+      <div class="footer-left">
+        <span class="footer-brand">AIRSKID RACING // BRUTOPIA EDITION</span>
+        <span class="footer-copy">© 2026 Developed with ❤️ by Anish. All rights reserved.</span>
+      </div>
+
+      <div class="footer-links">
+        <a href="privacy.html" class="footer-link">Privacy Policy</a>
+        <a href="terms.html" class="footer-link">Terms of Service</a>
+        <a href="index.html" class="footer-link" style="color: var(--yellow); font-weight: 900; background: #000; padding: 4px 10px; border-radius: 6px;">Play Game 🏎️</a>
+      </div>
+    </footer>
+
+  </main>
+
+</body>
+</html>

@@ -1,0 +1,970 @@
+/* ================================================================
+   AIRSKID RACING // RACE FINISH PODIUM LEADERBOARD
+   ================================================================ */
+    /* ── BRUTOPIA MODAL CARDS (Used for Finish Screen) ── */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      height: 100dvh;
+      background: rgba(0, 0, 0, 0.55);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 12px;
+      overflow: hidden !important; /* ZERO SCROLLBAR ON MODAL OVERLAY */
+      box-sizing: border-box;
+    }
+
+/* ── FINISH MODAL UPGRADES: TRACKMANIA PB & JUICY REWARDS ── */
+#finish-title-badge {
+  transform: none !important;
+}
+
+.finish-record-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #0f172a;
+  color: #fff;
+  border: 2.5px solid #000;
+  box-shadow: 3px 3px 0 #000;
+  border-radius: 12px;
+  padding: 8px 14px;
+  margin: 6px 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+.finish-record-banner.is-new-record {
+  background: linear-gradient(135deg, #090d16 0%, #1e1b4b 100%);
+  border-color: #ffd700;
+  box-shadow: 0 0 12px rgba(255, 215, 0, 0.4), 3px 3px 0 #000;
+}
+.record-trophy-icon {
+  font-size: 24px;
+  filter: drop-shadow(0 0 6px rgba(255, 215, 0, 0.7));
+}
+.record-details {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  flex: 1;
+  margin-left: 10px;
+}
+.record-title {
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  color: #ffd700;
+  text-transform: uppercase;
+}
+.record-stat {
+  font-family: var(--font-digital, monospace);
+  font-size: 17px;
+  font-weight: 900;
+  color: #fff;
+  letter-spacing: 0.5px;
+}
+.record-delta-pill {
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 900;
+  padding: 3px 10px;
+  border-radius: 8px;
+  border: 1.5px solid #000;
+  background: #22c55e;
+  color: #000;
+  box-shadow: 1.5px 1.5px 0 #000;
+}
+.record-delta-pill.delta-positive {
+  background: #f59e0b;
+  color: #000;
+}
+
+/* Level Up Pop-up Celebration */
+.finish-levelup-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: linear-gradient(135deg, #fef08a 0%, #fde047 100%);
+  border: 3px solid #000;
+  box-shadow: 4px 4px 0 #000;
+  border-radius: 14px;
+  padding: 10px 16px;
+  margin: 6px 0;
+  width: 100%;
+  box-sizing: border-box;
+  animation: popBounce 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+@keyframes popBounce {
+  0% { transform: scale(0.8); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+.levelup-star-icon {
+  font-size: 32px;
+  animation: pulseBounce 1s infinite alternate;
+}
+.levelup-headline {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 900;
+  color: #000;
+  letter-spacing: 0.5px;
+}
+.levelup-subline {
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 800;
+  color: #b45309;
+}
+
+/* Finish Rewards Box Upgrades */
+.finish-rewards-box {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: #fffbe6;
+  border: 2.5px solid #000;
+  box-shadow: 3.5px 3.5px 0 #000;
+  border-radius: 14px;
+  padding: 10px 14px;
+  margin: 6px 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+.finish-daily-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: #fde047;
+  border: 2px dashed #000;
+  border-radius: 8px;
+  padding: 4px 10px;
+  font-family: var(--font-display);
+  font-size: 11.5px;
+  font-weight: 900;
+  color: #000;
+  letter-spacing: 0.5px;
+}
+.finish-rewards-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+.finish-reward-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #fff;
+  border: 2px solid #000;
+  box-shadow: 2px 2px 0 #000;
+  border-radius: 10px;
+  padding: 6px 12px;
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 900;
+  color: #000;
+  white-space: nowrap;
+}
+.finish-xp-progression-box {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  background: #fff;
+  border: 2px solid #000;
+  box-shadow: 2px 2px 0 #000;
+  border-radius: 10px;
+  padding: 5px 10px;
+}
+.finish-xp-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 10.5px;
+  font-weight: 900;
+}
+.finish-level-tag {
+  background: var(--brut-yellow);
+  border: 1px solid #000;
+  border-radius: 4px;
+  padding: 1px 6px;
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 900;
+  color: #000;
+}
+.finish-xp-numbers {
+  font-family: var(--font-display);
+  color: #475569;
+}
+.finish-xp-gained-tag {
+  font-family: var(--font-display);
+  color: #2563eb;
+  font-weight: 900;
+}
+.finish-xp-track {
+  width: 100%;
+  height: 9px;
+  background: #e2e8f0;
+  border: 1.5px solid #000;
+  border-radius: 6px;
+  overflow: hidden;
+  position: relative;
+}
+.finish-xp-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #3b82f6 0%, #00e5ff 100%);
+  border-radius: 4px;
+  transition: width 0.75s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: width;
+}
+.finish-xp-fill.level-glow {
+  background: linear-gradient(90deg, #ffd700 0%, #ff8800 100%) !important;
+  box-shadow: 0 0 10px #ffd700;
+}
+
+/* VIP Multiplier Callouts on Finish Screen */
+.finish-vip-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  background: linear-gradient(135deg, #fff9a6 0%, #ffde59 100%);
+  border: 2px solid #000;
+  box-shadow: 2.5px 2.5px 0 #000;
+  border-radius: 9px;
+  padding: 5px 12px;
+  font-family: var(--font-display);
+  font-size: 11.5px;
+  font-weight: 900;
+  color: #000;
+  letter-spacing: 0.5px;
+}
+.finish-vip-crown-icon {
+  font-size: 16px;
+  animation: pulseBounce 1s infinite alternate;
+}
+.finish-vip-tag-pill {
+  background: #000;
+  color: #ffde59;
+  border: 1px solid #ffd700;
+  border-radius: 6px;
+  padding: 1px 6px;
+  font-family: var(--font-display);
+  font-size: 9.5px;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+  margin-left: 4px;
+  box-shadow: 1px 1px 0 rgba(0,0,0,0.3);
+}
+
+/* ── GRAND ROYAL VIP CELEBRATION MODAL ── */
+.vip-celebrate-card {
+  max-width: 480px;
+  width: 92%;
+  background: #fffdf5;
+  border: 4px solid #000;
+  box-shadow: 8px 8px 0 #000;
+  border-radius: 20px;
+  padding: 24px 20px 20px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  animation: popBounce 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+.vip-crown-badge-wrap {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 12px;
+  background: linear-gradient(135deg, #ffe554 0%, #f59e0b 100%);
+  border: 3.5px solid #000;
+  box-shadow: 4px 4px 0 #000;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: crownFloat 2s ease-in-out infinite alternate;
+}
+.vip-crown-3d {
+  font-size: 42px;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.25));
+}
+@keyframes crownFloat {
+  0% { transform: translateY(0) rotate(-3deg); }
+  100% { transform: translateY(-8px) rotate(3deg); }
+}
+.vip-title-badge {
+  background: var(--brut-yellow);
+  border: 3px solid #000;
+  box-shadow: 3.5px 3.5px 0 #000;
+  border-radius: 12px;
+  padding: 6px 16px;
+  display: inline-block;
+  margin-bottom: 6px;
+}
+.vip-celebrate-subtitle {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 800;
+  color: #64748b;
+  margin-bottom: 16px;
+}
+.vip-perks-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 18px;
+  text-align: left;
+}
+@media (max-width: 480px) {
+  .vip-perks-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+}
+.vip-perk-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #ffffff;
+  border: 2px solid #000;
+  box-shadow: 3px 3px 0 #000;
+  border-radius: 12px;
+  padding: 10px 12px;
+}
+.vip-perk-icon {
+  font-size: 26px;
+  flex-shrink: 0;
+}
+.vip-perk-info {
+  display: flex;
+  flex-direction: column;
+}
+.vip-perk-title {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 900;
+  color: #000;
+  letter-spacing: 0.3px;
+}
+.vip-perk-desc {
+  font-family: var(--font-telemetry);
+  font-size: 11px;
+  font-weight: 700;
+  color: #64748b;
+  line-height: 1.2;
+}
+.vip-claim-btn {
+  width: 100%;
+  font-size: 20px;
+  padding: 12px;
+  border: 3.5px solid #000;
+  box-shadow: 4px 4px 0 #000;
+}
+
+
+/* ================================================================
+   SKY RUMBLE ARENA SETUP MODAL (PLAYFUL NEO-BRUTALIST THEME)
+   ================================================================ */
+    .rumble-modal-card {
+      background: var(--brut-cream, #FFFDF5);
+      border: var(--brut-border, 3.5px solid #000000);
+      box-shadow: var(--brut-shadow-lg, 8px 8px 0px #000000);
+      border-radius: 26px;
+      padding: 24px 26px;
+      max-width: 520px;
+      width: 92%;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      box-sizing: border-box;
+      transform: scale(var(--modal-scale, 1));
+      transform-origin: center center;
+      flex-shrink: 0;
+      animation: popIn 0.22s cubic-bezier(0.175, 0.885, 0.32, 1.2);
+      position: relative;
+    }
+
+    /* Modal Top Header Bar */
+    .rumble-modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding-bottom: 2px;
+    }
+    .rumble-header-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--brut-yellow, #FFDE59);
+      border: 2.5px solid #000;
+      box-shadow: 3px 3px 0 #000;
+      border-radius: 14px;
+      padding: 6px 14px;
+    }
+    .rumble-header-icon {
+      font-size: 22px;
+      line-height: 1;
+    }
+    .rumble-header-text {
+      display: flex;
+      flex-direction: column;
+    }
+    .rumble-header-tag {
+      font-family: var(--font-telemetry, 'Rajdhani', sans-serif);
+      font-size: 9.5px;
+      font-weight: 900;
+      letter-spacing: 1px;
+      color: #000;
+      text-transform: uppercase;
+      line-height: 1;
+    }
+    .rumble-header-title {
+      font-family: var(--font-display, 'Fredoka', sans-serif);
+      font-size: 19px;
+      font-weight: 900;
+      color: #000;
+      margin: 2px 0 0 0;
+      line-height: 1.1;
+      letter-spacing: 0.5px;
+    }
+    .rumble-close-btn {
+      background: #FFFFFF;
+      border: 2.5px solid #000;
+      box-shadow: 2.5px 2.5px 0 #000;
+      border-radius: 50%;
+      width: 34px;
+      height: 34px;
+      font-family: var(--font-display, 'Fredoka', sans-serif);
+      font-weight: 900;
+      font-size: 15px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.1s ease;
+      flex-shrink: 0;
+      color: #000;
+    }
+    .rumble-close-btn:hover {
+      background: #FF385C;
+      color: #FFF;
+      transform: translate(-1px, -1px);
+      box-shadow: 3.5px 3.5px 0 #000;
+    }
+    .rumble-close-btn:active {
+      transform: translate(1px, 1px);
+      box-shadow: 1px 1px 0 #000;
+    }
+
+    /* Modal Subtitle / Description */
+    .rumble-modal-desc {
+      font-family: var(--font-telemetry, 'Rajdhani', sans-serif);
+      font-size: 13px;
+      font-weight: 700;
+      color: #475569;
+      margin: -4px 0 0 0;
+      line-height: 1.35;
+    }
+
+    /* Section Structure & Label */
+    .rumble-section {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      width: 100%;
+    }
+    .rumble-section-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-family: var(--font-display, 'Fredoka', sans-serif);
+      font-size: 12px;
+      font-weight: 900;
+      color: #000;
+      letter-spacing: 0.5px;
+    }
+    .rumble-section-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 22px;
+      height: 22px;
+      background: #000;
+      color: #FFF;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 900;
+      line-height: 1;
+    }
+
+    /* Section 1: Match Format Buttons */
+    .rumble-format-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      width: 100%;
+    }
+    .rumble-format-btn {
+      background: #FFFFFF;
+      color: #000;
+      border: 2.5px solid #000;
+      box-shadow: 3.5px 3.5px 0 #000;
+      border-radius: 14px;
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.1s ease;
+      user-select: none;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .rumble-format-btn:hover {
+      transform: translate(-1.5px, -1.5px);
+      box-shadow: 5px 5px 0 #000;
+    }
+    .rumble-format-btn:active {
+      transform: translate(2px, 2px);
+      box-shadow: 1.5px 1.5px 0 #000;
+    }
+    .rumble-format-btn.active {
+      background: var(--brut-yellow, #FFDE59) !important;
+      color: #000 !important;
+      border-color: #000 !important;
+      box-shadow: 1.5px 1.5px 0 #000 !important;
+      transform: translate(2px, 2px);
+    }
+    .rumble-btn-icon {
+      font-size: 22px;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+    .rumble-btn-details {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .rumble-btn-main {
+      font-family: var(--font-display, 'Fredoka', sans-serif);
+      font-size: 13px;
+      font-weight: 900;
+      color: #000;
+      line-height: 1.1;
+    }
+    .rumble-btn-sub {
+      font-family: var(--font-telemetry, 'Rajdhani', sans-serif);
+      font-size: 10px;
+      font-weight: 800;
+      color: #64748B;
+      letter-spacing: 0.5px;
+      line-height: 1;
+    }
+    .rumble-format-btn.active .rumble-btn-sub {
+      color: #1e293b;
+    }
+
+    /* Section 2: Team Choice Buttons */
+    .rumble-side-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      width: 100%;
+    }
+    .rumble-side-btn {
+      background: #FFFFFF;
+      color: #000;
+      border: 2.5px solid #000;
+      box-shadow: 3.5px 3.5px 0 #000;
+      border-radius: 14px;
+      padding: 12px 12px;
+      font-family: var(--font-display, 'Fredoka', sans-serif);
+      font-size: 13px;
+      font-weight: 900;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.1s ease;
+      user-select: none;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .rumble-side-btn:hover {
+      transform: translate(-1.5px, -1.5px);
+      box-shadow: 5px 5px 0 #000;
+    }
+    .rumble-side-btn:active {
+      transform: translate(2px, 2px);
+      box-shadow: 1.5px 1.5px 0 #000;
+    }
+    .rumble-side-btn.active[data-side="frost"],
+    .rumble-side-btn.active[data-side="cyan"] {
+      background: #00D2FF !important;
+      color: #000000 !important;
+      border-color: #000 !important;
+      box-shadow: 1.5px 1.5px 0 #000 !important;
+      transform: translate(2px, 2px);
+    }
+    .rumble-side-btn.active[data-side="blaze"],
+    .rumble-side-btn.active[data-side="crimson"] {
+      background: #FF385C !important;
+      color: #FFFFFF !important;
+      border-color: #000 !important;
+      box-shadow: 1.5px 1.5px 0 #000 !important;
+      transform: translate(2px, 2px);
+      text-shadow: 1px 1px 0 #000;
+    }
+    .rumble-side-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      border: 1.5px solid #000;
+      display: inline-block;
+      flex-shrink: 0;
+    }
+    .frost-dot,
+    .cyan-dot { background: #00D2FF; }
+    .blaze-dot,
+    .crimson-dot { background: #FF385C; }
+
+    /* Section 3: Win Condition Buttons */
+    .rumble-rule-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      width: 100%;
+    }
+    .rumble-rule-btn {
+      background: #FFFFFF;
+      color: #000;
+      border: 2.5px solid #000;
+      box-shadow: 3px 3px 0 #000;
+      border-radius: 12px;
+      padding: 10px 4px;
+      font-family: var(--font-display, 'Fredoka', sans-serif);
+      font-size: 11.5px;
+      font-weight: 900;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.1s ease;
+      user-select: none;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .rumble-rule-btn:hover {
+      transform: translate(-1px, -1px);
+      box-shadow: 4px 4px 0 #000;
+    }
+    .rumble-rule-btn:active {
+      transform: translate(1.5px, 1.5px);
+      box-shadow: 1px 1px 0 #000;
+    }
+    .rumble-rule-btn.active {
+      background: var(--brut-yellow, #FFDE59) !important;
+      color: #000 !important;
+      border-color: #000 !important;
+      box-shadow: 1.5px 1.5px 0 #000 !important;
+      transform: translate(1.5px, 1.5px);
+    }
+
+    /* CTA Launch Button */
+    .btn-rumble-cta {
+      background: linear-gradient(135deg, #FF385C 0%, #E11D48 100%) !important;
+      color: #FFFFFF !important;
+      border: 3.5px solid #000 !important;
+      border-radius: 16px !important;
+      box-shadow: 5px 5px 0 #000 !important;
+      font-family: var(--font-display, 'Fredoka', sans-serif) !important;
+      font-size: 18px !important;
+      font-weight: 900 !important;
+      letter-spacing: 1.5px !important;
+      padding: 14px 20px !important;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 4px;
+      text-shadow: 1px 1px 0 #000;
+      transition: all 0.1s ease;
+      user-select: none;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .btn-rumble-cta:hover {
+      transform: translate(-2px, -2px);
+      box-shadow: 7px 7px 0 #000 !important;
+      filter: brightness(1.05);
+    }
+    .btn-rumble-cta:active {
+      transform: translate(2px, 2px);
+      box-shadow: 1px 1px 0 #000 !important;
+    }
+
+    /* Responsive adjustments for mobile screens */
+    @media (max-width: 600px) {
+      .rumble-modal-card {
+        padding: 18px 16px;
+        gap: 12px;
+        max-width: 95%;
+      }
+      .rumble-header-title {
+        font-size: 16px;
+      }
+      .rumble-format-grid {
+        grid-template-columns: 1fr;
+        gap: 8px;
+      }
+      .rumble-side-grid {
+        grid-template-columns: 1fr;
+        gap: 8px;
+      }
+      .rumble-rule-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 6px;
+      }
+      .rumble-rule-btn {
+        font-size: 10.5px;
+        padding: 8px 2px;
+      }
+      .btn-rumble-cta {
+        font-size: 16px !important;
+        padding: 12px 16px !important;
+      }
+    }
+
+    /* Modal Racer Name Box */
+    .mp-name-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #FFFFFF;
+      border: 2.5px solid #000;
+      box-shadow: 3px 3px 0 #000;
+      border-radius: 12px;
+      padding: 6px 14px;
+      gap: 8px;
+    }
+    .mp-name-label {
+      font-family: var(--font-display);
+      font-size: 12px;
+      font-weight: 900;
+      color: #1e40af;
+      white-space: nowrap;
+    }
+    .mp-name-field {
+      font-size: 13px !important;
+      padding: 4px 8px !important;
+      font-weight: 900 !important;
+      letter-spacing: 1px !important;
+      text-transform: uppercase !important;
+    }
+
+    /* ── CENTERED MULTIPLAYER POPUP MODAL ── */
+
+/* ================================================================
+   POPUP MODALS (PRIVACY, TERMS, CONTROLS GUIDE & DAILY BOUNTY)
+   ================================================================ */
+    /* ── POPUP MODALS (Privacy, Terms, Guide, Daily Gift) ── */
+    .policy-card {
+      max-width: 540px;
+      width: 92%;
+      background: #FFFDF5;
+      border: 3.5px solid #000;
+      box-shadow: 8px 8px 0px #000;
+      border-radius: 20px;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      transform: scale(var(--modal-scale, 1));
+      transform-origin: center center;
+      flex-shrink: 0;
+      box-sizing: border-box;
+    }
+    .mp-modal-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+    }
+    .mp-modal-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border: 2px solid #000;
+      border-radius: 10px;
+      box-shadow: 2px 2px 0 #000;
+      font-family: var(--font-display);
+      font-size: 13px;
+      font-weight: 900;
+      letter-spacing: 0.5px;
+    }
+    .mp-close-btn {
+      width: 32px;
+      height: 32px;
+      background: #FFFFFF;
+      border: 2px solid #000;
+      box-shadow: 2px 2px 0 #000;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-family: var(--font-display);
+      font-size: 14px;
+      font-weight: 900;
+      color: #000;
+      transition: all 0.1s ease;
+      flex-shrink: 0;
+      padding: 0;
+    }
+    .mp-close-btn svg {
+      transition: stroke 0.1s ease;
+    }
+    .mp-close-btn:hover {
+      background: #FF385C;
+      color: #FFF;
+    }
+    .mp-close-btn:hover svg {
+      stroke: #FFF;
+    }
+    .mp-close-btn:active {
+      transform: translate(1px, 1px);
+      box-shadow: 1px 1px 0 #000;
+    }
+    .policy-content-scroll {
+      overflow-y: auto;
+      max-height: 54vh;
+      padding-right: 6px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .policy-section {
+      background: #FFFFFF;
+      border: 2px solid #000;
+      box-shadow: 2px 2px 0px #000;
+      border-radius: 12px;
+      padding: 12px;
+    }
+    .policy-section h4 {
+      font-family: var(--font-display);
+      font-size: 14px;
+      font-weight: 800;
+      color: #000;
+      margin-bottom: 4px;
+    }
+    .policy-section p {
+      font-size: 12px;
+      line-height: 1.5;
+      color: #334155;
+      font-weight: 600;
+    }
+
+    .controls-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .ctrl-card {
+      background: #FFFFFF;
+      border: 2px solid #000;
+      box-shadow: 2px 2px 0px #000;
+      border-radius: 10px;
+      padding: 8px 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .ctrl-key-badge {
+      background: var(--brut-yellow);
+      border: 1.5px solid #000;
+      border-radius: 6px;
+      padding: 2px 7px;
+      font-family: var(--font-display);
+      font-size: 11px;
+      font-weight: 900;
+      color: #000;
+      white-space: nowrap;
+    }
+    .ctrl-desc {
+      font-size: 11.5px;
+      font-weight: 800;
+      color: #1e293b;
+    }
+
+    /* Daily Gift Card Visuals */
+    .gift-chest-card {
+      max-width: 440px;
+      text-align: center;
+    }
+    .chest-center-visual {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 0;
+    }
+    .chest-bouncing-icon {
+      font-size: 64px;
+      filter: drop-shadow(4px 4px 0 #000);
+      animation: pulseBounce 1.4s infinite ease-in-out;
+    }
+    .chest-title {
+      font-family: var(--font-display);
+      font-size: 22px;
+      font-weight: 800;
+      color: #000;
+      letter-spacing: 0.5px;
+    }
+    .chest-desc {
+      font-size: 13px;
+      font-weight: 700;
+      color: #475569;
+      max-width: 320px;
+    }
+    .reward-loot-row {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-top: 10px;
+      width: 100%;
+    }
+    .loot-item {
+      flex: 1;
+      background: #FFF;
+      border: 2.5px solid #000;
+      box-shadow: 3px 3px 0 #000;
+      border-radius: 12px;
+      padding: 8px 6px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+    .loot-icon { font-size: 24px; }
+    .loot-val {
+      font-family: var(--font-display);
+      font-size: 12px;
+      font-weight: 900;
+      color: #000;
+    }
+    .hero-claim-btn {
+      font-family: var(--font-display);
+      letter-spacing: 1px;
+    }

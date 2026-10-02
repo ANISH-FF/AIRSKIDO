@@ -1,0 +1,426 @@
+/* ================================================================
+   AIRSKID RACING // TIME SPRINT LEADERBOARD STYLING
+   ================================================================ */
+
+/* ── Lobby Left Dock Leaderboard Card ─────────────────────────── */
+.leaderboard-compact-card {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.leaderboard-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  border-bottom: 2px solid #000;
+  padding-bottom: 6px;
+}
+
+.leaderboard-title-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.leaderboard-subhead {
+  font-family: var(--font-telemetry, 'Space Grotesk', sans-serif);
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: 1.2px;
+  color: #64748B;
+  text-transform: uppercase;
+}
+
+.leaderboard-main-title {
+  font-family: var(--font-display, 'Rajdhani', sans-serif);
+  font-size: 15px;
+  font-weight: 900;
+  color: #000000;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.leaderboard-live-pill {
+  background: #DCFCE7;
+  color: #16A34A;
+  border: 1.2px solid #16A34A;
+  border-radius: 6px;
+  padding: 1px 6px;
+  font-family: var(--font-telemetry, 'Space Grotesk', sans-serif);
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.live-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #16A34A;
+  animation: pulse-dot 1.2s infinite ease-in-out;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.8); }
+}
+
+/* ── Top 3 Compact Rows ────────────────────────────────────────── */
+.leaderboard-rows-compact {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  width: 100%;
+}
+
+.lb-compact-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #FFFFFF;
+  border: 1.5px solid #000000;
+  border-radius: 8px;
+  padding: 5px 8px;
+  box-shadow: 1.5px 1.5px 0px #000000;
+  transition: transform 0.1s ease;
+}
+
+.lb-compact-row:hover {
+  transform: translateX(2px);
+  background: #FFFDF0;
+}
+
+.lb-compact-row.highlight-me {
+  background: #FEF08A;
+  border-color: #000000;
+}
+
+.lb-pilot-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.lb-rank-badge {
+  width: 20px;
+  height: 20px;
+  border-radius: 5px;
+  border: 1.2px solid #000000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display, 'Rajdhani', sans-serif);
+  font-size: 11px;
+  font-weight: 900;
+  flex-shrink: 0;
+}
+
+.rank-gold {
+  background: #FFE600;
+  color: #000000;
+}
+
+.rank-silver {
+  background: #E2E8F0;
+  color: #000000;
+}
+
+.rank-bronze {
+  background: #FED7AA;
+  color: #000000;
+}
+
+.rank-other {
+  background: #F1F5F9;
+  color: #475569;
+}
+
+.lb-pilot-name {
+  font-family: var(--font-display, 'Rajdhani', sans-serif);
+  font-size: 13px;
+  font-weight: 800;
+  color: #000000;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100px;
+}
+
+.lb-time-text {
+  font-family: var(--font-telemetry, 'Space Grotesk', monospace);
+  font-size: 12px;
+  font-weight: 800;
+  color: #000000;
+  letter-spacing: 0.3px;
+  flex-shrink: 0;
+}
+
+/* ── Sticky Player Status Bar ──────────────────────────────────── */
+.lb-player-footer-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #EFF6FF;
+  border: 1.5px solid #2563EB;
+  border-radius: 8px;
+  padding: 5px 8px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.lb-footer-label {
+  font-family: var(--font-telemetry, 'Space Grotesk', sans-serif);
+  font-size: 9px;
+  font-weight: 900;
+  color: #1E40AF;
+  letter-spacing: 0.5px;
+}
+
+.lb-footer-val {
+  font-family: var(--font-display, 'Rajdhani', sans-serif);
+  font-size: 12px;
+  font-weight: 900;
+  color: #1E3A8A;
+}
+
+/* ── "VIEW TOP 100" Fullscreen Trigger Button ──────────────────── */
+.btn-expand-leaderboard {
+  width: 100%;
+  background: #FFE600;
+  border: 2px solid #000000;
+  box-shadow: 2px 2px 0px #000000;
+  border-radius: 8px;
+  padding: 5px 0;
+  font-family: var(--font-display, 'Rajdhani', sans-serif);
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.8px;
+  color: #000000;
+  cursor: pointer;
+  text-align: center;
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+.btn-expand-leaderboard:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 3px 3px 0px #000000;
+  background: #FFF066;
+}
+
+.btn-expand-leaderboard:active {
+  transform: translate(1px, 1px);
+  box-shadow: 1px 1px 0px #000000;
+}
+
+/* ================================================================
+   FULL TOP 100 MODAL DIALOG
+   ================================================================ */
+.lb-modal-card {
+  max-width: 600px;
+  width: 94%;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  box-sizing: border-box;
+  background: #FFFFFF !important;
+  border: 3.5px solid #000000 !important;
+  box-shadow: 7px 7px 0px #000000 !important;
+  border-radius: 20px !important;
+}
+
+.lb-search-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #F8FAFC;
+  border: 2px solid #000000;
+  border-radius: 10px;
+  padding: 6px 12px;
+  margin: 10px 0;
+}
+
+.lb-search-input {
+  border: none;
+  background: transparent;
+  outline: none;
+  font-family: var(--font-telemetry, 'Space Grotesk', sans-serif);
+  font-size: 13px;
+  font-weight: 700;
+  color: #000000;
+  width: 100%;
+}
+
+.lb-table-wrapper {
+  flex: 1;
+  overflow-y: auto;
+  border: 2px solid #000000;
+  border-radius: 12px;
+  margin-bottom: 12px;
+  background: #FAFAFA;
+}
+
+.lb-full-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.lb-full-table thead {
+  position: sticky;
+  top: 0;
+  background: #000000;
+  color: #FFFFFF;
+  z-index: 2;
+}
+
+.lb-full-table th {
+  padding: 8px 12px;
+  font-family: var(--font-telemetry, 'Space Grotesk', sans-serif);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+}
+
+.lb-full-table tbody tr {
+  border-bottom: 1px solid #E2E8F0;
+  transition: background 0.1s ease;
+}
+
+.lb-full-table tbody tr:hover {
+  background: #FEF9C3;
+}
+
+.lb-full-table tbody tr.row-player {
+  background: #FEF08A;
+  font-weight: bold;
+}
+
+.lb-full-table td {
+  padding: 8px 12px;
+  font-size: 13px;
+  color: #000000;
+}
+
+.td-rank {
+  font-family: var(--font-display, 'Rajdhani', sans-serif);
+  font-weight: 900;
+  font-size: 15px;
+  width: 45px;
+}
+
+.td-pilot {
+  font-family: var(--font-display, 'Rajdhani', sans-serif);
+  font-weight: 800;
+}
+
+.pilot-id-sub {
+  font-family: var(--font-telemetry, 'Space Grotesk', monospace);
+  font-size: 10px;
+  color: #64748B;
+  margin-left: 4px;
+}
+
+.td-time {
+  font-family: var(--font-telemetry, 'Space Grotesk', monospace);
+  font-weight: 800;
+  font-size: 13px;
+}
+
+.td-gap {
+  font-family: var(--font-telemetry, 'Space Grotesk', monospace);
+  font-size: 11px;
+  color: #64748B;
+}
+
+.lb-modal-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 6px;
+  border-top: 2px solid #E2E8F0;
+}
+
+/* ── Dual Track Mode Switcher Tabs (Dock & Modal) ─────────────── */
+.lb-track-tabs {
+  display: flex;
+  gap: 4px;
+  width: 100%;
+  margin: 2px 0 4px;
+}
+
+.lb-tab-btn {
+  flex: 1;
+  padding: 4px 6px;
+  font-family: var(--font-display, 'Rajdhani', sans-serif);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+  border: 1.5px solid #000000;
+  border-radius: 6px;
+  background: #FFFFFF;
+  color: #64748B;
+  cursor: pointer;
+  transition: all 0.12s ease;
+  box-shadow: 1px 1px 0px #000000;
+}
+
+.lb-tab-btn:hover {
+  background: #F8FAFC;
+  color: #000000;
+}
+
+.lb-tab-btn.active {
+  background: #FFE600 !important;
+  color: #000000 !important;
+  border-color: #000000 !important;
+  box-shadow: 2px 2px 0px #000000 !important;
+  transform: translate(-0.5px, -0.5px);
+}
+
+.lb-modal-track-tabs {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+  margin-top: 4px;
+  margin-bottom: 8px;
+}
+
+.lb-modal-tab-btn {
+  flex: 1;
+  padding: 7px 12px;
+  font-family: var(--font-display, 'Rajdhani', sans-serif);
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+  border: 2px solid #000000;
+  border-radius: 8px;
+  background: #FFFFFF;
+  color: #64748B;
+  cursor: pointer;
+  transition: all 0.12s ease;
+  box-shadow: 2px 2px 0px #000000;
+}
+
+.lb-modal-tab-btn:hover {
+  background: #F1F5F9;
+  color: #000000;
+}
+
+.lb-modal-tab-btn.active {
+  background: #FFE600 !important;
+  color: #000000 !important;
+  border-color: #000000 !important;
+  box-shadow: 3px 3px 0px #000000 !important;
+  transform: translate(-1px, -1px);
+}
+
