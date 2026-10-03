@@ -2308,8 +2308,8 @@ class Game {
     this.rumbleOutroTimer = 3.0; // 3.0-second celebration outro
     this.pendingRumbleFinish = { winningTeam, winnerName };
 
-    // Broadcast finish event over WebRTC if Host and not from remote
-    if (this.isMultiplayer && net.isHost && !fromRemote) {
+    // Broadcast finish event over WebRTC if not from remote
+    if (this.isMultiplayer && !fromRemote) {
       net.broadcastRumbleFinish(winningTeam, winnerName);
     }
 
@@ -2628,10 +2628,18 @@ class Game {
     remote.targetSteer = data.steer;
     remote.isDrifting = data.drift;
     remote.isBoosting = data.boost;
+    if (data.isGhost !== undefined && remote.kart.isGhost !== data.isGhost) {
+      remote.kart.setGhost(data.isGhost, 3.5);
+    }
   }
 
   private handleRemoteSmash(packet: SmashPacket) {
     if (packet.targetPeerId === net.myPeerId && this.player) {
+      // Complete invulnerability while Protection Shield ("Kawach") is active!
+      if (this.player.kart.isGhost) {
+        return;
+      }
+
       if (this.isRumbleMode && this.rumbleManager) {
         const attackerPeerId = packet.attackerPeerId;
         if (attackerPeerId) {
@@ -3766,7 +3774,8 @@ class Game {
           this.player.kart.currentSpeed,
           this.player.kart.steerAngle,
           this.player.kart.isDrifting,
-          this.player.kart.boostTime > 0
+          this.player.kart.boostTime > 0,
+          this.player.kart.isGhost
         );
       }
     }
@@ -3992,7 +4001,7 @@ class Game {
           if (remote.smashTimer <= 0 || (remote.targetPos.y > -2 && remote.smashTimer < 1.6)) {
             remote.isSmashed = false;
             remote.interpolator.resetError();
-            k.setGhost(true, 2.0);
+            k.setGhost(true, 3.5);
           } else {
             // Ballistic flight simulation falling through the clouds!
             remote.launchVelocity.y -= 26.0 * dt; // Sky gravity
@@ -4045,8 +4054,17 @@ class Game {
 
         // Update wheel spin and steering using smooth interpolator states
         k.currentSpeed = remote.interpolator.currentSpeed;
-        k.isDrifting = remote.interpolator.isDrifting;
-        k.boostTime = remote.interpolator.isBoosting ? 0.5 : 0;
+        const isBoosting = remote.interpolator.isBoosting;
+        k.boostTime = isBoosting ? 0.5 : 0;
+        if (isBoosting) {
+          for (let i = 0; i < k.flames.length; i++) {
+            k.flames[i].scale.set(1.0, 1.0, 2.2);
+          }
+        } else if (k.flames.length > 0 && k.flames[0].scale.x > 0.002) {
+          for (let i = 0; i < k.flames.length; i++) {
+            k.flames[i].scale.set(0.001, 0.001, 0.001);
+          }
+        }
         k.steerAngle = THREE.MathUtils.lerp(k.steerAngle, remote.interpolator.currentSteer * 0.45, dt * 12);
         const spinDelta = (k.currentSpeed * dt) / 0.42;
         k.wheels.forEach((wheel, idx) => {
@@ -4238,12 +4256,6 @@ class Game {
               if (now - lastHit > 280) {
                 boulder.lastHitTimes.set(kart.id, now);
                 const impactSpeed = Math.hypot(curLv.x, curLv.z);
-                _boulderImpactPos.set(boulder.position.x + nx * boulder.radius, kPos.y + 0.4, boulder.position.z + nz * boulder.radius);
-                this.sparks.emitImpactSparks(
-                  _boulderImpactPos,
-                  Math.min(40, Math.floor(15 + impactSpeed * 0.8)),
-                  0x8a6d4d
-                );
                 const isPlayer = kart === this.player.kart;
                 let crashVol = Math.min(1.8, 0.6 + impactSpeed * 0.04);
                 if (!isPlayer && this.player?.kart) {

@@ -1647,11 +1647,6 @@ export class Track {
       curbMesh.receiveShadow = true;
       gardenGroup.add(curbMesh);
 
-      // Glowing Neon Cyan Rim
-      const neonRing = new THREE.Mesh(neonRingGeom, neonRingMat);
-      neonRing.position.y = 0.41;
-      gardenGroup.add(neonRing);
-
       // Raised Garden Turf
       const turfMesh = new THREE.Mesh(gardenTurfGeom, gardenTurfMat);
       turfMesh.position.y = 0.28;
@@ -1813,11 +1808,6 @@ export class Track {
       curbMesh.position.y = 0.20;
       curbMesh.receiveShadow = true;
       gardenGroup.add(curbMesh);
-
-      // Glowing Neon Cyan Rim
-      const neonRing = new THREE.Mesh(neonRingGeom, neonRingMat);
-      neonRing.position.y = 0.41;
-      gardenGroup.add(neonRing);
 
       // Raised Garden Turf
       const turfMesh = new THREE.Mesh(gardenTurfGeom, gardenTurfMat);

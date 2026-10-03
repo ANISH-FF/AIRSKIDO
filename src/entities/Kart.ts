@@ -1655,11 +1655,11 @@ export class Kart {
             this.shieldBubble.scale.set(s, s, s);
           }
 
-          // Fast pulse in the final 0.4s to warn it is expiring, NEVER turning completely invisible!
-          if (this.ghostTimer < 0.40) {
-            const flash = Math.floor(this.ghostTimer * 16) % 2 === 0;
+          // Fast pulse in the final 0.6s to warn it is expiring, NEVER turning completely invisible!
+          if (this.ghostTimer < 0.60) {
+            const flash = Math.floor(this.ghostTimer * 12) % 2 === 0;
             if (this.shieldBubbleMat) {
-              this.shieldBubbleMat.opacity = flash ? 0.45 : 0.20;
+              this.shieldBubbleMat.opacity = flash ? 0.45 : 0.18;
             }
           }
         }
@@ -1668,7 +1668,7 @@ export class Kart {
   }
 
   // Ghost Mode (during checkpoint respawn or clean race start)
-  public setGhost(enabled: boolean, duration: number = 2.5) {
+  public setGhost(enabled: boolean, duration: number = 3.5) {
     this.isGhost = enabled;
     this.ghostTimer = enabled ? duration : 0;
 
@@ -1727,6 +1727,6 @@ export class Kart {
 
     this.currentSpeed = 0;
     this.isGrounded = true;
-    this.setGhost(true, 2.5);
+    this.setGhost(true, 3.5);
   }
 }

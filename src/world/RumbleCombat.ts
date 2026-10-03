@@ -75,6 +75,10 @@ export function resolveRumbleCombat(
   // 1. Abyss Check (Ignore karts that have fallen below the arena deck)
   if (kartA.group.position.y < -3.0 || kartB.group.position.y < -3.0) return;
 
+  // 1b. Protection Shield ("Kawach") Transparent Pass-Through (Option B)
+  // When either kart has active protection shield, neither can hit nor be hit!
+  if (kartA.isGhost || kartB.isGhost) return;
+
   const posA = kartA.group.position;
   const posB = kartB.group.position;
 

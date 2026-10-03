@@ -30,6 +30,7 @@ export interface RemoteKartTransform {
   steer: number;
   drift: boolean;
   boost: boolean;
+  isGhost?: boolean;
 }
 
 export interface SmashPacket {
@@ -723,7 +724,8 @@ export class MultiplayerManager {
     speed: number,
     steer: number,
     drift: boolean,
-    boost: boolean
+    boost: boolean,
+    isGhost?: boolean
   ) {
     if (this.connectedPeers.size === 0) return;
 
@@ -745,6 +747,7 @@ export class MultiplayerManager {
       steer: Math.round(steer * 100) / 100,
       drift,
       boost,
+      isGhost: !!isGhost,
     };
 
     const packet: NetPacket = { type: 'kart_transform', data };

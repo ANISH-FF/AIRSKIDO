@@ -329,10 +329,10 @@ export class RumbleManager {
       spawnRot = sp.rot.clone();
     }
 
-    // Drop down softly onto the arena deck with invulnerability shield
+    // Drop down softly onto the arena deck with invulnerability shield (3.5s Kawach)
     spawnPos.y = 2.0;
     racer.kart.resetTo(spawnPos, spawnRot);
-    racer.kart.setGhost(true, 2.5);
+    racer.kart.setGhost(true, 3.5);
   }
 
   private checkLastKartStanding() {
