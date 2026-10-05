@@ -65,30 +65,7 @@ export class LobbyUI {
       };
     }
 
-    // 5. Fullscreen Toggle Button (Lobby Top Bar)
-    const fsBtn = document.getElementById('fullscreen-btn');
-    if (fsBtn) {
-      fsBtn.onclick = () => {
-        const doc = document.documentElement as any;
-        if (!document.fullscreenElement && !(document as any).webkitFullscreenElement) {
-          if (doc.requestFullscreen) doc.requestFullscreen().catch(() => {});
-          else if (doc.webkitRequestFullscreen) doc.webkitRequestFullscreen().catch(() => {});
-        } else {
-          if (document.exitFullscreen) document.exitFullscreen().catch(() => {});
-          else if ((document as any).webkitExitFullscreen) (document as any).webkitExitFullscreen().catch(() => {});
-        }
-      };
 
-      const updateFsLabel = () => {
-        const isFs = !!(document.fullscreenElement || (document as any).webkitFullscreenElement);
-        fsBtn.innerHTML = isFs 
-          ? `<svg viewBox="0 0 24 24" width="18" height="18" class="racer-btn-icon-svg"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3" stroke="#000" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`
-          : `<svg viewBox="0 0 24 24" width="18" height="18" class="racer-btn-icon-svg"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" stroke="#000" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
-        fsBtn.title = isFs ? 'Exit Fullscreen' : 'Enter Fullscreen';
-      };
-      document.addEventListener('fullscreenchange', updateFsLabel);
-      document.addEventListener('webkitfullscreenchange', updateFsLabel);
-    }
 
     // Close on backdrop click
     ['privacy-modal', 'terms-modal', 'guide-modal', 'rewards-modal', 'settings-modal'].forEach((id) => {

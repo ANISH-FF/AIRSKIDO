@@ -237,11 +237,9 @@ export function resolveRumbleCombat(
 
     if (kartA === playerKart) {
       triggerImpactShake(1.5);
-      showAlert('REAR-END HIT!', 'smash');
       economy.addCoins(25); economy.addXp(15); sounds.playCoin();
     } else if (kartB === playerKart) {
       triggerImpactShake(2.0);
-      showAlert('REAR-ENDED!', 'recoil');
     }
     return;
   }
@@ -272,11 +270,9 @@ export function resolveRumbleCombat(
 
     if (kartB === playerKart) {
       triggerImpactShake(1.5);
-      showAlert('REAR-END HIT!', 'smash');
       economy.addCoins(25); economy.addXp(15); sounds.playCoin();
     } else if (kartA === playerKart) {
       triggerImpactShake(2.0);
-      showAlert('REAR-ENDED!', 'recoil');
     }
     return;
   }
@@ -308,11 +304,9 @@ export function resolveRumbleCombat(
 
     if (kartA === playerKart) {
       triggerImpactShake(1.6);
-      showAlert('💥 T-BONE SMASH!', 'smash');
       economy.addCoins(25); economy.addXp(15); sounds.playCoin();
     } else if (kartB === playerKart) {
       triggerImpactShake(2.0);
-      showAlert('💥 T-BONED!', 'recoil');
     }
     return;
   }
@@ -343,11 +337,9 @@ export function resolveRumbleCombat(
 
     if (kartB === playerKart) {
       triggerImpactShake(1.6);
-      showAlert('T-BONE HIT!', 'smash');
       economy.addCoins(25); economy.addXp(15); sounds.playCoin();
     } else if (kartA === playerKart) {
       triggerImpactShake(2.0);
-      showAlert('T-BONED!', 'recoil');
     }
     return;
   }
@@ -378,7 +370,6 @@ export function resolveRumbleCombat(
 
       if (isPlayerInvolved) {
         triggerImpactShake(2.0);
-        showAlert('HEAD-ON CLASH! // EQUAL REBOUND!', 'smash');
       }
       return;
     } else if (diff > 4.5 && (closingA > 3.5 || boostA > 0)) {
@@ -407,11 +398,9 @@ export function resolveRumbleCombat(
 
       if (kartA === playerKart) {
         triggerImpactShake(1.6);
-        showAlert('BULLDOZE HIT!', 'smash');
         economy.addCoins(25); economy.addXp(15); sounds.playCoin();
       } else if (kartB === playerKart) {
         triggerImpactShake(2.0);
-        showAlert('OVERPOWERED!', 'recoil');
       }
       return;
     } else if (diff < -4.5 && (closingB > 3.5 || boostB > 0)) {
@@ -441,11 +430,9 @@ export function resolveRumbleCombat(
 
       if (kartB === playerKart) {
         triggerImpactShake(1.6);
-        showAlert('BULLDOZE HIT!', 'smash');
         economy.addCoins(25); economy.addXp(15); sounds.playCoin();
       } else if (kartA === playerKart) {
         triggerImpactShake(2.0);
-        showAlert('OVERPOWERED!', 'recoil');
       }
       return;
     }
@@ -476,6 +463,5 @@ export function resolveRumbleCombat(
 
   if (isPlayerInvolved) {
     triggerImpactShake(0.6);
-    showAlert('BUMP // DEFLECTED', 'recoil');
   }
 }

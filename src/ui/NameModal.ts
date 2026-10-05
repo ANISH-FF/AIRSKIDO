@@ -24,6 +24,11 @@ export class NameModal {
   private googleCoinsEl: HTMLElement | null = null;
   private googleLvlEl: HTMLElement | null = null;
 
+  // Callsign dual-state containers
+  private nameClaimContainer: HTMLElement | null = null;
+  private nameLockedContainer: HTMLElement | null = null;
+  private nameLockedDisplay: HTMLElement | null = null;
+
   constructor() {
     this.modalEl = document.getElementById('change-name-modal');
     this.inputEl = document.getElementById('change-name-input') as HTMLInputElement | null;
@@ -32,6 +37,10 @@ export class NameModal {
     this.currentEl = document.getElementById('change-name-current-val');
     this.playerIdEl = document.getElementById('change-name-id-val');
     this.cloudStatusEl = document.getElementById('change-name-cloud-val');
+
+    this.nameClaimContainer = document.getElementById('name-claim-container');
+    this.nameLockedContainer = document.getElementById('name-locked-container');
+    this.nameLockedDisplay = document.getElementById('name-locked-callsign-display');
 
     this.unlinkedView = document.getElementById('modal-google-unlinked');
     this.linkedView = document.getElementById('modal-google-linked');
@@ -155,12 +164,21 @@ export class NameModal {
     const profile = nameSystem.getProfile();
     this.syncProfileToModal(profile);
 
-    if (this.inputEl) {
-      this.inputEl.value = profile.isCustomName ? profile.username : '';
-      setTimeout(() => this.inputEl?.focus(), 50);
+    // If user has already chosen a custom name: Show locked card, hide claim input!
+    if (profile.isCustomName) {
+      if (this.nameClaimContainer) this.nameClaimContainer.style.display = 'none';
+      if (this.nameLockedContainer) this.nameLockedContainer.style.display = 'block';
+      if (this.nameLockedDisplay) this.nameLockedDisplay.textContent = profile.username.toUpperCase();
+    } else {
+      if (this.nameClaimContainer) this.nameClaimContainer.style.display = 'block';
+      if (this.nameLockedContainer) this.nameLockedContainer.style.display = 'none';
+      if (this.inputEl) {
+        this.inputEl.value = '';
+        setTimeout(() => this.inputEl?.focus(), 50);
+      }
+      this.updateValidationUI();
     }
 
-    this.updateValidationUI();
     this.updateGoogleUI(cloudSyncService.getStatus());
 
     if (this.modalEl) {
@@ -180,7 +198,7 @@ export class NameModal {
       this.playerIdEl.textContent = '#' + profile.playerId;
     }
     if (this.currentEl) {
-      this.currentEl.textContent = profile.username;
+      this.currentEl.textContent = profile.username.toUpperCase();
     }
   }
 
@@ -193,10 +211,10 @@ export class NameModal {
     // 2. Cloud status badge in info strip
     if (this.cloudStatusEl) {
       if (status.isAuthenticated && status.user) {
-        this.cloudStatusEl.textContent = 'SYNCED ✔';
+        this.cloudStatusEl.textContent = 'LINKED ✔';
         this.cloudStatusEl.style.color = '#16a34a';
       } else {
-        this.cloudStatusEl.textContent = 'GUEST (LOCAL)';
+        this.cloudStatusEl.textContent = 'GUEST';
         this.cloudStatusEl.style.color = '#64748B';
       }
     }
@@ -230,18 +248,10 @@ export class NameModal {
     }
   }
 
-  private updateLobbyIndicator(status: CloudSyncStatus) {
+  private updateLobbyIndicator(_status: CloudSyncStatus) {
     const chip = document.getElementById('lobby-cloud-chip');
     if (chip) {
-      if (status.isAuthenticated && status.user) {
-        chip.textContent = 'CLOUD ✔';
-        chip.style.background = '#22C55E';
-        chip.style.color = '#000000';
-      } else {
-        chip.textContent = 'CHANGE NAME';
-        chip.style.background = '#FFE600';
-        chip.style.color = '#000000';
-      }
+      chip.style.display = 'none';
     }
   }
 
@@ -279,6 +289,9 @@ export class NameModal {
 
     if (res.success) {
       sounds.playCoin();
+      if (this.nameClaimContainer) this.nameClaimContainer.style.display = 'none';
+      if (this.nameLockedContainer) this.nameLockedContainer.style.display = 'block';
+      if (this.nameLockedDisplay) this.nameLockedDisplay.textContent = newName;
       this.close();
     } else {
       sounds.playCrash(0.8);

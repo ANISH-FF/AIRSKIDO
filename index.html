@@ -200,19 +200,17 @@
 
     <!-- Rumble Top Scoreboard Bar -->
     <div class="rumble-hud-bar" id="rumble-hud-bar" style="display: none;">
-      <div class="rumble-team-box frost-box">
-        <span class="team-glow-indicator frost-indicator"></span>
-        <span class="rumble-team-name">FROST</span>
+      <div class="rumble-team-box frost-box" id="rumble-box-left">
+        <span class="rumble-team-name" id="rumble-label-left">FROST</span>
         <span class="rumble-team-score" id="rumble-frost-score">0</span>
       </div>
       <div class="rumble-center-badge">
         <div class="rumble-match-title" id="rumble-match-title">TEAM DEATHMATCH</div>
         <div class="rumble-timer-display" id="rumble-timer-display">FIRST TO 10</div>
       </div>
-      <div class="rumble-team-box blaze-box">
+      <div class="rumble-team-box blaze-box" id="rumble-box-right">
         <span class="rumble-team-score" id="rumble-blaze-score">0</span>
-        <span class="rumble-team-name">BLAZE</span>
-        <span class="team-glow-indicator blaze-indicator"></span>
+        <span class="rumble-team-name" id="rumble-label-right">BLAZE</span>
       </div>
     </div>
 
@@ -325,24 +323,38 @@
     <div class="lobby-top-bar" id="game-navbar">
       <!-- Left (Lobby Mode): Player Profile, Fuel/XP Progress & VIP Badge -->
       <div class="lobby-user-cluster" id="navbar-user-cluster">
-        <button type="button" class="lobby-pilot-card" id="btn-open-change-name" title="Pilot Profile, Callsign & Cloud Sync">
+        <button type="button" class="lobby-pilot-card unified-pilot-card" id="btn-open-change-name" title="Pilot Profile">
           <div class="pilot-avatar-badge" id="pilot-avatar-badge">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="#000"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg>
+            <svg viewBox="0 0 36 36" width="28" height="28" fill="none" style="overflow: visible; transform: translateY(-2px);">
+              <!-- Cute pointed racer ears -->
+              <polygon points="7,15 10,4 16,10" fill="#FF2244" stroke="#000" stroke-width="2" stroke-linejoin="round"/>
+              <polygon points="9,13 11,7 14,10" fill="#FFE600"/>
+              <polygon points="29,15 26,4 20,10" fill="#FF2244" stroke="#000" stroke-width="2" stroke-linejoin="round"/>
+              <polygon points="27,13 25,7 22,10" fill="#FFE600"/>
+              <!-- Head Circle -->
+              <circle cx="18" cy="19" r="11" fill="#FF2244" stroke="#000" stroke-width="2"/>
+              <!-- Cute white muzzle/snout -->
+              <ellipse cx="18" cy="22" rx="5.5" ry="3.8" fill="#FFFDF0" stroke="#000" stroke-width="1.6"/>
+              <!-- Little black nose -->
+              <ellipse cx="18" cy="20.5" rx="1.5" ry="1.1" fill="#000"/>
+              <!-- Cute smile -->
+              <path d="M16.5 22.4 Q18 23.6 19.5 22.4" stroke="#000" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+              <!-- Big cartoon racing eyes with shine -->
+              <ellipse cx="13.5" cy="16.5" rx="2.2" ry="3.2" fill="#000"/>
+              <circle cx="14.3" cy="15.3" r="1" fill="#FFF"/>
+              <ellipse cx="22.5" cy="16.5" rx="2.2" ry="3.2" fill="#000"/>
+              <circle cx="23.3" cy="15.3" r="1" fill="#FFF"/>
+            </svg>
+            <span class="pilot-lvl-corner" id="level-badge-display">LVL 1</span>
           </div>
           <div class="pilot-info-col">
-            <div class="pilot-name-row">
-              <span class="pilot-name" id="lobby-pilot-name">Racer_8492</span>
-              <span class="pilot-edit-chip" id="lobby-cloud-chip">CHANGE NAME</span>
+            <span class="pilot-name" id="lobby-pilot-name">Racer_8492</span>
+            <div class="lobby-xp-track" title="XP progress towards next level">
+              <div id="xp-bar-fill" class="lobby-xp-fill" style="width: 40%;"></div>
             </div>
-            <span class="pilot-id-tag" id="lobby-pilot-id">#AS-849201</span>
           </div>
+          <span class="pilot-card-arrow" aria-hidden="true">›</span>
         </button>
-        <div class="lobby-level-box" title="Racer Level & Fuel Tank XP Progress">
-          <span id="level-badge-display" class="lobby-level-pill">LVL 1</span>
-          <div class="lobby-xp-track" title="XP progress towards next level">
-            <div id="xp-bar-fill" class="lobby-xp-fill" style="width: 40%;"></div>
-          </div>
-        </div>
         <button type="button" class="lobby-vip-badge" id="lobby-vip-badge" title="VIP Status & 1.5x Boosters">
           <svg viewBox="0 0 24 24" width="15" height="15" style="fill: #000;"><path d="M2 19h20v2H2v-2zm1-5l4-3 5 6 5-6 4 3-2-9-5 3-4-5-4 5-5-3-2 9z"/></svg>
           <span class="vip-text">VIP PASS</span>
@@ -392,9 +404,6 @@
           <svg viewBox="0 0 24 24" width="20" height="20" class="racer-btn-icon-svg" fill="#000">
             <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
           </svg>
-        </button>
-        <button type="button" class="lobby-icon-btn" id="fullscreen-btn" title="Toggle Fullscreen">
-          <svg viewBox="0 0 24 24" width="18" height="18" class="racer-btn-icon-svg"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" stroke="#000" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>
         <button type="button" class="lobby-icon-btn" id="btn-open-guide" title="Controls & How to Play">
           <svg viewBox="0 0 24 24" width="20" height="20" class="racer-btn-icon-svg"><rect x="2" y="6" width="20" height="12" rx="6" fill="#FFF" stroke="#000" stroke-width="2"/><line x1="7" y1="12" x2="11" y2="12" stroke="#000" stroke-width="2" stroke-linecap="round"/><line x1="9" y1="10" x2="9" y2="14" stroke="#000" stroke-width="2" stroke-linecap="round"/><circle cx="16" cy="10.5" r="1.5" fill="#FF385C"/><circle cx="18" cy="13.5" r="1.5" fill="#00D2FF"/></svg>
@@ -532,7 +541,7 @@
           <div class="quick-live-dot"></div>
           <div class="quick-mp-text-col">
             <span class="quick-mp-title">MULTIPLAYER</span>
-            <span class="quick-mp-subtitle">P2P ROOM // LIVE</span>
+            <span class="quick-mp-subtitle">ONLINE // LIVE</span>
           </div>
           <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 2px;">
             <circle cx="12" cy="18" r="2" fill="#000"/>
@@ -731,17 +740,13 @@
         </button>
 
         <div class="mode-header-title-wrap">
-          <div class="mode-header-badge mp-badge-live">
-            <span class="mp-live-dot"></span>
-            <span>ONLINE P2P // INSTANT LOBBIES</span>
-          </div>
           <h2 class="mode-header-title">MULTIPLAYER HUB</h2>
         </div>
 
-        <div class="mp-pilot-box" title="Your Callsign in Multiplayer Rooms">
+        <div class="mp-pilot-box" title="Your Official Callsign">
           <span class="mp-pilot-icon">👤</span>
           <span class="mp-pilot-label">PILOT:</span>
-          <input type="text" class="mp-pilot-input" id="mp-name-input" value="SPEEDSTER" maxlength="12" placeholder="YOUR NAME" />
+          <span class="mp-pilot-name" id="mp-pilot-name-display">SPEEDSTER</span>
         </div>
       </div>
 
@@ -903,6 +908,7 @@
                     <button type="button" class="mp-pill-opt active" data-rule="kills_10">10 KILLS</button>
                     <button type="button" class="mp-pill-opt" data-rule="kills_20">20 KILLS</button>
                     <button type="button" class="mp-pill-opt" data-rule="time_3m">3 MIN TIMER</button>
+                    <button type="button" class="mp-pill-opt" data-rule="lives_3"><svg viewBox="0 0 24 24" width="13" height="13" fill="#FF385C" stroke="#000" stroke-width="2" style="vertical-align: -2px; margin-right: 4px;"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg><span>3 LIVES</span></button>
                   </div>
                 </div>
               </div>
@@ -981,10 +987,6 @@
             <div class="mp-tag-unit">
               <span class="mp-tag-label">MATCH RULE:</span>
               <span class="mp-tag-value val-white" id="lobby-laps-display">3 LAPS</span>
-            </div>
-            <div class="mp-tag-unit" id="lobby-ping-tag" style="display: none;">
-              <span class="mp-tag-label">PING:</span>
-              <span class="mp-tag-value" id="lobby-ping-val" style="color: #10b981;">-- MS</span>
             </div>
           </div>
 
@@ -1130,11 +1132,11 @@
         <div class="rumble-side-grid">
           <button type="button" class="rumble-side-btn active" data-side="frost">
             <span class="rumble-side-dot frost-dot"></span>
-            <span>TEAM FROST (NORTH)</span>
+            <span>TEAM FROST</span>
           </button>
           <button type="button" class="rumble-side-btn" data-side="blaze">
             <span class="rumble-side-dot blaze-dot"></span>
-            <span>TEAM BLAZE (SOUTH)</span>
+            <span>TEAM BLAZE</span>
           </button>
         </div>
       </div>
@@ -1162,7 +1164,7 @@
             ⏱️ 5 MINUTES
           </button>
           <button type="button" class="rumble-rule-btn" data-rule="lives_3">
-            ❤️ 3 LIVES
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="#FF385C" stroke="#000" stroke-width="2" style="vertical-align: -2px; margin-right: 4px;"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg><span>3 LIVES</span>
           </button>
         </div>
       </div>
@@ -1411,19 +1413,12 @@
     <div class="policy-card name-modal-card" style="max-width: 480px; width: 92%; padding: 22px; max-height: 90vh; overflow-y: auto;">
       
       <!-- Top Header Bar -->
-      <div class="mp-modal-header" style="margin-bottom: 14px;">
-        <div class="mp-header-left">
-          <div class="mp-brand-badge" style="background: #FFE600;">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="#000"><path d="M12 2C7 2 3 6 3 11c0 3 1.5 5.5 3.5 7L6 21l3-1c1 .3 2 .5 3 .5 5 0 9-4 9-9.5S17 2 12 2z"/></svg>
-          </div>
-          <div class="mp-header-titles">
-            <span class="mp-subheading">RACER IDENTITY // CLOUD SAVE</span>
-            <h2 class="mp-main-heading">PILOT PROFILE</h2>
-          </div>
+      <div class="mp-modal-top" style="margin-bottom: 14px;">
+        <div class="mp-modal-badge" style="background: #FFE600; color: #000;">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="#000"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg>
+          <span>PILOT PROFILE</span>
         </div>
-        <button type="button" class="mp-close-btn" id="btn-close-change-name" title="Close">
-          <svg viewBox="0 0 24 24" width="14" height="14" stroke="#000" stroke-width="3" stroke-linecap="round" fill="none"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-        </button>
+        <button type="button" class="mp-close-btn" id="btn-close-change-name" title="Close">✕</button>
       </div>
 
       <!-- Current Identity Info Strip -->
@@ -1434,54 +1429,86 @@
         </div>
         <div class="name-meta-divider"></div>
         <div class="name-meta-col">
-          <span class="name-meta-lbl">CURRENT NAME</span>
+          <span class="name-meta-lbl">CALLSIGN</span>
           <span class="name-meta-val" id="change-name-current-val">Racer_8492</span>
         </div>
         <div class="name-meta-divider"></div>
         <div class="name-meta-col">
-          <span class="name-meta-lbl">CLOUD SAVE</span>
+          <span class="name-meta-lbl">ACCOUNT</span>
           <span class="name-meta-val" id="change-name-cloud-val">GUEST</span>
         </div>
       </div>
 
-      <!-- SECTION 1: CALLSIGN EDIT -->
-      <div class="name-input-section" style="margin-top: 14px;">
-        <label class="name-input-label" for="change-name-input">CHANGE CALLSIGN (NO SPACES)</label>
+      <!-- SECTION 1: CALLSIGN STATE -->
+      <!-- State A: Claim Callsign (Only for guests who haven't set custom name yet) -->
+      <div id="name-claim-container" class="name-claim-box" style="margin-top: 14px;">
+        <label class="name-input-label" for="change-name-input">SET PILOT CALLSIGN (1ST TIME FREE)</label>
         <div class="name-input-wrap">
           <input type="text" id="change-name-input" class="name-text-input" maxlength="14" placeholder="e.g. maxx01" autocomplete="off" spellcheck="false" />
         </div>
+        <div id="change-name-status" class="name-status-badge status-idle">
+          ENTER 3 TO 14 CHARACTERS
+        </div>
+        <div class="name-rules-hint">
+          <span>LETTERS AND NUMBERS ONLY • 3-14 CHARACTERS • NO SPACES</span>
+        </div>
+        <div class="name-actions-row" style="margin-top: 12px; margin-bottom: 22px;">
+          <button type="button" class="name-btn-cancel" id="btn-cancel-change-name">CLOSE</button>
+          <button type="button" class="name-btn-save" id="btn-save-change-name" disabled>SAVE CALLSIGN</button>
+        </div>
       </div>
 
-      <!-- Real-Time Status Badge (Pure typography & solid colors, zero emojis) -->
-      <div id="change-name-status" class="name-status-badge status-idle">
-        ENTER 3 TO 14 CHARACTERS
+      <!-- State B: Callsign Already Claimed & Locked -->
+      <div id="name-locked-container" class="name-locked-card" style="display: none; margin-top: 14px; margin-bottom: 22px;">
+        <div class="name-locked-header">
+          <span class="name-locked-badge">PILOT CALLSIGN</span>
+          <span class="name-locked-tag">✔ CLAIMED</span>
+        </div>
+        <div class="name-locked-display-row" style="display: flex; align-items: center; gap: 14px;">
+          <div class="pilot-avatar-badge" style="width: 44px; height: 44px; pointer-events: none;">
+            <svg viewBox="0 0 36 36" width="32" height="32" fill="none" style="overflow: visible; transform: translateY(-2px);">
+              <!-- Cute pointed racer ears -->
+              <polygon points="7,15 10,4 16,10" fill="#FF2244" stroke="#000" stroke-width="2" stroke-linejoin="round"/>
+              <polygon points="9,13 11,7 14,10" fill="#FFE600"/>
+              <polygon points="29,15 26,4 20,10" fill="#FF2244" stroke="#000" stroke-width="2" stroke-linejoin="round"/>
+              <polygon points="27,13 25,7 22,10" fill="#FFE600"/>
+              <!-- Head Circle -->
+              <circle cx="18" cy="19" r="11" fill="#FF2244" stroke="#000" stroke-width="2"/>
+              <!-- Cute white muzzle/snout -->
+              <ellipse cx="18" cy="22" rx="5.5" ry="3.8" fill="#FFFDF0" stroke="#000" stroke-width="1.6"/>
+              <!-- Little black nose -->
+              <ellipse cx="18" cy="20.5" rx="1.5" ry="1.1" fill="#000"/>
+              <!-- Cute smile -->
+              <path d="M16.5 22.4 Q18 23.6 19.5 22.4" stroke="#000" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+              <!-- Big cartoon racing eyes with shine -->
+              <ellipse cx="13.5" cy="16.5" rx="2.2" ry="3.2" fill="#000"/>
+              <circle cx="14.3" cy="15.3" r="1" fill="#FFF"/>
+              <ellipse cx="22.5" cy="16.5" rx="2.2" ry="3.2" fill="#000"/>
+              <circle cx="23.3" cy="15.3" r="1" fill="#FFF"/>
+            </svg>
+          </div>
+          <span class="name-locked-val" id="name-locked-callsign-display">maxx01</span>
+        </div>
+        <div class="name-locked-footer">
+          <span>Callsign is registered and linked to your racer identity.</span>
+        </div>
       </div>
 
-      <div class="name-rules-hint">
-        <span>LETTERS AND NUMBERS ONLY • 3-14 CHARACTERS • NO SPACES</span>
-      </div>
-
-      <!-- Action Buttons for Name Change -->
-      <div class="name-actions-row" style="margin-top: 12px; margin-bottom: 22px;">
-        <button type="button" class="name-btn-cancel" id="btn-cancel-change-name">CLOSE</button>
-        <button type="button" class="name-btn-save" id="btn-save-change-name" disabled>UPDATE CALLSIGN</button>
-      </div>
-
-      <!-- SECTION 2: GOOGLE CLOUD ACCOUNT BINDING -->
+      <!-- SECTION 2: GOOGLE ACCOUNT -->
       <div class="modal-divider-row">
-        <span class="modal-divider-label">GOOGLE CLOUD DATABASE BACKUP</span>
+        <span class="modal-divider-label">SAVE PROGRESS & ACCOUNT</span>
       </div>
 
       <!-- State A: Unlinked (Sign in with Google) -->
       <div id="modal-google-unlinked" class="google-modal-subcard">
         <p class="google-benefit-desc" style="margin: 0 0 12px 0;">
-          Link your Google account to automatically backup Coins, Gems, Unlocked Skins, Level, and custom Callsign to the cloud.
+          Sign in with Google to permanently save your Coins, Gems, Level, Unlocked Karts, and Callsign.
         </p>
 
         <!-- Missing .env warning banner (if credentials not filled yet) -->
         <div id="google-env-notice" class="google-env-notice" style="display: none;">
           <div class="env-notice-title">FIREBASE CONFIGURATION REQUIRED IN .ENV</div>
-          <div class="env-notice-desc">Add your Firebase keys to the <code>.env</code> file to activate live Google authentication and cloud database sync.</div>
+          <div class="env-notice-desc">Add your Firebase keys to the <code>.env</code> file to activate live Google authentication.</div>
         </div>
 
         <button type="button" class="google-action-btn" id="btn-google-bind-action">
@@ -1505,23 +1532,28 @@
               <span class="google-user-email" id="google-linked-email">pilot@gmail.com</span>
             </div>
           </div>
-          <span class="google-status-pill">CLOUD SYNC ACTIVE</span>
+          <span class="google-status-pill">SAVED ✔</span>
         </div>
 
         <div class="google-stats-strip">
           <div class="google-stat-col">
-            <span class="google-stat-lbl">BACKED UP COINS</span>
+            <span class="google-stat-lbl">SAVED COINS</span>
             <span class="google-stat-val" id="google-sync-coins">1,500</span>
           </div>
           <div class="google-stat-divider"></div>
           <div class="google-stat-col">
-            <span class="google-stat-lbl">BACKED UP LEVEL</span>
+            <span class="google-stat-lbl">SAVED LEVEL</span>
             <span class="google-stat-val" id="google-sync-lvl">LVL 1</span>
           </div>
         </div>
 
+        <div style="margin-top: 10px; font-size: 11px; font-weight: 700; color: #16a34a; text-align: left; display: flex; align-items: center; gap: 4px;">
+          <span>✓</span>
+          <span>Your progress is permanently saved to this Google account.</span>
+        </div>
+
         <div style="margin-top: 14px; text-align: right;">
-          <button type="button" class="google-signout-btn" id="btn-google-signout-action">SIGN OUT / DISCONNECT</button>
+          <button type="button" class="google-signout-btn" id="btn-google-signout-action">LOG OUT</button>
         </div>
       </div>
 

@@ -1211,8 +1211,11 @@ export class Track {
     // Pure flat coliseum floor with zero edge ledges and instant free-fall into open sky!
     const profile: THREE.Vector2[] = [
       new THREE.Vector2(0, 0.35),       // Center turbo dais stage floor
-      new THREE.Vector2(13.2, 0.35),    // Edge of elevated center stage
-      new THREE.Vector2(14.8, 0.0),     // Smooth beveled slope down to arena asphalt floor
+      new THREE.Vector2(11.5, 0.35),    // Edge of flat elevated center stage
+      new THREE.Vector2(12.8, 0.30),    // Aerodynamic crown crest
+      new THREE.Vector2(14.2, 0.18),    // Smooth gradual transition slope
+      new THREE.Vector2(15.6, 0.06),    // Gentle approach ramp
+      new THREE.Vector2(16.8, 0.0),     // Flush seamless blend to arena asphalt floor
       new THREE.Vector2(36.0, 0.0),     // Mid inner combat floor
       new THREE.Vector2(72.0, 0.0),     // Outer battleground
       new THREE.Vector2(88.0, 0.0),     // Perimeter combat ring
@@ -1444,7 +1447,7 @@ export class Track {
     const R = PhysicsEngine.RAPIER;
 
     // 1. Center Mega-Nitro Surge Stage (Directly sits on the elevated 0.35m lathe stage)
-    const coreRingGeom = new THREE.TorusGeometry(13.6, 0.26, 8, 36);
+    const coreRingGeom = new THREE.TorusGeometry(11.8, 0.22, 8, 36);
     coreRingGeom.rotateX(Math.PI / 2);
     const coreRingMat = new THREE.MeshStandardMaterial({
       color: 0xffd700,

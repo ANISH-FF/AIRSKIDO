@@ -1,0 +1,534 @@
+﻿diff --git a/src/main.ts b/src/main.ts
+index 3704845..923c93e 100644
+--- a/src/main.ts
++++ b/src/main.ts
+@@ -309,6 +309,7 @@ class Game {
+   private isRumbleOutroActive: boolean = false;
+   private rumbleOutroTimer: number = 0;
+   private pendingRumbleFinish: { winningTeam: RumbleTeam | 'draw'; winnerName: string } | null = null;
++  private rumbleVictoryTimeout: number | null = null;
+ 
+   public async init() {
+     const updateLoader = (pct: number, statusText: string) => {
+@@ -1032,18 +1033,20 @@ class Game {
+       sounds.playSelect();
+       this.isModeSelectOpen = false;
+       if (modeSelectModal) modeSelectModal.style.display = 'none';
+-      this.isMultiplayer = true;
+       if (mpModal) {
+         mpModal.style.display = 'flex';
+         mpModal.classList.add('open');
+       }
+       const mpNameEl = document.getElementById('mp-name-input') as HTMLInputElement | null;
+       if (mpNameEl) mpNameEl.value = this.playerName;
++
++      if (!this.isMultiplayer || !net.roomCode) {
++        this.resetMpLobbyUI();
++      }
+     };
+ 
+     const closeMpHub = () => {
+       sounds.playSelect();
+-      this.isMultiplayer = false;
+       if (mpModal) {
+         mpModal.classList.remove('open');
+         mpModal.style.display = 'none';
+@@ -1169,7 +1172,7 @@ class Game {
+     if (leaveMpBtn) {
+       leaveMpBtn.addEventListener('click', () => {
+         sounds.playSelect();
+-        this.leaveMultiplayerLobby();
++        this.leaveMultiplayerLobby(true);
+         this.hud.showAlert('LEFT ROOM', 'respawn');
+       });
+     }
+@@ -1279,7 +1282,7 @@ class Game {
+           }
+           if (lapsDisplay) {
+             if (this.selectedMpMode === 'rumble') {
+-              lapsDisplay.innerText = this.selectedMpRumbleRule === 'time_3m' ? '3 MIN TIMER' : (this.selectedMpRumbleRule === 'kills_20' ? '20 KILLS' : '10 KILLS');
++              lapsDisplay.innerText = this.selectedMpRumbleRule === 'time_3m' ? '3 MIN TIMER' : (this.selectedMpRumbleRule === 'kills_20' ? '20 KILLS' : (this.selectedMpRumbleRule === 'lives_3' ? '3 LIVES' : '10 KILLS'));
+             } else {
+               lapsDisplay.innerText = `${this.hostLaps} ${this.hostLaps === 1 ? 'LAP' : 'LAPS'}`;
+             }
+@@ -1341,7 +1344,7 @@ class Game {
+           }
+           if (lapsDisplay) {
+             if (net.selectedMode === 'rumble') {
+-              lapsDisplay.innerText = net.selectedRumbleRule === 'time_3m' ? '3 MIN TIMER' : (net.selectedRumbleRule === 'kills_20' ? '20 KILLS' : '10 KILLS');
++              lapsDisplay.innerText = net.selectedRumbleRule === 'time_3m' ? '3 MIN TIMER' : (net.selectedRumbleRule === 'kills_20' ? '20 KILLS' : (net.selectedRumbleRule === 'lives_3' ? '3 LIVES' : '10 KILLS'));
+             } else {
+               lapsDisplay.innerText = `${net.selectedLaps} ${net.selectedLaps === 1 ? 'LAP' : 'LAPS'}`;
+             }
+@@ -1410,8 +1413,8 @@ class Game {
+           this.hud.showAlert('CANNOT START SOLO // MIN 2 RACERS REQUIRED', 'recoil');
+           return;
+         }
+-        const isTdm = (net.selectedMode === 'rumble' || this.selectedMpMode === 'rumble') &&
+-                      (net.selectedRumbleFormat === 'tdm' || this.selectedMpRumbleFormat === 'tdm');
++        const isRumble = net.selectedMode === 'rumble' || this.selectedMpMode === 'rumble';
++        const isTdm = isRumble && (net.isHost ? this.selectedMpRumbleFormat === 'tdm' : net.selectedRumbleFormat === 'tdm');
+         if (isTdm) {
+           const frostCount = net.lobbyPlayers.filter((p) => (p.team || 'frost') === 'frost').length;
+           const blazeCount = net.lobbyPlayers.filter((p) => p.team === 'blaze').length;
+@@ -1456,7 +1459,7 @@ class Game {
+       }
+       if (lapsDisplay) {
+         if (net.selectedMode === 'rumble') {
+-          lapsDisplay.innerText = net.selectedRumbleRule === 'time_3m' ? '3 MIN TIMER' : (net.selectedRumbleRule === 'kills_20' ? '20 KILLS' : '10 KILLS');
++          lapsDisplay.innerText = net.selectedRumbleRule === 'time_3m' ? '3 MIN TIMER' : (net.selectedRumbleRule === 'kills_20' ? '20 KILLS' : (net.selectedRumbleRule === 'lives_3' ? '3 LIVES' : '10 KILLS'));
+         } else {
+           lapsDisplay.innerText = `${net.selectedLaps} ${net.selectedLaps === 1 ? 'LAP' : 'LAPS'}`;
+         }
+@@ -1487,7 +1490,6 @@ class Game {
+         const isHardcore = targetMode === 'hardcore' || targetMode === 'time_attack_hardcore';
+         const modeKey = isTimeAttack ? (isHardcore ? 'time_sprint_hardcore' : 'time_sprint') : (isHardcore ? 'hardcore' : 'classic');
+         this.resetModeState(modeKey);
+-        this.isMultiplayer = true;
+         this.rumbleManager = null;
+         this.switchTrackMode(isHardcore ? 'hardcore' : 'classic');
+         this.checkpoints.setTotalLaps(laps || (isTimeAttack ? 1 : 3));
+@@ -1499,6 +1501,7 @@ class Game {
+         const modeSelectModal = document.getElementById('mode-select-modal');
+         if (modeSelectModal) modeSelectModal.style.display = 'none';
+         closeMpHub();
++        this.isMultiplayer = true;
+         this.startRaceCountdown(startTime);
+         if (isTimeAttack) {
+           this.hud.showAlert('ΓÅ▒∩╕Å TIMER SPRINT // ZERO COLLISIONS!', 'boost');
+@@ -1515,6 +1518,11 @@ class Game {
+     net.onRumbleFinishReceived = (winningTeam, winnerName) => {
+       this.handleRumbleMatchFinish(winningTeam, winnerName, true);
+     };
++    net.onRumbleKnockoutReceived = (victimId, attackerId, victimLives) => {
++      if (this.rumbleManager) {
++        this.rumbleManager.applyRemoteKnockout(victimId, attackerId, victimLives);
++      }
++    };
+     net.onHostMigrated = (newHost, isSelf) => {
+       if (isSelf) {
+         this.hud.showAlert('HOST MIGRATED // YOU ARE NOW ROOM HOST!', 'smash');
+@@ -1880,23 +1888,27 @@ class Game {
+       }
+       const refilledMsg = (this.player?.kart && this.player.kart.nitroCharges > prevCharges) ? ' // +1 NITRO REFILLED!' : '';
+ 
+-      // Trackmania Lap Record System
++      // Trackmania Lap Record System - Strictly for Time Sprint mode
+       const currentLapTime = Math.max(0.1, this.raceTimer - this.lastLapCompletedTime);
+       this.lastLapCompletedTime = this.raceTimer;
+       const trackKey = this.track && this.track.isHardcore ? 'hardcore' : 'classic';
+-      const lapRecordRes = recordManager.checkLapTime(trackKey, currentLapTime);
+ 
+-      if (lapRecordRes.isNewPB && lapRecordRes.prevPB !== null) {
+-        this.hud.showAlert(`ΓÜí NEW BEST LAP! ${RecordManager.formatTime(currentLapTime)} (${RecordManager.formatDelta(lapRecordRes.delta)})`, 'boost');
+-        sounds.playVictory();
+-      } else if (lap === total) {
++      if (this.isNoCollisionMode) {
++        const lapRecordRes = recordManager.checkLapTime(trackKey, currentLapTime);
++        if (lapRecordRes.isNewPB && lapRecordRes.prevPB !== null) {
++          this.hud.showAlert(`ΓÜí NEW BEST LAP! ${RecordManager.formatTime(currentLapTime)} (${RecordManager.formatDelta(lapRecordRes.delta)})`, 'boost');
++          sounds.playVictory();
++        }
++      }
++
++      if (lap === total) {
+         this.hud.showAlert(`FINAL LAP${refilledMsg} // GO FOR GLORY!`, 'smash');
+       } else if (lap <= total) {
+         this.hud.showAlert(`LAP ${lap}${refilledMsg} // KEEP PUSHING!`, 'smash');
+       }
+ 
+-      // Submit 1-Lap Time Sprint Global Leaderboard Record
+-      if (this.isNoCollisionMode || total === 1) {
++      // Submit 1-Lap Time Sprint Global Leaderboard Record (Time Sprint only)
++      if (this.isNoCollisionMode) {
+         leaderboard.submitSprintRecord(trackKey, currentLapTime).then((res) => {
+           if (res.isNewPB) {
+             this.hud.showAlert(`≡ƒÅå NEW SPRINT PB! #${res.rank} GLOBAL ΓÇó ${res.formattedTime}`, 'boost');
+@@ -1938,6 +1950,10 @@ class Game {
+ 
+     this.hud.setRumbleMode(isRumble);
+     this.hud.setTimeSprintMode(isTimeSprint);
++    if (isTimeSprint) {
++      const trackKey = isHardcore ? 'hardcore' : 'classic';
++      this.hud.setTrackPB(recordManager.getRecord(trackKey).bestRaceTime);
++    }
+ 
+     this.raceTimer = 0;
+     this.playerFinishTime = 0;
+@@ -1958,6 +1974,12 @@ class Game {
+       this.countdownInterval = null;
+     }
+ 
++    if (this.rumbleVictoryTimeout) {
++      clearTimeout(this.rumbleVictoryTimeout);
++      this.rumbleVictoryTimeout = null;
++    }
++    this.hud.hideSmashCombat();
++
+     // Flush active remote sprites and all karts from physics world
+     for (const remote of this.remoteRacers.values()) {
+       if (remote.nameSprite) this.engine.scene.remove(remote.nameSprite);
+@@ -2040,13 +2062,30 @@ class Game {
+       this.handleRumbleMatchFinish(winningTeam, winnerName);
+     };
+ 
++    this.rumbleManager.onKnockoutBroadcast = (victimId, attackerId, victimLives) => {
++      if (this.isMultiplayer) {
++        net.broadcastRumbleKnockout(victimId, attackerId, victimLives);
++      }
++    };
++
+     this.rumbleManager.onPlayerScoredKill = (victimName, comboCount, comboTitle) => {
+       sounds.playSmash();
+       if (comboCount > 1) {
+         sounds.playVictory();
+       }
+       this.player.triggerImpactShake(comboCount > 1 ? 2.2 : 1.4);
+-      this.hud.showSmashCombat(comboTitle, comboCount);
++      this.hud.showSmashCombat(comboTitle, comboCount, false);
++    };
++
++    this.rumbleManager.onPlayerKnockedOut = (attackerName?: string) => {
++      sounds.playCrash(1.4);
++      this.player.triggerImpactShake(1.6);
++      if (attackerName) {
++        const cleanAttacker = attackerName.replace(/_/g, ' ').toUpperCase();
++        this.hud.showSmashCombat(`SLAMMED BY ${cleanAttacker}!`, 1, true);
++      } else {
++        this.hud.showSmashCombat('FELL INTO THE CLOUDS!', 1, true);
++      }
+     };
+ 
+     this.rumbleManager.onPlayerEliminated = () => {
+@@ -2247,6 +2286,7 @@ class Game {
+ 
+           if (idx === mySlotIndex) {
+             const pKart = new Kart(`kart-${idx}`, this.selectedKartIndex, this.engine.scene, this.physics, sp.pos, sp.rot);
++            pKart.applySkin(economy.getEquippedSkin());
+             pKart.team = undefined;
+             pKart.track = this.track;
+             this.allKarts.push(pKart);
+@@ -2305,7 +2345,6 @@ class Game {
+     }
+ 
+     this.isRumbleOutroActive = true;
+-    this.rumbleOutroTimer = 3.0; // 3.0-second celebration outro
+     this.pendingRumbleFinish = { winningTeam, winnerName };
+ 
+     // Broadcast finish event over WebRTC if not from remote
+@@ -2313,17 +2352,6 @@ class Game {
+       net.broadcastRumbleFinish(winningTeam, winnerName);
+     }
+ 
+-    // Play triumphant victory audio fanfare
+-    sounds.playVictory();
+-
+-    // Burst celebration confetti
+-    confetti({
+-      particleCount: 160,
+-      spread: 85,
+-      origin: { y: 0.55 },
+-      colors: ['#00F0FF', '#FF385C', '#FFE600', '#FFFFFF'],
+-    });
+-
+     // Determine banner text, subtitle and theme
+     let title = '';
+     let sub = '';
+@@ -2347,13 +2375,46 @@ class Game {
+       theme = 'solo';
+     }
+ 
+-    // Display Neo-Brutalist victory banner over arena
+-    this.hud.showRumbleVictoryBanner(title, sub, theme);
++    // Total outro celebration: 1.1s for the final slam/kill registration + 3.0s victory celebration = 4.1s
++    this.rumbleOutroTimer = 4.1;
++
++    if (this.rumbleVictoryTimeout) {
++      clearTimeout(this.rumbleVictoryTimeout);
++      this.rumbleVictoryTimeout = null;
++    }
++
++    // Sequential timing: let player enjoy winning slam & killfeed for 1.1s, THEN cleanly display victory banner
++    this.rumbleVictoryTimeout = window.setTimeout(() => {
++      this.rumbleVictoryTimeout = null;
++      if (!this.isRumbleOutroActive || !this.isRumbleMode) return;
++
++      // Cleanly clear center combat slam popup so they NEVER overlap
++      this.hud.hideSmashCombat();
++
++      // Play triumphant victory audio fanfare
++      sounds.playVictory();
++
++      // Burst celebration confetti
++      confetti({
++        particleCount: 160,
++        spread: 85,
++        origin: { y: 0.55 },
++        colors: ['#00F0FF', '#FF385C', '#FFE600', '#FFFFFF'],
++      });
++
++      // Display Neo-Brutalist victory banner over arena
++      this.hud.showRumbleVictoryBanner(title, sub, theme);
++    }, 1100);
+   }
+ 
+   private finalizeRumbleMatch() {
++    if (this.rumbleVictoryTimeout) {
++      clearTimeout(this.rumbleVictoryTimeout);
++      this.rumbleVictoryTimeout = null;
++    }
+     this.isRumbleOutroActive = false;
+     this.rumbleOutroTimer = 0;
++    this.hud.hideSmashCombat();
+     this.hud.hideRumbleVictoryBanner();
+ 
+     if (!this.pendingRumbleFinish || !this.rumbleManager) return;
+@@ -2414,8 +2475,8 @@ class Game {
+     const vsDeck = document.getElementById('lobby-vs-deck');
+     if (!listEl || !vsDeck) return;
+ 
+-    const isRumbleTdm = (net.selectedMode === 'rumble' || this.selectedMpMode === 'rumble') &&
+-                        (net.selectedRumbleFormat === 'tdm' || this.selectedMpRumbleFormat === 'tdm');
++    const isRumble = net.selectedMode === 'rumble' || this.selectedMpMode === 'rumble';
++    const isRumbleTdm = isRumble && (net.isHost ? this.selectedMpRumbleFormat === 'tdm' : net.selectedRumbleFormat === 'tdm');
+ 
+     const frostPlayers = players.filter((p) => (p.team || 'frost') === 'frost');
+     const blazePlayers = players.filter((p) => p.team === 'blaze');
+@@ -2727,21 +2788,27 @@ class Game {
+     this.hud.showAlert(`${reasonText} // RETURNED TO LOBBY`, 'respawn');
+   }
+ 
+-  public quitToLobby() {
++  public quitToLobby(forceClose: boolean = false) {
+     sounds.stopEngine();
++    if (this.rumbleVictoryTimeout) {
++      clearTimeout(this.rumbleVictoryTimeout);
++      this.rumbleVictoryTimeout = null;
++    }
+     this.isRumbleOutroActive = false;
+     this.rumbleOutroTimer = 0;
+     this.pendingRumbleFinish = null;
++    this.hud.hideSmashCombat();
+     this.hud.hideRumbleVictoryBanner();
+     this.isMidRaceSpectator = false;
+     this.isSpectating = false;
+     this.hud.hideSpectatorOverlay();
+     this.hud.setPing(null);
+     if (this.isMultiplayer) {
+-      net.cleanup();
++      net.cleanup(forceClose);
+       this.isMultiplayer = false;
+       this.hud.setRoomBadge(null);
+     }
++    this.resetMpLobbyUI();
+     this.resetModeState('menu');
+     this.rumbleManager = null;
+     this.switchTrackMode('classic');
+@@ -2761,21 +2828,73 @@ class Game {
+     this.hud.showAlert('RETURNED TO LOBBY', 'respawn');
+   }
+ 
+-  public leaveMultiplayerLobby() {
++  public leaveMultiplayerLobby(forceClose: boolean = false) {
++    this.isMultiplayer = false;
++    if (this.rumbleVictoryTimeout) {
++      clearTimeout(this.rumbleVictoryTimeout);
++      this.rumbleVictoryTimeout = null;
++    }
+     this.isRumbleOutroActive = false;
+     this.rumbleOutroTimer = 0;
+     this.pendingRumbleFinish = null;
++    this.hud.hideSmashCombat();
+     this.hud.hideRumbleVictoryBanner();
+     this.isMidRaceSpectator = false;
+     this.isSpectating = false;
+     this.hud.hideSpectatorOverlay();
+     this.hud.setPing(null);
+-    net.cleanup();
++    net.cleanup(forceClose);
++    this.resetMpLobbyUI();
++    this.hud.setRoomBadge(null);
++  }
++
++  private resetMpLobbyUI() {
+     const lobbyView = document.getElementById('lobby-view');
+     const optionsGrid = document.getElementById('mp-options-grid');
+     if (lobbyView) lobbyView.style.display = 'none';
+     if (optionsGrid) optionsGrid.style.display = 'grid';
+-    this.hud.setRoomBadge(null);
++
++    const joinInput = document.getElementById('join-room-input') as HTMLInputElement | null;
++    if (joinInput) joinInput.value = '';
++
++    const codeDisplay = document.getElementById('lobby-code-display');
++    if (codeDisplay) codeDisplay.innerText = 'GENERATING...';
++
++    const countDisplay = document.getElementById('lobby-count');
++    if (countDisplay) countDisplay.innerText = '1';
++
++    const playerList = document.getElementById('lobby-player-list');
++    if (playerList) playerList.innerHTML = '';
++
++    const frostList = document.getElementById('lobby-frost-list');
++    if (frostList) frostList.innerHTML = '';
++
++    const blazeList = document.getElementById('lobby-blaze-list');
++    if (blazeList) blazeList.innerHTML = '';
++
++    const vsDeck = document.getElementById('lobby-vs-deck');
++    if (vsDeck) vsDeck.style.display = 'none';
++
++    const pingTag = document.getElementById('lobby-ping-tag');
++    if (pingTag) pingTag.style.display = 'none';
++
++    const mpLaunchBtn = document.getElementById('btn-start-multiplayer') as HTMLButtonElement | null;
++    if (mpLaunchBtn) {
++      mpLaunchBtn.style.display = 'none';
++      mpLaunchBtn.innerText = 'LAUNCH MULTIPLAYER MATCH';
++    }
++
++    const hostBtn = document.getElementById('btn-host-room') as HTMLButtonElement | null;
++    if (hostBtn) {
++      hostBtn.disabled = false;
++      hostBtn.innerText = 'Γÿà CREATE MULTIPLAYER LOBBY Γÿà';
++    }
++
++    const joinBtn = document.getElementById('btn-join-room') as HTMLButtonElement | null;
++    if (joinBtn) {
++      joinBtn.disabled = false;
++      joinBtn.innerText = 'Γû╢ JOIN LOBBY';
++    }
+   }
+ 
+   private startRaceCountdown(targetStartTime?: number) {
+@@ -3432,17 +3551,19 @@ class Game {
+ 
+     const trackKey: 'classic' | 'hardcore' = (this.track && this.track.isHardcore) ? 'hardcore' : 'classic';
+ 
+-    // Trackmania-style record evaluation
+-    const recordRes = recordManager.checkRaceTime(trackKey, playerTime);
+-    const recordInfo = {
+-      isNewPB: recordRes.isNewPB,
+-      currentTime: playerTime,
+-      prevPB: recordRes.prevPB,
+-      delta: recordRes.delta,
+-    };
++    // Trackmania-style record evaluation: ONLY for Time Sprint mode (isNoCollisionMode)
++    let recordInfo: { isNewPB: boolean; currentTime: number; prevPB: number | null; delta: number } | undefined = undefined;
++
++    if (this.isNoCollisionMode) {
++      const recordRes = recordManager.checkRaceTime(trackKey, playerTime);
++      recordInfo = {
++        isNewPB: recordRes.isNewPB,
++        currentTime: playerTime,
++        prevPB: recordRes.prevPB,
++        delta: recordRes.delta,
++      };
+ 
+-    // Auto-submit to global sprint leaderboard if in Time Sprint mode or 1-lap sprint
+-    if (this.isNoCollisionMode || this.checkpoints.totalLaps === 1) {
++      // Auto-submit to global sprint leaderboard
+       leaderboard.submitSprintRecord(trackKey, playerTime);
+     }
+ 
+@@ -3673,11 +3794,6 @@ class Game {
+ 
+     if (isPlayerInvolved) {
+       this.player.triggerImpactShake(crashVol * 1.3);
+-      if (rammer === this.player.kart) {
+-        this.hud.showAlert('BUMP! // SPEED LOSS', 'recoil');
+-      } else {
+-        this.hud.showAlert('DEFLECTED // COUNTER-STEER!', 'recoil');
+-      }
+     }
+   }
+ 
+@@ -3842,11 +3958,9 @@ class Game {
+       // Dynamic Tube Entry / Exit HUD Alert Feedback
+       const inTube = this.player.kart.isInAntiGravTube;
+       if (inTube && !this.playerWasInTube) {
+-        this.hud.showAlert('ΓÜí 360┬░ CYBER VORTEX // ANTI-GRAV ON ΓÜí', 'nitro');
+         sounds.playBoost();
+         this.playerWasInTube = true;
+       } else if (!inTube && this.playerWasInTube) {
+-        this.hud.showAlert('ΓÜí GRAVITY RESTORED // EXIT ΓÜí', 'lap');
+         this.playerWasInTube = false;
+       }
+ 
+@@ -3912,13 +4026,7 @@ class Game {
+       this.player.kart.setDraft(maxDraftIntensity);
+ 
+       // Audio & HUD alert for drafting
+-      if (maxDraftIntensity > 0.35) {
+-        this.draftAlertCooldown += dt;
+-        if (this.draftAlertCooldown > 0.6) {
+-          this.hud.showAlert('SLIPSTREAM ACTIVE // DRAFT BOOST', 'smash');
+-          this.draftAlertCooldown = -3.5; // Prevent notification spam
+-        }
+-      } else {
++      if (maxDraftIntensity <= 0.35) {
+         this.draftAlertCooldown = Math.max(0, this.draftAlertCooldown - dt * 2.0);
+       }
+ 
+@@ -4056,6 +4164,8 @@ class Game {
+         k.currentSpeed = remote.interpolator.currentSpeed;
+         const isBoosting = remote.interpolator.isBoosting;
+         k.boostTime = isBoosting ? 0.5 : 0;
++        k.isDrifting = remote.interpolator.isDrifting;
++        k.isGrounded = !remote.isSmashed;
+         if (isBoosting) {
+           for (let i = 0; i < k.flames.length; i++) {
+             k.flames[i].scale.set(1.0, 1.0, 2.2);
+@@ -4094,14 +4204,12 @@ class Game {
+               kart.applyBoost(2.0, 1.8);
+               if (kart === this.player.kart) {
+                 sounds.playBoost();
+-                this.hud.showAlert('TOUCHDOWN BOOST // CLEAN LANDING!', 'smash');
+               }
+             } else {
+               // Standard flat track & runway sprint boost pad
+               kart.applyBoost(1.5, 1.6);
+               if (kart === this.player.kart) {
+                 sounds.playBoost();
+-                this.hud.showAlert('NITRO SURGE // OVERBOOST', 'smash');
+               }
+             }
+           }
+@@ -4118,10 +4226,8 @@ class Game {
+             kart.launchIntoAir(_kickerHopVel, true);
+             kart.applyBoost(1.1, 1.3);
+ 
+-            this.sparks.emitImpactSparks(ramp.position, 14, 0x00ffff);
+             if (kart === this.player.kart) {
+               sounds.playBoost();
+-              this.hud.showAlert('RAMP HOP // MINI BOOST!', 'recoil');
+             }
+           }
+         }
+@@ -4210,7 +4316,6 @@ class Game {
+                 const crashVol = Math.min(2.0, 0.9 + impactPower * 0.03);
+                 sounds.playCrash(crashVol);
+                 this.player.triggerImpactShake(2.5);
+-                this.hud.showAlert('BARRIER COLLISION // SEVERE CRASH!', 'recoil');
+               }
+             }
+           }
+@@ -4320,7 +4425,6 @@ class Game {
+ 
+                 if (kart === this.player.kart) {
+                   this.player.triggerImpactShake(1.2);
+-                  this.hud.showAlert('RING FRAME SMASH // MISSED CENTER!', 'recoil');
+                 }
+               }
+             }
+@@ -4401,7 +4505,9 @@ class Game {
+         }
+       } else {
+         // Sky Rumble Mode: Arena score and match timer are updated by rumbleManager.
+-        // Top-left race timer & lap status are intentionally bypassed here.
++        // Speedometer updated smoothly without affecting arena match HUD
++        const speedKmh = this.player.getSpeedKmh();
++        this.hud.updateSpeed(speedKmh);
+         this.hud.showWrongWay(false);
+       }
+ 

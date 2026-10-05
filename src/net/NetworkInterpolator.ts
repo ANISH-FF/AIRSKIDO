@@ -29,6 +29,7 @@ export interface TransformSnapshot {
 export class NetworkInterpolator {
   private buffer: TransformSnapshot[] = [];
   private clockOffset: number | null = null;
+  private lastSenderTime: number | null = null;
   private errorOffset: THREE.Vector3 = new THREE.Vector3(0, 0, 0);
 
   // Smooth exposed state properties
@@ -57,6 +58,7 @@ export class NetworkInterpolator {
   public init(pos: THREE.Vector3, rot: THREE.Quaternion) {
     this.buffer = [];
     this.clockOffset = null;
+    this.lastSenderTime = null;
     this.errorOffset.set(0, 0, 0);
     this.currentSpeed = 0;
     this.currentSteer = 0;
@@ -91,26 +93,26 @@ export class NetworkInterpolator {
     const localNow = performance.now();
     const senderTime = data.time ?? localNow;
 
+    // Filter true duplicates from sender clock
+    if (this.lastSenderTime !== null && senderTime <= this.lastSenderTime) {
+      return;
+    }
+
     // Filter and align sender clock with local client clock
     const measuredOffset = localNow - senderTime;
     if (this.clockOffset === null) {
       this.clockOffset = measuredOffset;
     } else {
-      if (measuredOffset < this.clockOffset) {
-        // Lower latency or sender clock step: shift baseline immediately
-        this.clockOffset = measuredOffset;
-      } else {
-        // Gracefully follow gradual clock drift
-        this.clockOffset += (measuredOffset - this.clockOffset) * 0.005;
-      }
+      // Smooth low-pass filter (removes jitter spikes while keeping clock aligned)
+      this.clockOffset += (measuredOffset - this.clockOffset) * 0.05;
     }
 
-    const mappedTime = senderTime + this.clockOffset;
+    // Monotonic mapped arrival time based on actual sender interval
+    const dtSender = this.lastSenderTime !== null ? Math.max(1, senderTime - this.lastSenderTime) : 33;
+    this.lastSenderTime = senderTime;
 
-    // Reject out-of-order or duplicate packets
-    if (this.buffer.length > 0 && mappedTime <= this.buffer[this.buffer.length - 1].time) {
-      return;
-    }
+    const lastTime = this.buffer.length > 0 ? this.buffer[this.buffer.length - 1].time : (localNow - 33);
+    const mappedTime = Math.max(lastTime + Math.min(dtSender, 100), senderTime + this.clockOffset);
 
     // Allocate or reuse oldest snapshot from capacity buffer
     let snap: TransformSnapshot;

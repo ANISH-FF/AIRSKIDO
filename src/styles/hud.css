@@ -247,9 +247,13 @@
       100% { opacity: 1.0; }
     }
     .spectator-pos-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      vertical-align: middle;
       background: var(--brut-yellow);
       color: #000;
-      padding: 1px 6px;
+      padding: 1px 7px;
       border-radius: 6px;
       font-size: 13px;
       border: 1.5px solid #000;
@@ -741,6 +745,9 @@
     .blaze-box .rumble-team-score,
     .crimson-box .rumble-team-score { color: #dd2211; }
 
+    .team-glow-indicator {
+      display: none !important;
+    }
     .team-glow-indicator.frost-indicator,
     .team-glow-indicator.cyan-indicator {
       width: 10px;
@@ -756,6 +763,60 @@
       border-radius: 50%;
       background: #ff3344;
       box-shadow: 0 0 10px #ff3344;
+    }
+    .team-glow-indicator.ffa-you-indicator {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #10b981;
+      box-shadow: 0 0 10px #10b981;
+    }
+    .team-glow-indicator.ffa-top-indicator {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #f59e0b;
+      box-shadow: 0 0 10px #f59e0b;
+    }
+
+    /* Solo Free For All HUD Boxes */
+    .rumble-team-box.ffa-you-box {
+      border-color: #000;
+      background: linear-gradient(135deg, #e6fffa 0%, #ffffff 100%);
+    }
+    .rumble-team-box.ffa-you-box .rumble-team-name { color: #047857; }
+    .rumble-team-box.ffa-you-box .rumble-team-score { color: #059669; }
+
+    .rumble-team-box.ffa-top-box {
+      border-color: #000;
+      background: linear-gradient(135deg, #fef3c7 0%, #ffffff 100%);
+    }
+    .rumble-team-box.ffa-top-box .rumble-team-name { color: #b45309; }
+    .rumble-team-box.ffa-top-box .rumble-team-score { color: #d97706; }
+
+    /* Cute SVG Hearts for Lives Mode */
+    .hud-hearts-row {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      vertical-align: middle;
+      padding: 2px 0;
+    }
+    .cute-heart-svg {
+      display: inline-block;
+      filter: drop-shadow(1px 1px 0 rgba(0,0,0,0.85));
+      transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.2s ease;
+      animation: heart-pop 0.3s ease-out;
+    }
+    .cute-heart-svg.heart-lost {
+      opacity: 0.28;
+      filter: none;
+      transform: scale(0.85);
+    }
+    @keyframes heart-pop {
+      0% { transform: scale(0.6); }
+      70% { transform: scale(1.15); }
+      100% { transform: scale(1.0); }
     }
 
     .rumble-center-badge {
@@ -785,91 +846,139 @@
       letter-spacing: 1px;
     }
 
-    /* ── HIGH-CONTRAST ARCADE KILLFEED (VALORANT DARK-GLASS THEME) ── */
+    /* ── TACTICAL ESPORTS KILLFEED (TOP-LEFT POSITION) ── */
     .killfeed-container {
       position: absolute;
-      top: 76px;
+      top: 18px;
       left: 20px;
+      right: auto;
       display: flex;
       flex-direction: column;
-      gap: 7px;
+      gap: 4px;
       align-items: flex-start;
       z-index: 45;
       pointer-events: none;
-      max-width: 440px;
+      max-width: 360px;
     }
     .killfeed-entry {
-      background: rgba(12, 16, 26, 0.90);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
+      background: rgba(14, 18, 26, 0.78);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
       color: #fff;
-      border: 2px solid #000;
-      border-radius: 12px;
-      padding: 5px 12px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 3px;
+      padding: 3px 9px;
       font-family: var(--font-display);
-      font-size: 12.5px;
+      font-size: 13px;
       font-weight: 800;
-      letter-spacing: 0.5px;
-      box-shadow: 3px 3px 0px #000;
-      animation: killfeedSlideCute 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      letter-spacing: 0.4px;
+      box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.5);
+      animation: killfeedSlideLeft 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
       white-space: nowrap;
       display: inline-flex;
       align-items: center;
-      gap: 6px;
-      transition: border-color 0.2s, box-shadow 0.2s;
+      gap: 7px;
+      line-height: 1;
+      transition: opacity 0.3s, transform 0.2s;
     }
-    @keyframes killfeedSlideCute {
-      from { transform: translateX(-24px) scale(0.9); opacity: 0; }
+    @keyframes killfeedSlideLeft {
+      from { transform: translateX(-20px) scale(0.95); opacity: 0; }
       to { transform: translateX(0) scale(1.0); opacity: 1; }
     }
+
+    /* ── SETTINGS & MULTIPLAYER STATUS BAR (FAR-RIGHT IN RUMBLE) ── */
+    #top-bar.rumble-top-bar {
+      right: 18px !important;
+      left: auto !important;
+      top: 14px;
+    }
     .killfeed-entry.self-kill {
+      background: rgba(22, 30, 42, 0.90) !important;
       border-color: #FFE600 !important;
-      box-shadow: 0 0 12px rgba(255, 230, 0, 0.45), 3px 3px 0px #000 !important;
+      box-shadow: 0 0 10px rgba(255, 230, 0, 0.4), 2px 2px 0px #000 !important;
     }
-    .killfeed-tag {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      padding: 1px 6px;
-      border-radius: 6px;
-      border: 1.5px solid #000;
-      font-size: 9.5px;
+    .killfeed-entry.self-victim {
+      background: rgba(36, 18, 24, 0.90) !important;
+      border-color: #ff3344 !important;
+      box-shadow: 0 0 10px rgba(255, 51, 68, 0.4), 2px 2px 0px #000 !important;
+    }
+    .killfeed-weapon {
+      display: inline-block;
+      vertical-align: middle;
+      flex-shrink: 0;
+    }
+    .killfeed-crosshair {
+      display: inline-block;
+      vertical-align: middle;
+      flex-shrink: 0;
+      opacity: 0.9;
+    }
+    .killfeed-action {
+      font-size: 9px;
       font-weight: 900;
-      letter-spacing: 0.5px;
+      letter-spacing: 0.6px;
+      color: #ffffff;
+      opacity: 0.9;
       text-transform: uppercase;
-    }
-    .killfeed-tag.smash {
-      background: var(--brut-yellow);
-      color: #000;
-    }
-    .killfeed-tag.fall {
-      background: var(--brut-red);
-      color: #fff;
+      padding: 0 1px;
     }
     .killfeed-name {
-      font-weight: 900;
+      font-weight: 800;
+      letter-spacing: 0.3px;
     }
     .killfeed-name.team-frost,
     .killfeed-name.team-cyan {
-      color: #00f0ff;
-      text-shadow: 0 0 6px rgba(0, 240, 255, 0.5);
+      color: #38bdf8;
+      text-shadow: 0 0 6px rgba(56, 189, 248, 0.4);
     }
     .killfeed-name.team-blaze,
     .killfeed-name.team-crimson {
-      color: #ff3344;
-      text-shadow: 0 0 6px rgba(255, 51, 68, 0.5);
+      color: #f87171;
+      text-shadow: 0 0 6px rgba(248, 113, 113, 0.4);
     }
     .killfeed-name.team-solo {
-      color: #ffe600;
+      color: #fde047;
     }
-    .killfeed-verb {
-      color: #e2e8f0;
-      font-weight: 700;
-      font-style: italic;
+    .killfeed-name.victim {
+      opacity: 0.95;
     }
-    .killfeed-sub {
-      color: #94a3b8;
-      font-weight: 600;
+    .killfeed-tag-out {
+      font-size: 9px;
+      font-weight: 900;
+      letter-spacing: 0.5px;
+      color: #ff4455;
+      background: rgba(255, 68, 85, 0.15);
+      border: 1px solid #ff4455;
+      border-radius: 2px;
+      padding: 1px 4px;
+      line-height: 1;
+    }
+    .killfeed-entry.is-eliminated {
+      background: rgba(45, 12, 20, 0.94) !important;
+      border-color: #ff2255 !important;
+      box-shadow: 0 0 12px rgba(255, 34, 85, 0.45), 2px 2px 0px #000 !important;
+    }
+    .killfeed-action.eliminated {
+      color: #ffffff;
+      background: #e11d48;
+      border: 1px solid #000;
+      border-radius: 2px;
+      padding: 1px 5px;
+      font-size: 9px;
+      font-weight: 900;
+      letter-spacing: 0.8px;
+      box-shadow: 1px 1px 0px #000;
+    }
+    .killfeed-tag-out.eliminated {
+      color: #ffffff;
+      background: #e11d48;
+      border: 1px solid #000;
+      border-radius: 2px;
+      padding: 1px 5px;
+      font-size: 9px;
+      font-weight: 900;
+      letter-spacing: 0.8px;
+      box-shadow: 1px 1px 0px #000;
     }
 
     /* ── SKY RUMBLE OUTRO VICTORY BANNER (NEO-BRUTALIST) ── */

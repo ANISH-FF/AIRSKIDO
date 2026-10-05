@@ -386,7 +386,11 @@ export class Kart {
 
     const faceDarkGeoms: THREE.BufferGeometry[] = [];
     addSphere(faceDarkGeoms, 0.042, 8, 8, 0, 0.66, 0.40);
+    // Subtle black mouth & lips below nose
+    addBox(faceDarkGeoms, 0.014, 0.032, 0.024, 0, 0.615, 0.402);
+    addBox(faceDarkGeoms, 0.060, 0.018, 0.024, 0, 0.585, 0.398);
     for (const side of [-1, 1]) {
+      addBox(faceDarkGeoms, 0.028, 0.016, 0.024, side * 0.042, 0.592, 0.393, 0, 0, -side * 0.35);
       addSphere(faceDarkGeoms, 0.062, 8, 8, side * 0.135, 0.72, 0.35, 0.9, 1.05, 0.55);
       addBox(faceDarkGeoms, 0.11, 0.028, 0.035, side * 0.135, 0.855, 0.295, 0, 0, -side * 0.12);
     }
@@ -1236,13 +1240,28 @@ export class Kart {
     let roadY = hit ? rayOrigin.y - hit.toi : -999;
     let normalY = hit ? hit.normal.y : 0;
 
+    // Arena exact surface height computation (Center dais: 0.35m, gradual ramp: 11.5m -> 16.8m)
+    let arenaFloorY = 0.0;
+    const isArena = !!(this.track && this.track.isArena);
+    const dCenter = isArena ? Math.hypot(pos.x, pos.z) : 0;
+    if (isArena) {
+      if (dCenter <= 11.5) {
+        arenaFloorY = 0.35;
+      } else if (dCenter < 16.8) {
+        // Smooth Hermite cubic ease from 0.35 down to 0.0
+        const t = (16.8 - dCenter) / (16.8 - 11.5);
+        arenaFloorY = 0.35 * (t * t * (3 - 2 * t));
+      } else {
+        arenaFloorY = 0.0;
+      }
+    }
+
     // Mathematical spline fallback if raycast missed or hit vertical/invalid normal
     if (this.track && (roadY < -900 || normalY <= 0.25)) {
-      if (this.track.isArena) {
+      if (isArena) {
         // In Arena mode: strictly provide fallback only while on the 96.0m arena deck
-        const dCenter = Math.hypot(pos.x, pos.z);
         if (dCenter <= 96.0 && pos.y >= -0.5) {
-          roadY = 0.0;
+          roadY = arenaFloorY;
           normalY = 1.0;
         }
       } else {
@@ -1250,15 +1269,24 @@ export class Kart {
         const t = this.track.getClosestT(posVec);
         const slice = this.track.getTrackSlice(t);
         if (!slice.isGap) {
-          const dCenter = Math.hypot(pos.x - slice.position.x, pos.z - slice.position.z);
+          const distToSlice = Math.hypot(pos.x - slice.position.x, pos.z - slice.position.z);
           // Strict vertical clearance: Only match track slice if kart is near actual road elevation!
           // Prevents falling karts under the sky track from falsely locking onto road height at pillars.
           const vertDelta = pos.y - slice.position.y;
-          if (dCenter <= slice.halfWidth + 1.4 && vertDelta >= -1.8 && vertDelta <= 3.5) {
+          if (distToSlice <= slice.halfWidth + 1.4 && vertDelta >= -1.8 && vertDelta <= 3.5) {
             roadY = slice.position.y;
             normalY = slice.normal.y;
           }
         }
+      }
+    }
+
+    // Rock-Solid Arena Deck Surface Floor:
+    // If the kart is inside the 95.5m arena coliseum, roadY must NEVER be below the actual arena floor!
+    if (isArena && dCenter <= 95.5) {
+      if (roadY < arenaFloorY) {
+        roadY = arenaFloorY;
+        normalY = 1.0;
       }
     }
 
@@ -1276,6 +1304,19 @@ export class Kart {
         this.rigidBody.setLinvel({ x: curLv.x, y: 0, z: curLv.z }, true);
       }
 
+      this.isGrounded = true;
+      this.airLaunchTimer = 0;
+    }
+
+    // In Arena mode: if kart ever dips below arena floor while inside coliseum, immediately lock to floor!
+    if (isArena && dCenter <= 95.5 && pos.y < arenaFloorY) {
+      this.rigidBody.setTranslation({ x: pos.x, y: arenaFloorY, z: pos.z }, true);
+      pos.y = arenaFloorY;
+      distToRoad = 0.0;
+      const curLv = this.rigidBody.linvel();
+      if (curLv.y < 0) {
+        this.rigidBody.setLinvel({ x: curLv.x, y: 0, z: curLv.z }, true);
+      }
       this.isGrounded = true;
       this.airLaunchTimer = 0;
     } else if (this.airLaunchTimer > 0) {
@@ -1310,7 +1351,6 @@ export class Kart {
     }
 
     // Handle Natural Momentum Drifting (Activates strictly at 100+ km/h for racing tracks; 40+ km/h in Battle Arena)
-    const isArena = !!(this.track && this.track.isArena);
     const speedKmh = Math.abs(this.currentSpeed) * 3.6;
     const minDriftKmh = isArena ? 40 : 98;
     const sustainDriftKmh = isArena ? 28 : 68;

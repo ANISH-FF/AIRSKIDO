@@ -53,6 +53,7 @@ export type NetPacket =
   | { type: 'kart_transform'; data: RemoteKartTransform }
   | { type: 'race_first_finish'; winnerPeerId: string; winnerName: string; countdownSeconds: number }
   | { type: 'rumble_finish'; winningTeam: RumbleTeam | 'draw'; winnerName: string }
+  | { type: 'rumble_knockout'; victimId: string; attackerId?: string; victimLives?: number }
   | { type: 'room_closed'; reason?: string }
   | { type: 'ping'; t: number }
   | { type: 'pong'; t: number }
@@ -70,9 +71,10 @@ export class MultiplayerManager {
   public selectedMode: MpGameMode = 'classic';
   public selectedRumbleRule: string = 'kills_10';
   public selectedRumbleFormat: 'tdm' | 'ffa' = 'tdm';
-  public myTeam: 'frost' | 'blaze' = 'frost';
+  public myTeam?: 'frost' | 'blaze' = 'frost';
   public matchState: 'staging' | 'in_race' = 'staging';
   public currentPing: number = 0;
+  private isRoomClosed: boolean = false;
 
   public connectedPeers: Map<string, DataConnection> = new Map();
   public lobbyPlayers: RemotePlayerInfo[] = [];
@@ -83,6 +85,7 @@ export class MultiplayerManager {
   public onRemoteTransform?: (data: RemoteKartTransform) => void;
   public onFirstFinishReceived?: (winnerPeerId: string, winnerName: string, countdownSeconds: number) => void;
   public onRumbleFinishReceived?: (winningTeam: RumbleTeam | 'draw', winnerName: string) => void;
+  public onRumbleKnockoutReceived?: (victimId: string, attackerId?: string, victimLives?: number) => void;
   public onSmashReceived?: (data: SmashPacket) => void;
   public onPlayerLeft?: (peerId: string, playerName?: string) => void;
   public onRoomClosed?: (reason?: string) => void;
@@ -128,7 +131,7 @@ export class MultiplayerManager {
     this.selectedMode = mode;
     this.selectedRumbleRule = rumbleRule;
     this.selectedRumbleFormat = rumbleFormat;
-    this.myTeam = 'frost';
+    this.myTeam = (mode === 'rumble' && rumbleFormat === 'ffa') ? undefined : 'frost';
     this.isHost = true;
 
     // Generate clean 5-char alphanumeric code (17+ Million unique rooms, zero collision)
@@ -505,8 +508,8 @@ export class MultiplayerManager {
         if (packet.rumbleFormat) this.selectedRumbleFormat = packet.rumbleFormat;
         if (packet.matchState) this.matchState = packet.matchState;
         const myInfo = this.lobbyPlayers.find((p) => p.peerId === this.myPeerId);
-        if (myInfo && myInfo.team) {
-          this.myTeam = myInfo.team;
+        if (myInfo) {
+          this.myTeam = this.selectedRumbleFormat === 'ffa' ? undefined : (myInfo.team || 'frost');
         }
         if (this.onLobbyUpdated) {
           this.onLobbyUpdated(this.lobbyPlayers, this.selectedLaps, this.selectedMode, this.selectedRumbleRule, this.selectedRumbleFormat, this.matchState);
@@ -551,6 +554,7 @@ export class MultiplayerManager {
         break;
 
       case 'room_closed':
+        this.isRoomClosed = true;
         if (this.onRoomClosed) {
           this.onRoomClosed(packet.reason || 'HOST_CLOSED');
         }
@@ -575,10 +579,17 @@ export class MultiplayerManager {
           this.onRumbleFinishReceived(packet.winningTeam, packet.winnerName);
         }
         break;
+
+      case 'rumble_knockout':
+        if (this.onRumbleKnockoutReceived) {
+          this.onRumbleKnockoutReceived(packet.victimId, packet.attackerId, packet.victimLives);
+        }
+        break;
     }
   }
 
   public handleHostDisconnect(oldHostPeerId: string) {
+    if (this.isRoomClosed) return;
     const oldHostInfo = this.lobbyPlayers.find((p) => p.peerId === oldHostPeerId);
     if (this.onPlayerLeft) {
       this.onPlayerLeft(oldHostPeerId, oldHostInfo ? oldHostInfo.name : undefined);
@@ -701,7 +712,7 @@ export class MultiplayerManager {
   public startHostRace() {
     if (!this.isHost) return;
     this.matchState = 'in_race';
-    const startTime = Date.now() + 3200; // Synchronized start across all network devices
+    const startTime = Date.now() + 5400; // Synchronized start across all network devices (2.2s loading screen + 3.2s countdown)
     this.broadcast({
       type: 'start_countdown',
       startTime,
@@ -767,11 +778,22 @@ export class MultiplayerManager {
     this.broadcast(packet);
   }
 
-  public cleanup() {
+  // Synchronize arena knockout / kill event across all peers
+  public broadcastRumbleKnockout(victimId: string, attackerId?: string, victimLives?: number) {
+    this.broadcast({
+      type: 'rumble_knockout',
+      victimId,
+      attackerId,
+      victimLives,
+    });
+  }
+
+  public cleanup(forceCloseRoom: boolean = false) {
     this.stopPingLoop();
     this.currentPing = 0;
     this.matchState = 'staging';
-    if (this.isHost && this.connectedPeers.size > 0) {
+    this.isRoomClosed = false;
+    if (forceCloseRoom && this.isHost && this.connectedPeers.size > 0) {
       try {
         this.broadcast({ type: 'room_closed', reason: 'HOST_CLOSED' });
       } catch (e) {}

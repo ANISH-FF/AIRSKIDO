@@ -465,19 +465,20 @@
       pointer-events: none;
     }
 
-    /* Hero Combat Smash Overlay (Exact Start-Game SMASH! Typography) */
+    /* Hero Combat Slam Overlay (Original Theme Font - Pure Normal Text, Bold & Punchy) */
     #smash-combat-overlay {
       position: absolute;
-      top: 38%;
+      top: 36%;
       left: 50%;
       transform: translate(-50%, -50%) scale(0.4);
-      font-family: var(--font-display);
-      font-size: 56px;
+      font-family: var(--font-display, 'Fredoka', sans-serif);
+      font-size: 34px;
       font-weight: 900;
-      letter-spacing: 1.5px;
+      letter-spacing: 0.8px;
       color: var(--brut-yellow);
-      -webkit-text-stroke: 3.5px #000;
-      text-shadow: 6px 6px 0px #000;
+      paint-order: stroke fill;
+      -webkit-text-stroke: 3px #000;
+      text-shadow: 4px 4px 0px #000;
       display: none;
       z-index: 26;
       pointer-events: none;
@@ -492,28 +493,61 @@
       transform: translate(-50%, -50%) scale(1.0);
       opacity: 1;
     }
+    #smash-combat-overlay.knockout {
+      color: #FF3344;
+      font-size: 34px;
+      paint-order: stroke fill;
+      -webkit-text-stroke: 3px #000;
+      text-shadow: 4px 4px 0px #000;
+    }
     #smash-combat-overlay.double {
       color: #00F0FF;
-      font-size: 68px;
-      -webkit-text-stroke: 4px #000;
-      text-shadow: 8px 8px 0px #000;
+      font-size: 40px;
+      paint-order: stroke fill;
+      -webkit-text-stroke: 3.2px #000;
+      text-shadow: 4.5px 4.5px 0px #000;
     }
     #smash-combat-overlay.triple {
       color: #FF385C;
-      font-size: 76px;
-      -webkit-text-stroke: 4.5px #000;
-      text-shadow: 9px 9px 0px #000;
+      font-size: 46px;
+      paint-order: stroke fill;
+      -webkit-text-stroke: 3.4px #000;
+      text-shadow: 5px 5px 0px #000;
     }
     #smash-combat-overlay.mega {
       color: #FFE600;
-      font-size: 82px;
-      -webkit-text-stroke: 5px #000;
-      text-shadow: 10px 10px 0px #000;
+      font-size: 52px;
+      paint-order: stroke fill;
+      -webkit-text-stroke: 3.8px #000;
+      text-shadow: 6px 6px 0px #000;
       animation: smashMegaPulse 0.3s infinite alternate;
     }
     @keyframes smashMegaPulse {
       from { transform: translate(-50%, -50%) scale(1.0); }
       to { transform: translate(-50%, -50%) scale(1.08); }
+    }
+
+    @media (max-width: 768px) {
+      #smash-combat-overlay {
+        font-size: 22px;
+        -webkit-text-stroke: 1.5px #000;
+        text-shadow: 2.5px 2.5px 0px #000;
+      }
+      #smash-combat-overlay.knockout {
+        font-size: 22px;
+      }
+      #smash-combat-overlay.double {
+        font-size: 26px;
+        -webkit-text-stroke: 1.8px #000;
+      }
+      #smash-combat-overlay.triple {
+        font-size: 30px;
+        -webkit-text-stroke: 2px #000;
+      }
+      #smash-combat-overlay.mega {
+        font-size: 34px;
+        -webkit-text-stroke: 2.2px #000;
+      }
     }
 
     /* Flashing Wrong-Way Warning Banner */

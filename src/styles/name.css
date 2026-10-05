@@ -3,68 +3,149 @@
    ================================================================ */
 
 /* ── Lobby Top Bar Pilot Card ─────────────────────────────────── */
+/* ── Lobby Top Bar Pilot Card ─────────────────────────────────── */
 .lobby-pilot-card {
   display: flex;
   align-items: center;
   gap: 10px;
   background: #FFFFFF;
-  border: 2px solid #000000;
-  box-shadow: 2.5px 2.5px 0px #000000;
-  border-radius: 12px;
-  padding: 6px 12px;
+  border: 2.5px solid #000000;
+  box-shadow: 3.5px 3.5px 0px #000000;
+  border-radius: 18px;
+  padding: 5px 12px 5px 7px;
   cursor: pointer;
-  transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.12s ease;
+  transition: transform 0.14s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.14s ease, background 0.14s ease;
   user-select: none;
   text-align: left;
 }
 
 .lobby-pilot-card:hover {
-  transform: translate(-1px, -1px);
-  box-shadow: 3.5px 3.5px 0px #000000;
-  background: #FFFDF0;
+  transform: translate(-1.5px, -1.5px) scale(1.03);
+  box-shadow: 5.5px 5.5px 0px #000000;
+  background: #FFFDF2;
 }
 
 .lobby-pilot-card:active {
-  transform: translate(1px, 1px);
+  transform: translate(1.5px, 1.5px) scale(0.98);
   box-shadow: 1.5px 1.5px 0px #000000;
 }
 
+/* 1. Cute Glossy Circular Avatar Frame */
 .pilot-avatar-badge {
-  width: 32px;
-  height: 32px;
-  border-radius: 9px;
-  background: #FFE600;
-  border: 1.8px solid #000000;
+  position: relative;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #FFF59D 0%, #FACC15 65%, #EAB308 100%);
+  border: 2.5px solid #000000;
+  box-shadow: inset 1px 1px 0 rgba(255, 255, 255, 0.8), 2px 2px 0px #000000;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  transition: transform 0.18s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  user-select: none;
 }
 
+.unified-pilot-card:hover .pilot-avatar-badge {
+  transform: rotate(-4deg) scale(1.06);
+}
+
+/* 2. Compact Centered Level Pill */
+.pilot-lvl-corner {
+  position: absolute;
+  bottom: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #FFE600;
+  border: 1.8px solid #000000;
+  border-radius: 6px;
+  box-shadow: 1px 1px 0px #000000;
+  color: #000000;
+  font-family: var(--font-display, 'Rajdhani', sans-serif);
+  font-size: 10px;
+  font-weight: 900;
+  padding: 0 5px;
+  line-height: 14px;
+  white-space: nowrap;
+  letter-spacing: 0.4px;
+  z-index: 3;
+}
+
+/* 3. Unified Card Container */
+.unified-pilot-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #FFFFFF;
+  border: 2.5px solid #000000;
+  box-shadow: 3.5px 3.5px 0px #000000;
+  border-radius: 18px;
+  padding: 5px 12px 5px 7px;
+  cursor: pointer;
+  transition: transform 0.14s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.14s ease, background 0.14s ease;
+  user-select: none;
+  text-align: left;
+}
+
+.unified-pilot-card:hover {
+  transform: translate(-1.5px, -1.5px) scale(1.03);
+  box-shadow: 5.5px 5.5px 0px #000000;
+  background: #FFFDF2;
+}
+
+.unified-pilot-card:active {
+  transform: translate(1.5px, 1.5px) scale(0.98);
+  box-shadow: 1.5px 1.5px 0px #000000;
+}
+
+/* 4. Cute Interactive Chevron Button */
+.pilot-card-arrow {
+  width: 22px;
+  height: 22px;
+  background: #FFF9D2;
+  border: 1.8px solid #000000;
+  border-radius: 50%;
+  box-shadow: 1.5px 1.5px 0px #000000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display, 'Rajdhani', sans-serif);
+  font-size: 14px;
+  font-weight: 900;
+  color: #000000;
+  line-height: 1;
+  margin-left: 2px;
+  flex-shrink: 0;
+  transition: transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275), background 0.15s ease;
+}
+
+.unified-pilot-card:hover .pilot-card-arrow {
+  transform: scale(1.15) translateX(2px);
+  background: #FFE600;
+}
+
+/* 5. Pilot Info Column & Bold Callsign */
 .pilot-info-col {
   display: flex;
   flex-direction: column;
   justify-content: center;
+  gap: 3px;
   min-width: 90px;
-}
-
-.pilot-name-row {
-  display: flex;
-  align-items: center;
-  gap: 6px;
 }
 
 .pilot-name {
   font-family: var(--font-display, 'Rajdhani', sans-serif);
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 900;
   color: #000000;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-  max-width: 110px;
+  letter-spacing: 0.8px;
+  line-height: 1.1;
+  max-width: 130px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  text-transform: uppercase;
 }
 
 .pilot-edit-chip {
@@ -128,6 +209,7 @@
   font-weight: 900;
   color: #000000;
   letter-spacing: 0.5px;
+  text-transform: uppercase;
 }
 
 .name-meta-divider {
@@ -165,7 +247,6 @@
   font-weight: 900;
   color: #000000;
   letter-spacing: 1.5px;
-  text-transform: uppercase;
   outline: none;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
@@ -703,5 +784,68 @@
   height: 24px;
   background: #E2E8F0;
   margin: 0 10px;
+}
+
+/* ── Callsign Locked State Box (After Custom Name Set) ─────────── */
+.name-locked-card {
+  background: #F8FAFC;
+  border: 2px solid #000000;
+  box-shadow: 3px 3px 0px #000000;
+  border-radius: 14px;
+  padding: 14px 16px;
+  text-align: left;
+}
+
+.name-locked-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.name-locked-badge {
+  font-family: var(--font-telemetry, 'Space Grotesk', sans-serif);
+  font-size: 11px;
+  font-weight: 800;
+  color: #64748B;
+  letter-spacing: 0.6px;
+}
+
+.name-locked-tag {
+  background: #DCFCE7;
+  color: #16A34A;
+  border: 1.5px solid #16A34A;
+  border-radius: 6px;
+  font-family: var(--font-display, 'Rajdhani', sans-serif);
+  font-size: 11px;
+  font-weight: 900;
+  padding: 1px 6px;
+  letter-spacing: 0.4px;
+}
+
+.name-locked-display-row {
+  margin: 6px 0 10px 0;
+}
+
+.name-locked-val {
+  font-family: var(--font-display, 'Rajdhani', sans-serif);
+  font-size: 24px;
+  font-weight: 900;
+  color: #000000;
+  letter-spacing: 1px;
+  background: #FFF9D2;
+  border: 2px solid #000000;
+  border-radius: 8px;
+  padding: 4px 12px;
+  display: inline-block;
+  text-transform: uppercase;
+}
+
+.name-locked-footer {
+  font-family: var(--font-telemetry, 'Space Grotesk', sans-serif);
+  font-size: 11px;
+  font-weight: 700;
+  color: #64748B;
+  letter-spacing: 0.3px;
 }
 

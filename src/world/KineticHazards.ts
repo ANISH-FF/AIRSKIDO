@@ -101,7 +101,7 @@ export class KineticHazardManager {
       const rotMatrix = new THREE.Matrix4().makeBasis(slice.binormal, slice.normal, slice.tangent);
       group.quaternion.setFromRotationMatrix(rotMatrix);
 
-      const hubElevation = 6.2; // Hub sits 6.2m above road center
+      const hubElevation = 6.2; // Hub sits 6.2m above road - blades sweep down to ground and smash karts into the air!
 
       // 1. Heavy Industrial Overhead Truss Gantry Arch
       const spanHalfWidth = slice.halfWidth + 0.8;
@@ -506,7 +506,7 @@ export class KineticHazardManager {
 
         if (kart.isGhost) continue;
 
-        if (Math.abs(distLong) < 2.4) {
+        if (Math.abs(distLong) < 2.6) {
           const vertHub = vert - turbine.hubY; // Offset from hub center
           const radialDist = Math.hypot(lat, vertHub);
 
@@ -515,7 +515,7 @@ export class KineticHazardManager {
 
           // 1. Central Motor Hub & Axle (Solid Rigid Steel Core at y = 6.2m)
           if (radialDist < 2.0) {
-            if (now - lastHit > 1000) {
+            if (now - lastHit > 900) {
               turbine.lastHitTimes.set(kart.id, now);
               _khLaunchVel.copy(turbine.tangent).multiplyScalar(-26.0);
               _khLaunchVel.y += 14.0;
@@ -528,10 +528,12 @@ export class KineticHazardManager {
             continue;
           }
 
-          // 2. Rotating Turbine Aero Blades (Accurate Vector Collision)
-          if (radialDist <= (turbine.bladeRadius + 0.8)) {
+          // 2. Rotating Turbine Aero Blades (Accurate Dynamic Vector Collision & Wing Sweep Launch)
+          if (radialDist <= (turbine.bladeRadius + 1.2)) {
             const numBlades = 3;
             let hitBlade = false;
+            let hitBladeAngle = 0;
+            let hitDistAlong = 0;
 
             for (let b = 0; b < numBlades; b++) {
               const bladeAngle = turbine.currentAngle + (b * Math.PI * 2) / numBlades;
@@ -543,29 +545,58 @@ export class KineticHazardManager {
               // Perpendicular distance to blade centerline
               const distPerp = Math.abs(lat * by - vertHub * bx);
 
-              if (distAlong >= 1.6 && distAlong <= (turbine.bladeRadius + 0.8) && distPerp < 1.50) {
+              // Blade half-width (0.68m) + kart collision boundary padding (~1.4m) = 2.1m
+              if (distAlong >= 1.0 && distAlong <= (turbine.bladeRadius + 1.1) && distPerp < 2.10) {
                 hitBlade = true;
+                hitBladeAngle = bladeAngle;
+                hitDistAlong = distAlong;
                 break;
               }
             }
 
             if (hitBlade) {
-              if (now - lastHit > 2000) {
+              if (now - lastHit > 800) {
                 turbine.lastHitTimes.set(kart.id, now);
 
-                const tangentialSpeed = turbine.rotationSpeed * radialDist;
-                _khRadDir.copy(turbine.binormal).multiplyScalar(lat).addScaledVector(turbine.normal, vert).normalize();
-                _khBladeDir.crossVectors(turbine.tangent, _khRadDir).normalize();
+                // Exact 3D direction the striking wing/blade is traveling:
+                // Tangential velocity of rotation around +Z (turbine.tangent):
+                // In local plane (binormal, normal):
+                // radial vector u = (-sin(theta), cos(theta))
+                // tangential sweep vector = (-cos(theta), -sin(theta))
+                const rotSign = Math.sign(turbine.rotationSpeed) || 1;
+                const wingDirBinormal = -Math.cos(hitBladeAngle) * rotSign;
+                const wingDirNormal = -Math.sin(hitBladeAngle) * rotSign;
 
-                _khLaunchVel.copy(_khBladeDir).multiplyScalar(tangentialSpeed * 1.6)
-                  .addScaledVector(turbine.tangent, -22.0);
-                _khLaunchVel.y += 16.5;
+                _khBladeDir.copy(turbine.binormal).multiplyScalar(wingDirBinormal)
+                  .addScaledVector(turbine.normal, wingDirNormal)
+                  .normalize();
 
-                kart.launchIntoAir(_khLaunchVel, false);
-                sounds.playCrash(2.0);
+                // Linear tangential velocity of the blade at the contact radius
+                const linearSpeed = Math.abs(turbine.rotationSpeed) * Math.max(hitDistAlong, 4.5);
+                const strikeSpeed = Math.max(30.0, linearSpeed * 2.0);
+
+                // Launch velocity: powerful fling directly along the wing sweep arc
+                _khLaunchVel.copy(_khBladeDir).multiplyScalar(strikeSpeed);
+
+                // Upward skyward boost: ensure car launches high into the air
+                if (_khLaunchVel.y < 12.0) {
+                  _khLaunchVel.y = Math.max(0, _khLaunchVel.y) + 16.5;
+                } else {
+                  _khLaunchVel.y += 10.0;
+                }
+
+                // Slight backward track push
+                _khLaunchVel.addScaledVector(turbine.tangent, -6.0);
+
+                // High-energy rotational tumble torque matching the blade smack
+                _khBounceVel.copy(_khBladeDir).multiplyScalar(14.0);
+                _khBounceVel.y += 8.0;
+
+                kart.launchIntoAir(_khLaunchVel, false, _khBounceVel);
+                sounds.playCrash(2.4);
 
                 if (onAlert && kart.id === 'kart-player') {
-                  onAlert('TURBINE BLADE SMACKED // TIMING FAILED!', 'recoil');
+                  onAlert('TURBINE BLADE SMACKED // AIRBORNE!', 'recoil');
                 }
               }
             }

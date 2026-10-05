@@ -29,6 +29,17 @@ export class HUD {
   private rumbleHudBar: HTMLElement | null = null;
   private rumbleFrostScore: HTMLElement | null = null;
   private rumbleBlazeScore: HTMLElement | null = null;
+  private rumbleBoxLeft: HTMLElement | null = null;
+  private rumbleBoxRight: HTMLElement | null = null;
+  private rumbleLabelLeft: HTMLElement | null = null;
+  private rumbleLabelRight: HTMLElement | null = null;
+  private rumbleIndicatorLeft: HTMLElement | null = null;
+  private rumbleIndicatorRight: HTMLElement | null = null;
+  private lastRumbleFormat: string = '';
+  private lastRumbleBoxLeftClass: string = '';
+  private lastRumbleBoxRightClass: string = '';
+  private lastRumbleLabelLeft: string = '';
+  private lastRumbleLabelRight: string = '';
   private rumbleMatchTitle: HTMLElement | null = null;
   private rumbleTimerDisplay: HTMLElement | null = null;
   private killfeedContainer: HTMLElement | null = null;
@@ -101,6 +112,12 @@ export class HUD {
     this.rumbleHudBar = document.getElementById('rumble-hud-bar');
     this.rumbleFrostScore = document.getElementById('rumble-frost-score') || document.getElementById('rumble-cyan-score');
     this.rumbleBlazeScore = document.getElementById('rumble-blaze-score') || document.getElementById('rumble-crimson-score');
+    this.rumbleBoxLeft = document.getElementById('rumble-box-left');
+    this.rumbleBoxRight = document.getElementById('rumble-box-right');
+    this.rumbleLabelLeft = document.getElementById('rumble-label-left');
+    this.rumbleLabelRight = document.getElementById('rumble-label-right');
+    this.rumbleIndicatorLeft = document.getElementById('rumble-indicator-left');
+    this.rumbleIndicatorRight = document.getElementById('rumble-indicator-right');
     this.rumbleMatchTitle = document.getElementById('rumble-match-title');
     this.rumbleTimerDisplay = document.getElementById('rumble-timer-display');
     this.killfeedContainer = document.getElementById('killfeed-container');
@@ -111,6 +128,7 @@ export class HUD {
   }
 
   public showRumbleVictoryBanner(title: string, subtext: string, theme: 'frost' | 'blaze' | 'solo' | 'draw') {
+    this.hideSmashCombat();
     if (this.rumbleVictoryBannerEl && this.rumbleBannerTitleEl && this.rumbleBannerSubtextEl) {
       this.rumbleBannerTitleEl.innerText = title;
       this.rumbleBannerSubtextEl.innerText = subtext;
@@ -165,6 +183,7 @@ export class HUD {
     this.hideFinishCountdown();
     this.hideSpectatorOverlay();
     this.hideRumbleVictoryBanner();
+    this.hideSmashCombat();
   }
 
   public updateStatus(
@@ -240,6 +259,14 @@ export class HUD {
     }
   }
 
+  public updateSpeed(speedKmh: number) {
+    const speedStr = speedKmh.toString();
+    if (speedStr !== this.lastSpeedStr) {
+      this.lastSpeedStr = speedStr;
+      this.speedEl.innerText = speedStr;
+    }
+  }
+
   public showAlert(text: string, type: 'smash' | 'recoil' | 'respawn' | 'boost' | 'nitro' | 'lap' = 'smash') {
     if (this.alertTimeout) clearTimeout(this.alertTimeout);
 
@@ -252,14 +279,20 @@ export class HUD {
   }
 
   // Giant arcade center splash (like countdown start "SMASH!")
-  public showSmashCombat(text: string, comboCount: number = 1) {
+  public showSmashCombat(text: string, comboCount: number = 1, isKnockout: boolean = false) {
     if (!this.smashCombatEl) return;
     if (this.smashCombatTimeout) clearTimeout(this.smashCombatTimeout);
 
     let comboClass = '';
-    if (comboCount === 2) comboClass = 'double';
-    else if (comboCount === 3) comboClass = 'triple';
-    else if (comboCount >= 4) comboClass = 'mega';
+    if (isKnockout) {
+      comboClass = 'knockout';
+    } else if (comboCount === 2) {
+      comboClass = 'double';
+    } else if (comboCount === 3) {
+      comboClass = 'triple';
+    } else if (comboCount >= 4) {
+      comboClass = 'mega';
+    }
 
     this.smashCombatEl.className = `active ${comboClass}`;
     this.smashCombatEl.innerText = text;
@@ -269,6 +302,16 @@ export class HUD {
         this.smashCombatEl.className = '';
       }
     }, 1300);
+  }
+
+  public hideSmashCombat() {
+    if (this.smashCombatTimeout) {
+      clearTimeout(this.smashCombatTimeout);
+      this.smashCombatTimeout = null;
+    }
+    if (this.smashCombatEl) {
+      this.smashCombatEl.className = '';
+    }
   }
 
   public showCountdown(value: string) {
@@ -305,8 +348,7 @@ export class HUD {
     this.minimapFrameSkip = (this.minimapFrameSkip + 1) % skipFreq;
     if (this.minimapFrameSkip !== 0) return;
 
-    if (track.isArena) {
-      this.drawArenaMinimap(playerKart, otherKarts);
+    if (track.isArena || this.isRumbleModeActive) {
       return;
     }
 
@@ -534,12 +576,9 @@ export class HUD {
 
   public setPing(pingMs: number | null) {
     const badge = document.getElementById('mp-ping-badge');
-    const lobbyUnit = document.getElementById('lobby-ping-tag');
-    const lobbyVal = document.getElementById('lobby-ping-val');
 
     if (pingMs === null || pingMs < 0) {
       if (badge) badge.style.display = 'none';
-      if (lobbyUnit) lobbyUnit.style.display = 'none';
       return;
     }
 
@@ -552,12 +591,6 @@ export class HUD {
       const val = badge.querySelector('.ping-val') as HTMLElement | null;
       if (dot) dot.style.color = dotColor;
       if (val) val.innerText = text;
-    }
-
-    if (lobbyUnit && lobbyVal) {
-      lobbyUnit.style.display = 'flex';
-      lobbyVal.innerText = text;
-      lobbyVal.style.color = dotColor;
     }
   }
 
@@ -637,6 +670,16 @@ export class HUD {
       recordBanner.style.display = 'none';
     }
 
+    const thead = document.querySelector('#results-table thead');
+    if (thead) {
+      thead.innerHTML = `
+        <tr>
+          <th>POS</th>
+          <th>RACER</th>
+          <th>TIME</th>
+        </tr>
+      `;
+    }
     tbody.innerHTML = '';
     const winnerId = standings.length > 0 ? standings[0].id : null;
     let winnerTime = winnerId && racerTimes?.has(winnerId) ? racerTimes.get(winnerId)! : null;
@@ -669,7 +712,7 @@ export class HUD {
 
       const tag = racer.isPlayer
         ? (economy.isVip() ? '👑 (YOU - VIP)' : '(YOU)')
-        : (racer.name.toLowerCase().includes('bot') || racer.name.toLowerCase().includes('ai') ? '(AI)' : '(P2P)');
+        : (racer.name.toLowerCase().includes('bot') || racer.name.toLowerCase().includes('ai') ? '(AI)' : '(ONLINE)');
 
       row.innerHTML = `
         <td>#${idx + 1}</td>
@@ -747,7 +790,12 @@ export class HUD {
     if (this.spectatorOverlayEl && this.spectatorNameEl && this.spectatorPosEl) {
       this.spectatorOverlayEl.style.display = 'flex';
       this.spectatorNameEl.innerText = targetName.toUpperCase();
-      this.spectatorPosEl.innerText = typeof targetRankOrTag === 'number' ? `#${targetRankOrTag}` : targetRankOrTag;
+      const tagStr = typeof targetRankOrTag === 'number' ? `#${targetRankOrTag}` : targetRankOrTag;
+      if (typeof tagStr === 'string' && tagStr.includes('<')) {
+        this.spectatorPosEl.innerHTML = tagStr;
+      } else {
+        this.spectatorPosEl.innerText = tagStr;
+      }
 
       const badgeSpan = this.spectatorOverlayEl.querySelector('.spectator-badge span:nth-child(2)') as HTMLElement | null;
       if (badgeSpan) {
@@ -768,18 +816,43 @@ export class HUD {
     }
   }
 
+  public resetRumbleHud() {
+    this.lastRumbleFormat = '';
+    this.lastRumbleBoxLeftClass = '';
+    this.lastRumbleBoxRightClass = '';
+    this.lastRumbleLabelLeft = '';
+    this.lastRumbleLabelRight = '';
+    this.lastRumbleFrost = '';
+    this.lastRumbleBlaze = '';
+    this.lastRumbleTitle = '';
+    this.lastRumbleTimer = '';
+    this.lastKillfeedKey = '';
+    if (this.rumbleFrostScore) this.rumbleFrostScore.innerHTML = '0';
+    if (this.rumbleBlazeScore) this.rumbleBlazeScore.innerHTML = '0';
+    if (this.rumbleLabelLeft) this.rumbleLabelLeft.innerText = 'FROST';
+    if (this.rumbleLabelRight) this.rumbleLabelRight.innerText = 'BLAZE';
+    if (this.rumbleMatchTitle) this.rumbleMatchTitle.innerText = 'ARENA BATTLE';
+    if (this.rumbleTimerDisplay) this.rumbleTimerDisplay.innerText = 'PREPARING';
+    if (this.killfeedContainer) this.killfeedContainer.innerHTML = '';
+  }
+
   public setRumbleMode(active: boolean) {
     this.isRumbleModeActive = active;
     const topLeft = document.querySelector('.top-left-hud') as HTMLElement | null;
+    const topRight = document.querySelector('.top-right-hud') as HTMLElement | null;
     const standingsCard = document.getElementById('live-standings-card');
     const nitroCard = document.querySelector('.nitro-card') as HTMLElement | null;
     const touchNitroRow = document.querySelector('.touch-steer-top-row') as HTMLElement | null;
 
+    const topBar = document.getElementById('top-bar');
+
     if (active) {
       if (topLeft) topLeft.style.display = 'none';
+      if (topRight) topRight.style.display = 'none';
       if (standingsCard) standingsCard.style.display = 'none';
       if (nitroCard) nitroCard.style.display = 'none';
       if (touchNitroRow) touchNitroRow.style.display = 'none';
+      if (topBar) topBar.classList.add('rumble-top-bar');
       if (this.rumbleHudBar) this.rumbleHudBar.style.display = 'flex';
       if (this.killfeedContainer) {
         this.killfeedContainer.style.display = 'flex';
@@ -787,10 +860,13 @@ export class HUD {
         this.lastKillfeedKey = '';
       }
     } else {
+      this.resetRumbleHud();
       if (topLeft) topLeft.style.display = 'flex';
+      if (topRight) topRight.style.display = 'block';
       if (standingsCard) standingsCard.style.display = 'flex';
       if (nitroCard) nitroCard.style.display = 'flex';
       if (touchNitroRow) touchNitroRow.style.display = 'block';
+      if (topBar) topBar.classList.remove('rumble-top-bar');
       if (this.rumbleHudBar) this.rumbleHudBar.style.display = 'none';
       if (this.killfeedContainer) {
         this.killfeedContainer.style.display = 'none';
@@ -800,62 +876,204 @@ export class HUD {
     }
   }
 
-  public updateRumbleHud(manager: RumbleManager, playerKart: Kart) {
+  private generateCuteHeartsHtml(lives: number, maxLives: number = 3): string {
+    let heartsHtml = '<div class="hud-hearts-row">';
+    for (let i = 0; i < maxLives; i++) {
+      if (i < lives) {
+        heartsHtml += '<svg class="cute-heart-svg" viewBox="0 0 24 24" width="22" height="22" fill="#FF385C" stroke="#000" stroke-width="2"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>';
+      } else {
+        heartsHtml += '<svg class="cute-heart-svg heart-lost" viewBox="0 0 24 24" width="22" height="22" fill="#E2E8F0" stroke="#94A3B8" stroke-width="2"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>';
+      }
+    }
+    heartsHtml += '</div>';
+    return heartsHtml;
+  }
+
+  public updateRumbleHud(manager: RumbleManager, playerKart: Kart, spectatedTargetId?: string) {
     if (!this.rumbleHudBar) return;
 
-    let frostText = '';
-    let blazeText = '';
+    const isTDM = manager.isTDM;
+    const is3Lives = manager.winRule === 'lives_3';
+    const myRacer = manager.racers.get(playerKart.id);
+    const isPlayerEliminated = myRacer ? myRacer.isEliminated : false;
+    const isSpectating = !!spectatedTargetId || isPlayerEliminated;
+    const spectatedRacer = spectatedTargetId ? manager.racers.get(spectatedTargetId) : undefined;
+    const totalRacers = manager.racers.size;
+    const aliveRacersList = Array.from(manager.racers.values()).filter((r) => !r.isEliminated);
+    const aliveCount = aliveRacersList.length;
+    const is1v1 = totalRacers === 2;
+
+    let leftBoxClass = 'frost-box';
+    let rightBoxClass = 'blaze-box';
+    let leftLabel = 'FROST';
+    let rightLabel = 'BLAZE';
+    let leftContent = '';
+    let rightContent = '';
     let titleText = '';
     let timerText = '';
 
-    if (manager.isTDM) {
-      frostText = manager.frostScore.toString();
-      blazeText = manager.blazeScore.toString();
+    if (is3Lives) {
+      if (is1v1) {
+        // 1v1 Survival Duel (Both TDM 1v1 and Solo FFA 1v1)
+        const opponent = Array.from(manager.racers.values()).find((r) => r.id !== playerKart.id);
+        const isPlayerFrost = !myRacer || myRacer.team === 'frost' || myRacer.team === 'cyan';
+
+        if (isTDM) {
+          leftBoxClass = isPlayerFrost ? 'frost-box' : 'blaze-box';
+          rightBoxClass = isPlayerFrost ? 'blaze-box' : 'frost-box';
+          titleText = '1V1 TEAM DUEL';
+        } else {
+          leftBoxClass = 'ffa-you-box';
+          rightBoxClass = 'ffa-top-box';
+          titleText = '1V1 SURVIVAL DUEL';
+        }
+
+        if (!isSpectating) {
+          leftLabel = 'YOU';
+          leftContent = this.generateCuteHeartsHtml(myRacer ? Math.max(0, myRacer.lives) : 0);
+          rightLabel = opponent ? opponent.name.toUpperCase() : 'OPPONENT';
+          rightContent = this.generateCuteHeartsHtml(opponent ? Math.max(0, opponent.lives) : 0);
+        } else {
+          leftLabel = 'YOU (OUT)';
+          leftContent = this.generateCuteHeartsHtml(0);
+          rightLabel = opponent ? opponent.name.toUpperCase() : 'WINNER';
+          rightContent = this.generateCuteHeartsHtml(opponent ? Math.max(0, opponent.lives) : 0);
+        }
+        timerText = 'LAST PILOT STANDING';
+      } else if (!isTDM) {
+        // 3+ Racers Solo Free For All Survival
+        leftBoxClass = 'ffa-you-box';
+        rightBoxClass = 'ffa-top-box';
+        titleText = 'SOLO SURVIVAL BRAWL';
+        timerText = 'LAST PILOT STANDING';
+
+        if (!isSpectating) {
+          leftLabel = 'YOUR LIVES';
+          leftContent = this.generateCuteHeartsHtml(myRacer ? Math.max(0, myRacer.lives) : 0);
+        } else {
+          const target = spectatedRacer || aliveRacersList[0];
+          leftLabel = target ? `SPECTATING: ${target.name.toUpperCase()}` : 'SPECTATING';
+          leftContent = this.generateCuteHeartsHtml(target ? Math.max(0, target.lives) : 0);
+        }
+        rightLabel = 'SURVIVORS';
+        rightContent = `${aliveCount} / ${totalRacers}`;
+      } else {
+        // 3+ Racers Team Deathmatch Survival
+        const aliveFrost = aliveRacersList.filter((r) => r.team === 'frost' || r.team === 'cyan').length;
+        const aliveBlaze = aliveRacersList.filter((r) => r.team === 'blaze' || r.team === 'crimson').length;
+        const isPlayerFrost = !myRacer || myRacer.team === 'frost' || myRacer.team === 'cyan';
+
+        leftBoxClass = isPlayerFrost ? 'frost-box' : 'blaze-box';
+        rightBoxClass = isPlayerFrost ? 'blaze-box' : 'frost-box';
+        titleText = 'TDM SURVIVAL BRAWL';
+        timerText = 'LAST SQUAD STANDING';
+
+        if (!isSpectating) {
+          leftLabel = 'YOUR LIVES';
+          leftContent = this.generateCuteHeartsHtml(myRacer ? Math.max(0, myRacer.lives) : 0);
+        } else {
+          const target = spectatedRacer || aliveRacersList[0];
+          leftLabel = target ? `SPECTATING: ${target.name.toUpperCase()}` : 'SPECTATING';
+          leftContent = this.generateCuteHeartsHtml(target ? Math.max(0, target.lives) : 0);
+        }
+        rightLabel = 'SQUADS ALIVE';
+        rightContent = `<span style="color:#0284c7;font-weight:900;">${aliveFrost}</span> <span style="color:#000;font-size:12px;opacity:0.6;font-weight:900;margin:0 4px;">VS</span> <span style="color:#e11d48;font-weight:900;">${aliveBlaze}</span>`;
+      }
+    } else if (isTDM) {
+      // Standard TDM (Kills / Timer)
+      leftBoxClass = 'frost-box';
+      rightBoxClass = 'blaze-box';
+      leftLabel = 'FROST';
+      rightLabel = 'BLAZE';
+      leftContent = manager.frostScore.toString();
+      rightContent = manager.blazeScore.toString();
       titleText = 'TEAM DEATHMATCH';
 
       if (manager.winRule.startsWith('time_')) {
         const m = Math.floor(manager.matchTimer / 60);
         const s = Math.floor(manager.matchTimer % 60);
         timerText = `${m}:${s.toString().padStart(2, '0')}`;
-      } else if (manager.winRule === 'lives_3') {
-        const myRacer = manager.racers.get(playerKart.id);
-        timerText = `LIVES: ${myRacer ? myRacer.lives : 0} ❤️`;
       } else {
-        timerText = `FIRST TO ${manager.targetKills}`;
+        timerText = `FIRST TO ${manager.targetKills} KILLS`;
       }
     } else {
-      const myRacer = manager.racers.get(playerKart.id);
-      let topKills = 0;
-      for (const r of manager.racers.values()) {
-        if (r.kills > topKills) {
-          topKills = r.kills;
-        }
+      // Standard Solo FFA (Kills / Timer)
+      leftBoxClass = 'ffa-you-box';
+      rightBoxClass = 'ffa-top-box';
+      titleText = 'SOLO FREE FOR ALL';
+
+      if (!isSpectating) {
+        leftLabel = (myRacer?.name || 'YOU').toUpperCase();
+        leftContent = `${myRacer ? myRacer.kills : 0}`;
+      } else {
+        const target = spectatedRacer || aliveRacersList[0];
+        leftLabel = target ? `SPECTATING: ${target.name.toUpperCase()}` : 'SPECTATING';
+        leftContent = `${target ? target.kills : 0}`;
       }
 
-      titleText = 'FREE FOR ALL';
-      frostText = `YOU: ${myRacer ? myRacer.kills : 0}`;
-      blazeText = `TOP: ${topKills}`;
+      const activeSubjectId = isSpectating && spectatedRacer ? spectatedRacer.id : playerKart.id;
+      const otherRacers = Array.from(manager.racers.values()).filter((r) => r.id !== activeSubjectId);
+      if (otherRacers.length === 1) {
+        const opponent = otherRacers[0];
+        rightLabel = opponent.name.toUpperCase();
+        rightContent = `${opponent.kills}`;
+      } else if (otherRacers.length > 1) {
+        const allSorted = Array.from(manager.racers.values()).sort((a, b) => b.kills - a.kills);
+        const leader = allSorted[0];
+        const rival = allSorted[1];
+        if (leader && leader.id === activeSubjectId) {
+          rightLabel = rival ? `${rival.name.toUpperCase()} (2ND)` : 'CONTENDER';
+          rightContent = `${rival ? rival.kills : 0}`;
+        } else {
+          rightLabel = leader ? `${leader.name.toUpperCase()} (1ST)` : 'LEADER';
+          rightContent = `${leader ? leader.kills : 0}`;
+        }
+      } else {
+        rightLabel = 'RIVAL';
+        rightContent = '0';
+      }
 
       if (manager.winRule.startsWith('time_')) {
         const m = Math.floor(manager.matchTimer / 60);
         const s = Math.floor(manager.matchTimer % 60);
         timerText = `${m}:${s.toString().padStart(2, '0')}`;
-      } else if (manager.winRule === 'lives_3') {
-        const myRacer = manager.racers.get(playerKart.id);
-        timerText = `LIVES: ${myRacer ? myRacer.lives : 0} ❤️`;
       } else {
-        timerText = `GOAL: ${manager.targetKills} KILLS`;
+        timerText = `FIRST TO ${manager.targetKills} KILLS`;
       }
     }
 
-    // Only touch DOM when string values actually change (eliminates 60fps layout reflows)
-    if (this.rumbleFrostScore && frostText !== this.lastRumbleFrost) {
-      this.lastRumbleFrost = frostText;
-      this.rumbleFrostScore.innerText = frostText;
+    // Only touch DOM when values actually change
+    if (this.rumbleBoxLeft && leftBoxClass && this.lastRumbleBoxLeftClass !== leftBoxClass) {
+      this.lastRumbleBoxLeftClass = leftBoxClass;
+      this.rumbleBoxLeft.className = `rumble-team-box ${leftBoxClass}`;
     }
-    if (this.rumbleBlazeScore && blazeText !== this.lastRumbleBlaze) {
-      this.lastRumbleBlaze = blazeText;
-      this.rumbleBlazeScore.innerText = blazeText;
+    if (this.rumbleBoxRight && rightBoxClass && this.lastRumbleBoxRightClass !== rightBoxClass) {
+      this.lastRumbleBoxRightClass = rightBoxClass;
+      this.rumbleBoxRight.className = `rumble-team-box ${rightBoxClass}`;
+    }
+    if (this.rumbleLabelLeft && leftLabel !== this.lastRumbleLabelLeft) {
+      this.lastRumbleLabelLeft = leftLabel;
+      this.rumbleLabelLeft.innerText = leftLabel;
+    }
+    if (this.rumbleLabelRight && rightLabel !== this.lastRumbleLabelRight) {
+      this.lastRumbleLabelRight = rightLabel;
+      this.rumbleLabelRight.innerText = rightLabel;
+    }
+    if (this.rumbleFrostScore && leftContent !== this.lastRumbleFrost) {
+      this.lastRumbleFrost = leftContent;
+      if (leftContent.startsWith('<')) {
+        this.rumbleFrostScore.innerHTML = leftContent;
+      } else {
+        this.rumbleFrostScore.innerText = leftContent;
+      }
+    }
+    if (this.rumbleBlazeScore && rightContent !== this.lastRumbleBlaze) {
+      this.lastRumbleBlaze = rightContent;
+      if (rightContent.startsWith('<')) {
+        this.rumbleBlazeScore.innerHTML = rightContent;
+      } else {
+        this.rumbleBlazeScore.innerText = rightContent;
+      }
     }
     if (this.rumbleMatchTitle && titleText !== this.lastRumbleTitle) {
       this.lastRumbleTitle = titleText;
@@ -866,23 +1084,33 @@ export class HUD {
       this.rumbleTimerDisplay.innerText = timerText;
     }
 
-    // Render Killfeed smoothly in high-contrast arcade style
+    // Compact cute top-right killfeed (max 3 recent entries)
     if (this.killfeedContainer) {
-      const feedKey = manager.killfeed.map(e => e.id).join('|');
+      const feedKey = manager.killfeed.map(e => `${e.id}_${e.isElimination}`).join('|');
       if (feedKey !== this.lastKillfeedKey) {
         this.lastKillfeedKey = feedKey;
         this.killfeedContainer.innerHTML = manager.killfeed
+          .slice(0, 3)
           .map((entry) => {
             const aTeamClass = (entry.attackerTeam === 'frost' || entry.attackerTeam === 'cyan') ? 'team-frost' : (entry.attackerTeam === 'blaze' || entry.attackerTeam === 'crimson') ? 'team-blaze' : 'team-solo';
             const vTeamClass = (entry.victimTeam === 'frost' || entry.victimTeam === 'cyan') ? 'team-frost' : (entry.victimTeam === 'blaze' || entry.victimTeam === 'crimson') ? 'team-blaze' : 'team-solo';
             const selfClass = entry.isSelfAttacker ? 'self-kill' : (entry.isSelfVictim ? 'self-victim' : '');
+            const elimClass = entry.isElimination ? 'is-eliminated' : '';
             let content = '';
             if (entry.attackerName) {
-              content = `<span class="killfeed-tag smash">SMASH</span><span class="killfeed-name ${aTeamClass}">${entry.attackerName}</span> <span class="killfeed-verb">smashed</span> <span class="killfeed-name ${vTeamClass}">${entry.victimName}</span> <span class="killfeed-sub">into the clouds!</span>`;
+              if (entry.isElimination) {
+                content = `<span class="killfeed-name ${aTeamClass}">${entry.attackerName}</span><span class="killfeed-action eliminated">ELIMINATED</span><span class="killfeed-name victim ${vTeamClass}">${entry.victimName}</span>`;
+              } else {
+                content = `<span class="killfeed-name ${aTeamClass}">${entry.attackerName}</span><span class="killfeed-action">SLAMMED</span><span class="killfeed-name victim ${vTeamClass}">${entry.victimName}</span>`;
+              }
             } else {
-              content = `<span class="killfeed-tag fall">FALL</span><span class="killfeed-name ${vTeamClass}">${entry.victimName}</span> <span class="killfeed-verb">fell into the clouds!</span>`;
+              if (entry.isElimination) {
+                content = `<span class="killfeed-name victim ${vTeamClass}">${entry.victimName}</span><span class="killfeed-tag-out eliminated">LOST ALL LIVES</span>`;
+              } else {
+                content = `<span class="killfeed-name victim ${vTeamClass}">${entry.victimName}</span><span class="killfeed-tag-out">FELL OFF</span>`;
+              }
             }
-            return `<div class="killfeed-entry ${selfClass}">${content}</div>`;
+            return `<div class="killfeed-entry ${selfClass} ${elimClass}">${content}</div>`;
           })
           .join('');
       }
@@ -1095,10 +1323,16 @@ export class HUD {
       subtext.innerText = `${winnerName} WON THE ARENA CLASH.`;
     }
 
-    const ths = document.querySelectorAll('#results-table th');
-    if (ths.length >= 4) {
-      (ths[2] as HTMLElement).innerText = 'KILLS';
-      (ths[3] as HTMLElement).innerText = 'DEATHS';
+    const thead = document.querySelector('#results-table thead');
+    if (thead) {
+      thead.innerHTML = `
+        <tr>
+          <th>POS</th>
+          <th>PILOT</th>
+          <th>KILLS</th>
+          <th>DEATHS</th>
+        </tr>
+      `;
     }
 
     tbody.innerHTML = '';

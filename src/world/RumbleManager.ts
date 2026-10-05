@@ -10,6 +10,7 @@ export interface RumbleRacer {
   name: string;
   team: RumbleTeam;
   isPlayer: boolean;
+  isRemote?: boolean;
   kart: Kart;
   kills: number;
   deaths: number;
@@ -29,6 +30,7 @@ export interface KillfeedEntry {
   timeRemaining: number;
   isSelfAttacker?: boolean;
   isSelfVictim?: boolean;
+  isElimination?: boolean;
 }
 
 export class RumbleManager {
@@ -58,6 +60,8 @@ export class RumbleManager {
   public onMatchFinish?: (winningTeam: RumbleTeam | 'draw', winnerName: string) => void;
   public onPlayerEliminated?: () => void;
   public onPlayerScoredKill?: (victimName: string, comboCount: number, comboTitle: string) => void;
+  public onPlayerKnockedOut?: (attackerName?: string) => void;
+  public onKnockoutBroadcast?: (victimId: string, attackerId?: string, victimLives?: number) => void;
 
   private playerComboKills: number = 0;
   private lastPlayerKillTime: number = 0;
@@ -82,7 +86,7 @@ export class RumbleManager {
     else if (winRule === 'kills_30') this.targetKills = 30;
     else this.targetKills = 15;
 
-    if (winRule === 'time_3min') {
+    if (winRule === 'time_3min' || winRule === 'time_3m') {
       this.matchDurationSeconds = 180;
       this.matchTimer = 180;
     } else if (winRule === 'time_5min') {
@@ -94,13 +98,21 @@ export class RumbleManager {
     }
   }
 
-  public registerRacer(id: string, name: string, team: RumbleTeam, isPlayer: boolean, kart: Kart) {
+  public registerRacer(
+    id: string,
+    name: string,
+    team: RumbleTeam,
+    isPlayer: boolean,
+    kart: Kart,
+    isRemote: boolean = false
+  ) {
     const startingLives = this.winRule === 'lives_3' ? 3 : 99;
     this.racers.set(id, {
       id,
       name,
       team,
       isPlayer,
+      isRemote,
       kart,
       kills: 0,
       deaths: 0,
@@ -171,17 +183,21 @@ export class RumbleManager {
         continue;
       }
 
+      // In multiplayer, remote human peers manage and broadcast their own fall/knockout
+      if (racer.isRemote) continue;
+
       const pos = racer.kart.group.position;
       const distFromCenter = Math.hypot(pos.x, pos.z);
 
-      // Instant fallout: crossed 96.0m rim or dipped below arena deck into clouds
-      if (pos.y < -0.5 || (distFromCenter > 96.0 && pos.y < 0.2) || distFromCenter > 97.2) {
+      // Instant fallout: crossed 96.0m rim into open sky or fallen deep beneath stadium structure
+      if ((distFromCenter > 96.0 && pos.y < 0.2) || distFromCenter > 97.2 || pos.y < -2.0) {
         this.processKnockout(racer);
       }
     }
   }
 
   private processKnockout(victim: RumbleRacer) {
+    if (victim.respawnTimer > 0) return;
     victim.deaths++;
     victim.respawnTimer = 1.8; // 1.8s drop-in delay
 
@@ -223,6 +239,15 @@ export class RumbleManager {
     // Reset last hit
     victim.lastHitBy = undefined;
 
+    let isElimination = false;
+    if (this.winRule === 'lives_3') {
+      victim.lives--;
+      if (victim.lives <= 0) {
+        victim.isEliminated = true;
+        isElimination = true;
+      }
+    }
+
     if (attacker && attacker !== victim) {
       attacker.kills++;
       if (this.isTDM) {
@@ -242,11 +267,12 @@ export class RumbleManager {
         }
         this.lastPlayerKillTime = now;
 
-        let comboTitle = `YOU SMASHED ${victim.name.toUpperCase()}!`;
+        const cleanName = victim.name.replace(/_/g, ' ').toUpperCase();
+        let comboTitle = `YOU SLAMMED ${cleanName}!`;
         if (this.playerComboKills === 2) {
-          comboTitle = 'DOUBLE SMASH!';
+          comboTitle = 'DOUBLE SLAM!';
         } else if (this.playerComboKills === 3) {
-          comboTitle = 'TRIPLE SMASH!';
+          comboTitle = 'TRIPLE SLAM!';
         } else if (this.playerComboKills >= 4) {
           comboTitle = 'SKY DOMINATOR!';
         }
@@ -256,14 +282,23 @@ export class RumbleManager {
         }
       }
 
+      if (isSelfVictim && this.onPlayerKnockedOut) {
+        this.onPlayerKnockedOut(attacker.name);
+      }
+
+      const notifText = isElimination
+        ? `${attacker.name} eliminated ${victim.name}!`
+        : `${attacker.name} smashed ${victim.name} into the clouds!`;
+
       this.addNotification(
         attacker.name,
         attacker.team,
         victim.name,
         victim.team,
-        `${attacker.name} smashed ${victim.name} into the clouds!`,
+        notifText,
         isSelfAttacker,
-        isSelfVictim
+        isSelfVictim,
+        isElimination
       );
     } else {
       // Ring-out / self-fall
@@ -272,38 +307,189 @@ export class RumbleManager {
         if (victim.team === 'frost' || victim.team === 'cyan') this.blazeScore++;
         else if (victim.team === 'blaze' || victim.team === 'crimson') this.frostScore++;
       }
+
+      if (victim.isPlayer && this.onPlayerKnockedOut) {
+        this.onPlayerKnockedOut(undefined);
+      }
+
+      const notifText = isElimination
+        ? `${victim.name} lost all lives!`
+        : `${victim.name} fell into the clouds!`;
+
       this.addNotification(
         '',
         'none',
         victim.name,
         victim.team,
-        `${victim.name} fell into the clouds!`,
+        notifText,
         false,
-        !!victim.isPlayer
+        !!victim.isPlayer,
+        isElimination
       );
     }
 
-    if (this.winRule === 'lives_3') {
-      victim.lives--;
-      if (victim.lives <= 0) {
-        victim.isEliminated = true;
-        if (victim.isPlayer && this.onPlayerEliminated) {
-          this.onPlayerEliminated();
-        }
-        this.checkLastKartStanding();
-        return;
+    if (isElimination) {
+      if (victim.isPlayer && this.onPlayerEliminated) {
+        this.onPlayerEliminated();
       }
+      if (this.onKnockoutBroadcast) {
+        this.onKnockoutBroadcast(victim.id, attacker?.id, victim.lives);
+      }
+      if (this.onScoreUpdate) this.onScoreUpdate();
+      this.checkLastKartStanding();
+      return;
     }
 
     // Sound effect
     sounds.playRespawn();
 
     // Check target kills win condition
-    if (this.isTDM && this.winRule.startsWith('kills_')) {
-      if (this.frostScore >= this.targetKills) {
-        this.finishMatch('frost', 'TEAM FROST');
-      } else if (this.blazeScore >= this.targetKills) {
-        this.finishMatch('blaze', 'TEAM BLAZE');
+    if (this.winRule.startsWith('kills_')) {
+      if (this.isTDM) {
+        if (this.frostScore >= this.targetKills) {
+          this.finishMatch('frost', 'TEAM FROST');
+        } else if (this.blazeScore >= this.targetKills) {
+          this.finishMatch('blaze', 'TEAM BLAZE');
+        }
+      } else {
+        // Solo Free For All: First pilot to hit target kills wins!
+        if (attacker && attacker.kills >= this.targetKills) {
+          this.finishMatch('none', attacker.name);
+        } else {
+          for (const r of this.racers.values()) {
+            if (r.kills >= this.targetKills) {
+              this.finishMatch('none', r.name);
+              break;
+            }
+          }
+        }
+      }
+    }
+
+    if (this.onKnockoutBroadcast) {
+      this.onKnockoutBroadcast(victim.id, attacker?.id, victim.lives);
+    }
+
+    if (this.onScoreUpdate) this.onScoreUpdate();
+  }
+
+  public applyRemoteKnockout(victimId: string, attackerId?: string, victimLives?: number) {
+    const victim = this.racers.get(victimId);
+    if (!victim || this.isMatchOver) return;
+
+    let attacker: RumbleRacer | undefined;
+    if (attackerId) {
+      attacker = this.racers.get(attackerId);
+    }
+
+    const wasAlreadyRespawning = victim.respawnTimer > 0;
+    if (!wasAlreadyRespawning) {
+      victim.deaths++;
+      victim.respawnTimer = 1.8;
+      if (victim.isPlayer) {
+        // If local player was knocked out remotely before local rim check,
+        // initiate natural 1.8s downward sky plunge instead of a premature teleport!
+        const curLv = victim.kart.rigidBody.linvel();
+        victim.kart.rigidBody.setLinvel({ x: curLv.x, y: -22.0, z: curLv.z }, true);
+        victim.kart.airLaunchTimer = 1.8;
+        victim.kart.isGrounded = false;
+        sounds.playRespawn();
+      }
+      // Note: executeRespawn is strictly handled by update(dt) when respawnTimer hits 0!
+      // NEVER call this.executeRespawn(victim) prematurely here!
+    }
+
+    let isElimination = false;
+    if (this.winRule === 'lives_3') {
+      if (victimLives !== undefined) {
+        victim.lives = victimLives;
+      } else if (!wasAlreadyRespawning) {
+        victim.lives--;
+      }
+      if (victim.lives <= 0) {
+        victim.isEliminated = true;
+        isElimination = true;
+      }
+    }
+
+    if (attacker && attacker !== victim) {
+      attacker.kills++;
+      if (this.isTDM) {
+        if (attacker.team === 'frost' || attacker.team === 'cyan') this.frostScore++;
+        else if (attacker.team === 'blaze' || attacker.team === 'crimson') this.blazeScore++;
+      }
+
+      const notifText = isElimination
+        ? `${attacker.name} eliminated ${victim.name}!`
+        : `${attacker.name} smashed ${victim.name} into the clouds!`;
+
+      this.addNotification(
+        attacker.name,
+        attacker.team,
+        victim.name,
+        victim.team,
+        notifText,
+        !!attacker.isPlayer,
+        !!victim.isPlayer,
+        isElimination
+      );
+
+      if (victim.isPlayer && this.onPlayerKnockedOut) {
+        this.onPlayerKnockedOut(attacker.name);
+      }
+    } else {
+      if (this.isTDM) {
+        if (victim.team === 'frost' || victim.team === 'cyan') this.blazeScore++;
+        else if (victim.team === 'blaze' || victim.team === 'crimson') this.frostScore++;
+      }
+
+      if (victim.isPlayer && this.onPlayerKnockedOut) {
+        this.onPlayerKnockedOut(undefined);
+      }
+
+      const notifText = isElimination
+        ? `${victim.name} lost all lives!`
+        : `${victim.name} fell into the clouds!`;
+
+      this.addNotification(
+        '',
+        'none',
+        victim.name,
+        victim.team,
+        notifText,
+        false,
+        !!victim.isPlayer,
+        isElimination
+      );
+    }
+
+    if (isElimination) {
+      if (victim.isPlayer && this.onPlayerEliminated) {
+        this.onPlayerEliminated();
+      }
+      if (this.onScoreUpdate) this.onScoreUpdate();
+      this.checkLastKartStanding();
+      return;
+    }
+
+    if (this.winRule.startsWith('kills_')) {
+      if (this.isTDM) {
+        if (this.frostScore >= this.targetKills) {
+          this.finishMatch('frost', 'TEAM FROST');
+        } else if (this.blazeScore >= this.targetKills) {
+          this.finishMatch('blaze', 'TEAM BLAZE');
+        }
+      } else {
+        if (attacker && attacker.kills >= this.targetKills) {
+          this.finishMatch('none', attacker.name);
+        } else {
+          for (const r of this.racers.values()) {
+            if (r.kills >= this.targetKills) {
+              this.finishMatch('none', r.name);
+              break;
+            }
+          }
+        }
       }
     }
 
@@ -312,6 +498,9 @@ export class RumbleManager {
 
   private executeRespawn(racer: RumbleRacer) {
     if (racer.isEliminated) return;
+
+    // In multiplayer, remote human players manage their own spawn placement and physics authoritatively.
+    if (racer.isRemote) return;
 
     let spawnPos: THREE.Vector3;
     let spawnRot: THREE.Quaternion;
@@ -402,7 +591,8 @@ export class RumbleManager {
     victimTeam: RumbleTeam,
     text: string,
     isSelfAttacker: boolean = false,
-    isSelfVictim: boolean = false
+    isSelfVictim: boolean = false,
+    isElimination: boolean = false
   ) {
     const entry: KillfeedEntry = {
       id: Math.random().toString(),
@@ -411,9 +601,10 @@ export class RumbleManager {
       victimName,
       victimTeam,
       text,
-      timeRemaining: 4.5,
+      timeRemaining: isElimination ? 5.5 : 4.5,
       isSelfAttacker,
       isSelfVictim,
+      isElimination,
     };
     this.killfeed.unshift(entry);
     if (this.killfeed.length > 5) this.killfeed.pop();
