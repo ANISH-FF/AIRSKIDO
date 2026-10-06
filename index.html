@@ -610,24 +610,28 @@
 
       <!-- 4 Interactive Mode Cards Grid -->
       <div class="mode-cards-grid">
-        <!-- Card 1: Solo Grand Prix -->
+        <!-- Card 1: Classic GP -->
         <div class="mode-card card-grand-prix">
-          <span class="mode-card-ribbon ribbon-yellow">RECOMMENDED</span>
+          <span class="mode-card-badge badge-yellow">CIRCUIT CUP</span>
           <div class="mode-visual-bubble bubble-yellow">
-            <svg viewBox="0 0 24 24" width="38" height="38" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" fill="#FFE600"/>
-              <line x1="4" y1="22" x2="4" y2="15"/>
+            <svg viewBox="0 0 48 48" width="58" height="58" fill="none" stroke="#000" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M26 6 L42 10 L36 18 L24 14 Z" fill="#FFF" stroke="#000" stroke-width="2"/>
+              <rect x="30" y="8" width="4" height="4" fill="#000"/>
+              <rect x="34" y="12" width="4" height="4" fill="#000"/>
+              <line x1="24" y1="6" x2="24" y2="20" stroke="#000" stroke-width="2.5"/>
+              <path d="M6 34 L18 26 L36 24 L42 30 L10 38 Z" fill="#FFDE59" stroke="#000" stroke-width="2.5"/>
+              <rect x="4" y="32" width="8" height="12" rx="3" fill="#18181B" stroke="#000" stroke-width="2"/>
+              <rect x="32" y="28" width="10" height="14" rx="4" fill="#18181B" stroke="#000" stroke-width="2"/>
+              <circle cx="24" cy="22" r="5" fill="#FFF" stroke="#000" stroke-width="2"/>
+              <path d="M22 21 Q27 19 28 22" stroke="#00D2FF" stroke-width="2"/>
+              <line x1="2" y1="24" x2="14" y2="24" stroke="#F59E0B" stroke-width="2.5"/>
+              <line x1="4" y1="18" x2="18" y2="18" stroke="#F59E0B" stroke-width="2.5"/>
             </svg>
           </div>
-          <h3 class="mode-card-title">SOLO GRAND PRIX</h3>
-          <span class="mode-card-tag tag-yellow">3 LAPS // 6 AI DRIVERS</span>
-          <p class="mode-card-desc">Classic arcade cup! Race against tuned AI rivals, pick up weapons, drift for boost.</p>
-          <ul class="mode-features-list">
-            <li><span class="feat-check">✔</span> Dynamic Slipstream Draft</li>
-            <li><span class="feat-check">✔</span> Nitro Boost & Weapon Boxes</li>
-            <li><span class="feat-check">✔</span> Earn +150 Coins for Win</li>
-          </ul>
-          <button type="button" class="mode-action-btn btn-action-yellow" id="start-race-btn" title="Launch Solo Grand Prix">
+          <h3 class="mode-card-title">CLASSIC GP</h3>
+          <span class="mode-card-meta meta-yellow">CIRCUIT RACING</span>
+          <p class="mode-card-desc">Classic 3-lap arcade cup! Drift for turbo boosts, draft behind rivals, and grab mystery weapon boxes.</p>
+          <button type="button" class="mode-action-btn btn-action-yellow" id="start-race-btn" title="Launch Classic GP">
             <span>RACE NOW</span>
             <svg viewBox="0 0 24 24" width="16" height="16" fill="#000"><polygon points="5 3 19 12 5 21 5 3"/></svg>
           </button>
@@ -635,48 +639,46 @@
 
         <!-- Card 2: Sky Rumble (Sumo Arena) -->
         <div class="mode-card card-rumble">
-          <span class="mode-card-ribbon ribbon-cyan">BRAWL ARENA</span>
+          <span class="mode-card-badge badge-cyan">SUMO ARENA</span>
           <div class="mode-visual-bubble bubble-cyan">
-            <svg viewBox="0 0 24 24" width="38" height="38" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M12 2l8 4v6c0 5-3.5 9.5-8 10.5C7.5 21.5 4 17 4 12V6l8-4z" fill="#00D2FF"/>
-              <line x1="12" y1="6" x2="12" y2="18"/>
-              <line x1="8" y1="10" x2="16" y2="14"/>
-              <line x1="16" y1="10" x2="8" y2="14"/>
+            <svg viewBox="0 0 48 48" width="58" height="58" fill="none" stroke="#000" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <ellipse cx="24" cy="38" rx="20" ry="7" fill="#E0F7FA" stroke="#000" stroke-width="2.5"/>
+              <path d="M8 26 L20 28 L16 34 L6 32 Z" fill="#00D2FF" stroke="#000" stroke-width="2.2"/>
+              <path d="M40 26 L28 28 L32 34 L42 32 Z" fill="#FF385C" stroke="#000" stroke-width="2.2"/>
+              <polygon points="24,14 27,22 35,21 29,26 33,33 24,28 15,33 19,26 13,21 21,22" fill="#FFE600" stroke="#000" stroke-width="2"/>
+              <circle cx="16" cy="12" r="2" fill="#FF385C"/>
+              <circle cx="32" cy="10" r="2" fill="#00D2FF"/>
             </svg>
           </div>
           <h3 class="mode-card-title">SKY RUMBLE</h3>
-          <span class="mode-card-tag tag-cyan">TDM & FFA SUMO ARENA</span>
-          <p class="mode-card-desc">No track, pure battle! Knock rival karts off the sky platform with heavy bumpers.</p>
-          <ul class="mode-features-list">
-            <li><span class="feat-check">✔</span> Floating Sky Arena Ring</li>
-            <li><span class="feat-check">✔</span> Team Frost vs Team Blaze</li>
-            <li><span class="feat-check">✔</span> Custom Kill & Time Goals</li>
-          </ul>
+          <span class="mode-card-meta meta-cyan">KNOCKOUT BRAWL</span>
+          <p class="mode-card-desc">Floating sky arena battle! Smash rivals off the platform with heavy bumpers and claim the crown.</p>
           <button type="button" class="mode-action-btn btn-action-cyan" id="btn-open-rumble" title="Open Sky Rumble Setup">
             <span>ENTER BRAWL</span>
             <svg viewBox="0 0 24 24" width="16" height="16" fill="#000"><polygon points="5 3 19 12 5 21 5 3"/></svg>
           </button>
         </div>
 
-        <!-- Card 3: Hardcore Gauntlet -->
+        <!-- Card 3: Hardcore Sky -->
         <div class="mode-card card-hardcore">
-          <span class="mode-card-ribbon ribbon-red">EXPERT ONLY</span>
+          <span class="mode-card-badge badge-red">EXPERT 150CC</span>
           <div class="mode-visual-bubble bubble-red">
-            <svg viewBox="0 0 24 24" width="38" height="38" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M12 3a7 7 0 0 0-7 7c0 3 2 5.5 4 6.5V19h6v-2.5c2-1 4-3.5 4-6.5a7 7 0 0 0-7-7z" fill="#FF385C"/>
-              <circle cx="9.5" cy="10.5" r="1.5" fill="#FFF"/>
-              <circle cx="14.5" cy="10.5" r="1.5" fill="#FFF"/>
-              <line x1="10" y1="15" x2="14" y2="15" stroke="#FFF" stroke-width="1.5"/>
+            <svg viewBox="0 0 48 48" width="58" height="58" fill="none" stroke="#000" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M6 34 Q2 26 8 20 Q12 28 8 36" fill="#FFDE59" stroke="#FF385C" stroke-width="2"/>
+              <path d="M42 34 Q46 26 40 20 Q36 28 40 36" fill="#FFDE59" stroke="#FF385C" stroke-width="2"/>
+              <ellipse cx="24" cy="22" rx="14" ry="13" fill="#FFF" stroke="#000" stroke-width="2.8"/>
+              <ellipse cx="19" cy="21" rx="3.5" ry="4.5" fill="#FF385C" stroke="#000" stroke-width="1.8"/>
+              <ellipse cx="29" cy="21" rx="3.5" ry="4.5" fill="#FF385C" stroke="#000" stroke-width="1.8"/>
+              <polygon points="24,25 22,29 26,29" fill="#000"/>
+              <rect x="18" y="32" width="12" height="5" rx="2" fill="#18181B" stroke="#000" stroke-width="1.8"/>
+              <line x1="22" y1="32" x2="22" y2="37" stroke="#FFF" stroke-width="1.5"/>
+              <line x1="26" y1="32" x2="26" y2="37" stroke="#FFF" stroke-width="1.5"/>
+              <polygon points="25,10 21,18 26,17 22,24 29,15 24,16" fill="#FFE600" stroke="#000" stroke-width="1.2"/>
             </svg>
           </div>
-          <h3 class="mode-card-title">HARDCORE</h3>
-          <span class="mode-card-tag tag-red">3X HAZARDS // EXTREME SPEED</span>
-          <p class="mode-card-desc">For master pilots. High-speed chicanes, 3x oil slicks, dense bombs, zero respawn grace.</p>
-          <ul class="mode-features-list">
-            <li><span class="feat-check">✔</span> Turbocharged 150cc Physics</li>
-            <li><span class="feat-check">✔</span> Dynamic Hazard Spawns</li>
-            <li><span class="feat-check">✔</span> Double XP & Exclusive Trophies</li>
-          </ul>
+          <h3 class="mode-card-title">HARDCORE SKY</h3>
+          <span class="mode-card-meta meta-red">EXTREME GAUNTLET</span>
+          <p class="mode-card-desc">Master pilots only! Supercharged speeds, razor chicanes, dense bomb hazards, and zero guardrails.</p>
           <button type="button" class="mode-action-btn btn-action-red" id="start-hardcore-btn" title="Launch Hardcore Gauntlet">
             <span>CHALLENGE</span>
             <svg viewBox="0 0 24 24" width="16" height="16" fill="#FFF"><polygon points="5 3 19 12 5 21 5 3"/></svg>
@@ -685,22 +687,17 @@
 
         <!-- Card 4: Time Attack (No-Dash Sprint) -->
         <div class="mode-card card-time-attack" id="card-mode-time-attack">
-          <span class="mode-card-ribbon ribbon-purple">RECORD HUNT</span>
+          <span class="mode-card-badge badge-purple">RECORD HUNT</span>
           <div class="mode-visual-bubble bubble-purple">
-            <svg viewBox="0 0 24 24" width="38" height="38" fill="none" stroke="#000" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="9" stroke="#9333ea" stroke-width="2.2"/>
-              <polyline points="12 6 12 12 16 14" stroke="#9333ea" stroke-width="2.2"/>
-              <path d="M12 2v2M4.9 4.9l1.4 1.4M19.1 4.9l-1.4 1.4" stroke="#9333ea" stroke-width="2"/>
+            <svg viewBox="0 0 48 48" width="58" height="58" fill="none" stroke="#000" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="24" cy="24" r="18" fill="#F3E8FF" stroke="#000" stroke-width="2.5"/>
+              <polyline points="24 14 24 24 31 27" stroke="#7E22CE" stroke-width="3"/>
+              <path d="M24 3v3M10 9l2 2M38 9l-2 2" stroke="#000" stroke-width="2.5"/>
             </svg>
           </div>
           <h3 class="mode-card-title">TIME SPRINT</h3>
-          <span class="mode-card-tag tag-purple">NO-DASH // 1-LAP RECORD RUN</span>
-          <p class="mode-card-desc">Pure racing lines with ZERO collisions or pushing! 1 clean lap to crush your Personal Best.</p>
-          <ul class="mode-features-list">
-            <li><span class="feat-check">✔</span> Ghost Pass-Through (Takkar Zero)</li>
-            <li><span class="feat-check">✔</span> 1-Lap Pure Record Sprint</li>
-            <li><span class="feat-check">✔</span> Trackmania Millisecond Splits</li>
-          </ul>
+          <span class="mode-card-meta meta-purple">NON-CONTACT SPRINT</span>
+          <p class="mode-card-desc">Pure driving precision with ZERO collisions or pushing! 1 clean lap to hunt down your personal best.</p>
 
           <!-- Roster Choice Toggle (Solo vs With Players) -->
           <div class="time-roster-group" style="display: flex; gap: 6px; width: 100%; margin-top: auto; margin-bottom: 8px;">

@@ -545,8 +545,8 @@ export class KineticHazardManager {
               // Perpendicular distance to blade centerline
               const distPerp = Math.abs(lat * by - vertHub * bx);
 
-              // Blade half-width (0.68m) + kart collision boundary padding (~1.4m) = 2.1m
-              if (distAlong >= 1.0 && distAlong <= (turbine.bladeRadius + 1.1) && distPerp < 2.10) {
+              // Blade half-width (0.68m) + kart collision boundary padding (~1.4m) = 2.08m
+              if (distAlong >= 1.0 && distAlong <= (turbine.bladeRadius + 1.1) && distPerp < 2.15) {
                 hitBlade = true;
                 hitBladeAngle = bladeAngle;
                 hitDistAlong = distAlong;

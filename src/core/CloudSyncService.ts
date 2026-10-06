@@ -45,7 +45,8 @@ export interface CloudUserDoc {
   xp: number;
   unlockedItems: string[];
   equippedSkin: string;
-  equippedTrail: string;
+  equippedHat?: string;
+  equippedTrail?: string;
   equippedGlasses: string;
   createdAt: number;
   updatedAt: number;
@@ -208,6 +209,7 @@ export class CloudSyncService {
           xp: typeof cloudData.xp === 'number' ? cloudData.xp : undefined,
           unlockedItems: Array.isArray(cloudData.unlockedItems) ? cloudData.unlockedItems : undefined,
           equippedSkin: cloudData.equippedSkin,
+          equippedHat: cloudData.equippedHat,
           equippedTrail: cloudData.equippedTrail,
           equippedGlasses: cloudData.equippedGlasses,
         });
@@ -235,6 +237,7 @@ export class CloudSyncService {
           xp: curEconomy.xp,
           unlockedItems: curEconomy.unlockedItems,
           equippedSkin: curEconomy.equippedSkin,
+          equippedHat: curEconomy.equippedHat,
           equippedTrail: curEconomy.equippedTrail,
           equippedGlasses: curEconomy.equippedGlasses,
           createdAt: Date.now(),
@@ -284,6 +287,7 @@ export class CloudSyncService {
           xp: state.xp,
           unlockedItems: state.unlockedItems,
           equippedSkin: state.equippedSkin,
+          equippedHat: state.equippedHat,
           equippedTrail: state.equippedTrail,
           equippedGlasses: state.equippedGlasses,
           vipExpiresAt: state.vipExpiresAt,

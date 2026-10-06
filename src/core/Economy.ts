@@ -10,8 +10,9 @@ export interface EconomyState {
   vipExpiresAt: number; // 0: none, -1: permanent, >0: timestamp
   unlockedItems: string[];
   equippedSkin: string;
-  equippedTrail: string;
+  equippedHat: string;
   equippedGlasses: string;
+  equippedTrail?: string;
 }
 
 const STORAGE_KEY = 'airskid_economy_v2';
@@ -38,10 +39,11 @@ export class EconomyManager {
           lastDailyClaim: typeof parsed.lastDailyClaim === 'number' ? parsed.lastDailyClaim : 0,
           lastDailyRaceDate: typeof parsed.lastDailyRaceDate === 'string' ? parsed.lastDailyRaceDate : '',
           vipExpiresAt: typeof parsed.vipExpiresAt === 'number' ? parsed.vipExpiresAt : 0,
-          unlockedItems: Array.isArray(parsed.unlockedItems) ? parsed.unlockedItems : ['skin_default', 'trail_cyan', 'glasses_none', 'glasses_speed_matrix'],
+          unlockedItems: Array.isArray(parsed.unlockedItems) ? parsed.unlockedItems : ['skin_default', 'hat_none', 'hat_party', 'glasses_none', 'glasses_speed_matrix'],
           equippedSkin: typeof parsed.equippedSkin === 'string' ? parsed.equippedSkin : 'skin_default',
-          equippedTrail: typeof parsed.equippedTrail === 'string' ? parsed.equippedTrail : 'trail_cyan',
+          equippedHat: typeof parsed.equippedHat === 'string' ? parsed.equippedHat : 'hat_none',
           equippedGlasses: typeof parsed.equippedGlasses === 'string' ? parsed.equippedGlasses : 'glasses_none',
+          equippedTrail: typeof parsed.equippedTrail === 'string' ? parsed.equippedTrail : 'trail_cyan',
         };
       }
     } catch {
@@ -57,10 +59,11 @@ export class EconomyManager {
       lastDailyClaim: 0,
       lastDailyRaceDate: '',
       vipExpiresAt: 0,
-      unlockedItems: ['skin_default', 'trail_cyan', 'glasses_none', 'glasses_speed_matrix'],
+      unlockedItems: ['skin_default', 'hat_none', 'hat_party', 'glasses_none', 'glasses_speed_matrix'],
       equippedSkin: 'skin_default',
-      equippedTrail: 'trail_cyan',
+      equippedHat: 'hat_none',
       equippedGlasses: 'glasses_none',
+      equippedTrail: 'trail_cyan',
     };
   }
 
@@ -84,6 +87,7 @@ export class EconomyManager {
     if (typeof cloudState.xp === 'number') this.state.xp = cloudState.xp;
     if (Array.isArray(cloudState.unlockedItems)) this.state.unlockedItems = [...cloudState.unlockedItems];
     if (typeof cloudState.equippedSkin === 'string') this.state.equippedSkin = cloudState.equippedSkin;
+    if (typeof cloudState.equippedHat === 'string') this.state.equippedHat = cloudState.equippedHat;
     if (typeof cloudState.equippedTrail === 'string') this.state.equippedTrail = cloudState.equippedTrail;
     if (typeof cloudState.equippedGlasses === 'string') this.state.equippedGlasses = cloudState.equippedGlasses;
     if (typeof cloudState.vipExpiresAt === 'number') this.state.vipExpiresAt = cloudState.vipExpiresAt;
@@ -167,7 +171,15 @@ export class EconomyManager {
   }
 
   public isItemUnlocked(itemId: string): boolean {
-    if (itemId === 'skin_default' || itemId.startsWith('paint_') || itemId === 'trail_cyan' || itemId === 'glasses_none' || itemId === 'glasses_speed_matrix') return true;
+    if (
+      itemId === 'skin_default' ||
+      itemId.startsWith('paint_') ||
+      itemId === 'hat_none' ||
+      itemId === 'hat_party' ||
+      itemId === 'trail_cyan' ||
+      itemId === 'glasses_none' ||
+      itemId === 'glasses_speed_matrix'
+    ) return true;
     return this.state.unlockedItems.includes(itemId);
   }
 
@@ -189,8 +201,18 @@ export class EconomyManager {
     this.updateUI();
   }
 
+  public getEquippedHat(): string {
+    return this.state.equippedHat || 'hat_none';
+  }
+
+  public setEquippedHat(hatId: string) {
+    this.state.equippedHat = hatId;
+    this.saveState();
+    this.updateUI();
+  }
+
   public getEquippedTrail(): string {
-    return this.state.equippedTrail;
+    return this.state.equippedTrail || 'trail_cyan';
   }
 
   public setEquippedTrail(trailId: string) {

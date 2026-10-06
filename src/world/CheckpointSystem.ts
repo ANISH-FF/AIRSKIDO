@@ -41,8 +41,10 @@ export class CheckpointSystem {
   // Reusable scratch vectors for 60fps zero-allocation checks
   private _tempToKart = new THREE.Vector3();
   private _tempPrevToGate = new THREE.Vector3();
+  private track: Track;
 
   constructor(track: Track) {
+    this.track = track;
     this.createCheckpoints(track);
   }
 
@@ -84,15 +86,14 @@ export class CheckpointSystem {
           safePos = new THREE.Vector3(65.0, 1.2, 15.0);
           safeRot.setFromAxisAngle(new THREE.Vector3(0, 1, 0), 0); // Facing North down Main Straight
         }
-      } else {
-        // In Hardcore mode, safely use the track slice 2 gates behind if inside a jump gap
-        if (slice.isGap) {
-          const safeT = (i - 2 + numGates) % numGates / numGates;
-          const safeSlice = track.getTrackSlice(safeT);
-          safePos = safeSlice.position.clone().add(new THREE.Vector3(0, 1.2, 0));
-          const fwdH = new THREE.Vector3(safeSlice.tangent.x, 0, safeSlice.tangent.z).normalize();
-          safeRot.setFromUnitVectors(new THREE.Vector3(0, 0, 1), fwdH);
-        }
+      }
+
+      if (slice.isGap) {
+        const safeT = ((i - 2 + numGates) % numGates) / numGates;
+        const safeSlice = track.getTrackSlice(safeT);
+        safePos = safeSlice.position.clone().add(new THREE.Vector3(0, 1.2, 0));
+        const fwdH = new THREE.Vector3(safeSlice.tangent.x, 0, safeSlice.tangent.z).normalize();
+        safeRot.setFromUnitVectors(new THREE.Vector3(0, 0, 1), fwdH);
       }
 
       this.gates.push({
@@ -159,7 +160,14 @@ export class CheckpointSystem {
 
     // Check Fall off Sky Track into Void or below track elevation
     const currentGate = this.gates[racer.currentCheckpoint];
-    const isBelowTrack = !isGrounded && currentGate && (currentGate.position.y - currentPos.y > (isAirLaunched ? 8.0 : 4.5));
+    const isNearJump = this.track?.config?.jumpZones?.some(
+      (j) => {
+        const sliceIdx = Math.round(currentGate.t * Track.SAMPLES);
+        return sliceIdx >= (j.startSlice - 2) && sliceIdx <= (j.endSlice + 4);
+      }
+    );
+    const fallThreshold = isNearJump ? 16.0 : (isAirLaunched ? 8.0 : 4.5);
+    const isBelowTrack = !isGrounded && currentGate && (currentGate.position.y - currentPos.y > fallThreshold);
     if (currentPos.y < -25 || isBelowTrack) {
       this.triggerFall(racer);
       return;
@@ -205,11 +213,19 @@ export class CheckpointSystem {
         // CRITICAL FIX: If swatted by hammer, turbine, or tumbling through air (isAirLaunched), NEVER advance checkpoints!
         if (isAirLaunched) continue;
 
-        // If not grounded, only allow checkpoint if close to road (vertDist <= 3.5m)
-        if (!isGrounded && vertDist > 3.5) continue;
+        const isGateNearJump = this.track?.config?.jumpZones?.some(
+          (j) => {
+            const sIdx = Math.round(gate.t * Track.SAMPLES);
+            return sIdx >= (j.startSlice - 2) && sIdx <= (j.endSlice + 4);
+          }
+        );
+        const maxVert = isGateNearJump ? 8.5 : 3.5;
+
+        // If not grounded, only allow checkpoint if within reasonable altitude
+        if (!isGrounded && vertDist > maxVert) continue;
 
         // Intermediate checkpoints: road corridor bounds (strictly near road height, never below under pillars!)
-        if (vertDist <= 3.5 && lateralDist <= gate.halfWidth + 6.0 && forwardDist >= -1.0 && forwardDist <= 28.0) {
+        if (vertDist <= maxVert && lateralDist <= gate.halfWidth + 6.0 && forwardDist >= -1.0 && forwardDist <= 28.0) {
           bestCapturedIdx = candidateIdx;
         }
       }

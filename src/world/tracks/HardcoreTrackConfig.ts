@@ -29,13 +29,13 @@ export class HardcoreTrackConfig implements TrackDefinition {
       launchSlice: 36,
       landingSlice: 44,
       endSlice: 52,
-      rampHeight: 6.8,
-      catchHeight: 3.5,
-      flaredWidth: 13.0,
+      rampHeight: 8.8,
+      catchHeight: 3.2,
+      flaredWidth: 14.0,
       rings: [
-        { id: 'hc-j1-r1', t: 37 / 400, color: 0x00f0ff, scale: 10.5, altitude: 9.5 },
-        { id: 'hc-j1-r2', t: 40 / 400, color: 0xffea00, scale: 11.0, altitude: 12.0 },
-        { id: 'hc-j1-r3', t: 43 / 400, color: 0xff00bb, scale: 10.5, altitude: 9.5 },
+        { id: 'hc-j1-r1', t: 38 / 400, color: 0x00f0ff, scale: 10.5, altitude: 13.0 },
+        { id: 'hc-j1-r2', t: 40 / 400, color: 0xffea00, scale: 11.0, altitude: 15.5 },
+        { id: 'hc-j1-r3', t: 42 / 400, color: 0xff00bb, scale: 10.5, altitude: 12.5 },
       ],
     },
     // 2. Mountain Cloud Summit Leap (At the highest summit of the 360° carousel)
@@ -46,13 +46,13 @@ export class HardcoreTrackConfig implements TrackDefinition {
       launchSlice: 134,
       landingSlice: 142,
       endSlice: 150,
-      rampHeight: 6.5,
+      rampHeight: 8.5,
       catchHeight: 3.2,
-      flaredWidth: 13.0,
+      flaredWidth: 14.0,
       rings: [
-        { id: 'hc-j2-r1', t: 135 / 400, color: 0x00f0ff, scale: 10.5, altitude: 9.2 },
-        { id: 'hc-j2-r2', t: 138 / 400, color: 0x00ff88, scale: 11.0, altitude: 11.5 },
-        { id: 'hc-j2-r3', t: 141 / 400, color: 0xffea00, scale: 10.5, altitude: 9.0 },
+        { id: 'hc-j2-r1', t: 136 / 400, color: 0x00f0ff, scale: 10.5, altitude: 13.0 },
+        { id: 'hc-j2-r2', t: 138 / 400, color: 0x00ff88, scale: 11.0, altitude: 15.5 },
+        { id: 'hc-j2-r3', t: 140 / 400, color: 0xffea00, scale: 10.5, altitude: 12.5 },
       ],
     },
     // 3. West Straight Approach Sky-Hop (Before reaching the 3 Turbines corridor)
@@ -63,13 +63,13 @@ export class HardcoreTrackConfig implements TrackDefinition {
       launchSlice: 216,
       landingSlice: 224,
       endSlice: 232,
-      rampHeight: 5.8,
-      catchHeight: 2.8,
-      flaredWidth: 12.5,
+      rampHeight: 8.5,
+      catchHeight: 3.2,
+      flaredWidth: 13.5,
       rings: [
-        { id: 'hc-j3-r1', t: 217 / 400, color: 0xffea00, scale: 10.0, altitude: 8.5 },
-        { id: 'hc-j3-r2', t: 220 / 400, color: 0x00f0ff, scale: 10.5, altitude: 10.5 },
-        { id: 'hc-j3-r3', t: 223 / 400, color: 0xff00bb, scale: 10.0, altitude: 8.2 },
+        { id: 'hc-j3-r1', t: 218 / 400, color: 0xffea00, scale: 10.5, altitude: 13.0 },
+        { id: 'hc-j3-r2', t: 220 / 400, color: 0x00f0ff, scale: 11.0, altitude: 15.5 },
+        { id: 'hc-j3-r3', t: 222 / 400, color: 0xff00bb, scale: 10.5, altitude: 12.5 },
       ],
     },
     // 4. Return Skyline Leap (After dodging the 3 hammers, before Start/Finish line)
@@ -80,13 +80,13 @@ export class HardcoreTrackConfig implements TrackDefinition {
       launchSlice: 368,
       landingSlice: 376,
       endSlice: 384,
-      rampHeight: 6.2,
-      catchHeight: 3.0,
-      flaredWidth: 12.5,
+      rampHeight: 8.5,
+      catchHeight: 3.2,
+      flaredWidth: 13.5,
       rings: [
-        { id: 'hc-j4-r1', t: 369 / 400, color: 0x00ff88, scale: 10.0, altitude: 8.8 },
-        { id: 'hc-j4-r2', t: 372 / 400, color: 0xffea00, scale: 10.5, altitude: 11.0 },
-        { id: 'hc-j4-r3', t: 375 / 400, color: 0x00f0ff, scale: 10.0, altitude: 8.5 },
+        { id: 'hc-j4-r1', t: 370 / 400, color: 0x00ff88, scale: 10.5, altitude: 13.0 },
+        { id: 'hc-j4-r2', t: 372 / 400, color: 0xffea00, scale: 11.0, altitude: 15.5 },
+        { id: 'hc-j4-r3', t: 374 / 400, color: 0x00f0ff, scale: 10.5, altitude: 12.5 },
       ],
     },
   ];
@@ -136,13 +136,20 @@ export class HardcoreTrackConfig implements TrackDefinition {
       currentHalfWidth += flareP * 3.5; // Expands to 25m total road width
     }
 
-    // 2. Smooth, High-Speed Stunt Jumps (Ramp Up -> Flight Zone -> Smooth Catch Runway)
+    let isGap = false;
+
+    // 2. High-Speed Aerial Stunt Jumps (Incline Ramp -> Open Sky Chasm Gap -> Smooth Catch Runway)
     for (const j of this.jumpZones) {
       // Incline Ramp
       if (sliceIdx >= j.startSlice && sliceIdx <= j.launchSlice) {
         const p = (sliceIdx - j.startSlice) / (j.launchSlice - j.startSlice);
-        extraY = Math.pow(p, 1.4) * j.rampHeight;
+        extraY = Math.pow(p, 1.5) * j.rampHeight;
         isRamp = true;
+        break;
+      }
+      // Open Sky Chasm (Neeche ka track hata hua - just like Classic Mode!)
+      else if (sliceIdx > j.launchSlice && sliceIdx < j.landingSlice) {
+        isGap = true;
         break;
       }
       // Catch Landing Runway
@@ -157,8 +164,7 @@ export class HardcoreTrackConfig implements TrackDefinition {
       }
     }
 
-    // Hardcore track has ZERO broken chasm gaps (100% continuous solid asphalt circuit)
-    return { extraY, halfWidth: currentHalfWidth, isRamp, isGap: false };
+    return { extraY, halfWidth: currentHalfWidth, isRamp, isGap };
   }
 
   // Strategic Boost Pads across the 2,115m Circuit

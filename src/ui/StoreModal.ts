@@ -4,7 +4,7 @@ import { sounds } from '../core/Sound';
 import { KART_CONFIGS } from '../entities/Kart';
 import confetti from 'canvas-confetti';
 
-export type ShowroomTab = 'machines' | 'skins' | 'glasses' | 'trails' | 'vip';
+export type ShowroomTab = 'machines' | 'skins' | 'glasses' | 'hats' | 'vip';
 
 export class StoreModal {
   private viewEl: HTMLElement | null = null;
@@ -12,12 +12,13 @@ export class StoreModal {
   private selectedMachineIndex: number = 0;
   private previewedSkinId: string | null = null;
   private previewedGlassesId: string | null = null;
+  private previewedHatId: string | null = null;
 
   // Callbacks hooked by main.ts
   public onSelectMachine?: (kartIndex: number) => void;
   public onPreviewSkin?: (skinId: string) => void;
   public onPreviewGlasses?: (glassesId: string) => void;
-  public onPreviewTrail?: (trailId: string) => void;
+  public onPreviewHat?: (hatId: string) => void;
   public onOpen?: () => void;
   public onClose?: () => void;
   public onEquipChanged?: () => void;
@@ -48,9 +49,9 @@ export class StoreModal {
             <span class="tab-icon">🕶️</span>
             <span class="tab-text">CHASMA & SHADES</span>
           </button>
-          <button type="button" class="showroom-tab-btn" data-tab="trails">
-            <span class="tab-icon">✨</span>
-            <span class="tab-text">DRIFT TRAILS</span>
+          <button type="button" class="showroom-tab-btn" data-tab="hats">
+            <span class="tab-icon">🎩</span>
+            <span class="tab-text">HATS & CAPS</span>
           </button>
           <button type="button" class="showroom-tab-btn" data-tab="vip">
             <span class="tab-icon">👑</span>
@@ -141,9 +142,10 @@ export class StoreModal {
     this.viewEl.style.display = 'none';
     document.body.classList.remove('showroom-store-open');
 
-    // Restore equipped skin & glasses if user previewed without saving
+    // Restore equipped skin, glasses & hat if user previewed without saving
     this.previewedSkinId = null;
     this.previewedGlassesId = null;
+    this.previewedHatId = null;
 
     sounds.playSelect();
     if (this.onClose) {
@@ -181,8 +183,8 @@ export class StoreModal {
       case 'glasses':
         this.renderGlassesTab(shelf);
         break;
-      case 'trails':
-        this.renderTrailsTab(shelf);
+      case 'hats':
+        this.renderHatsTab(shelf);
         break;
       case 'vip':
         this.renderVipTab(shelf);
@@ -452,17 +454,20 @@ export class StoreModal {
     });
   }
 
-  // ── 4. DRIFT TRAILS TAB ──
-  private renderTrailsTab(container: HTMLElement) {
-    const trailItems = STORE_CATALOG.filter((i) => i.category === 'trail');
-    const equippedTrail = economy.getEquippedTrail();
+  // ── 4. CUTE HATS & CAPS TAB ──
+  private renderHatsTab(container: HTMLElement) {
+    const hatItems = STORE_CATALOG.filter((i) => i.category === 'hat');
+    const equippedHat = economy.getEquippedHat();
+    const currentLevel = economy.getLevel();
 
-    trailItems.forEach((item) => {
-      const isOwned = item.id === 'trail_cyan' || economy.isItemUnlocked(item.id);
-      const isEquipped = equippedTrail === item.id;
+    hatItems.forEach((item) => {
+      const isOwned = item.id === 'hat_none' || item.id === 'hat_party' || economy.isItemUnlocked(item.id);
+      const isEquipped = equippedHat === item.id;
+      const isPreviewing = this.previewedHatId === item.id;
+      const isLevelLocked = !isOwned && !!item.requiredLevel && currentLevel < item.requiredLevel;
 
       const card = document.createElement('div');
-      card.className = `showroom-card trail-card${isEquipped ? ' equipped' : ''}`;
+      card.className = `showroom-card hat-card${isEquipped ? ' equipped' : ''}${isPreviewing ? ' previewing' : ''}${isLevelLocked ? ' level-locked' : ''}`;
 
       let btnLabel = 'BUY';
       let btnClass = 'btn-yellow';
@@ -471,16 +476,21 @@ export class StoreModal {
         btnLabel = 'EQUIPPED';
         btnClass = 'btn-white';
       } else if (isOwned) {
-        btnLabel = 'EQUIP';
+        btnLabel = isPreviewing ? 'EQUIP NOW' : 'EQUIP';
         btnClass = 'btn-yellow';
+      } else if (isLevelLocked) {
+        btnLabel = `🔒 LVL ${item.requiredLevel}`;
+        btnClass = 'locked-level-btn';
       } else {
-        btnLabel = `<svg viewBox="0 0 24 24" width="13" height="13" style="vertical-align: middle;"><circle cx="12" cy="12" r="10" fill="#FFDE59" stroke="#000" stroke-width="2"/><polygon points="12,6.5 13.7,10 17.5,10.5 14.7,13.2 15.4,17 12,15.2 8.6,17 9.3,13.2 6.5,10.5 10.3,10" fill="#FFF"/></svg> ${item.price.toLocaleString()}`;
+        btnLabel = item.currency === 'coins'
+          ? `<svg viewBox="0 0 24 24" width="13" height="13" style="vertical-align: middle;"><circle cx="12" cy="12" r="10" fill="#FFDE59" stroke="#000" stroke-width="2"/><polygon points="12,6.5 13.7,10 17.5,10.5 14.7,13.2 15.4,17 12,15.2 8.6,17 9.3,13.2 6.5,10.5 10.3,10" fill="#FFF"/></svg> ${item.price.toLocaleString()}`
+          : `<svg viewBox="0 0 24 24" width="13" height="13" style="vertical-align: middle;"><polygon points="6,4 18,4 22,9 12,21 2,9" fill="#00D2FF" stroke="#000" stroke-width="2"/></svg> ${item.price}`;
       }
 
       card.innerHTML = `
         <div class="showroom-card-header">
-          <span class="store-card-icon" style="font-size: 24px;">${item.icon}</span>
-          ${item.badge ? `<span class="showroom-badge-tag">${item.badge}</span>` : ''}
+          <span class="store-card-icon" style="font-size: 26px;">${item.icon}</span>
+          ${item.badge ? `<span class="showroom-badge-tag${isLevelLocked ? ' tag-level-locked' : ''}">${item.badge}</span>` : ''}
         </div>
         <div class="showroom-card-title">${item.name}</div>
         <div class="showroom-card-desc">${item.description}</div>
@@ -489,26 +499,50 @@ export class StoreModal {
         </button>
       `;
 
-      card.onclick = () => {
-        if (isEquipped) return;
+      card.onclick = (e) => {
+        const target = e.target as HTMLElement;
+        const isBtnClick = !!target.closest('.showroom-action-btn');
 
-        if (isOwned) {
-          economy.setEquippedTrail(item.id);
-          sounds.playSelect();
-          this.render();
-          if (this.onEquipChanged) this.onEquipChanged();
+        // Live-preview hat on 3D kart turntable
+        this.previewedHatId = item.id;
+        if (this.onPreviewHat) {
+          this.onPreviewHat(item.id);
+        }
+
+        if (isEquipped) {
+          this.renderItems();
           return;
         }
 
-        const res = store.buyItem(item.id);
-        if (res.success) {
-          economy.setEquippedTrail(item.id);
-          confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
-          sounds.playCoin();
-          this.render();
-          if (this.onEquipChanged) this.onEquipChanged();
+        if (isBtnClick || isOwned) {
+          if (isOwned) {
+            economy.setEquippedHat(item.id);
+            this.previewedHatId = null;
+            sounds.playSelect();
+            this.render();
+            if (this.onEquipChanged) this.onEquipChanged();
+            return;
+          }
+
+          if (isLevelLocked) {
+            alert(`🔒 This hat requires Driver Level ${item.requiredLevel}! Keep racing to earn XP.`);
+            return;
+          }
+
+          // Purchase hat
+          const res = store.buyItem(item.id);
+          if (res.success) {
+            economy.setEquippedHat(item.id);
+            this.previewedHatId = null;
+            confetti({ particleCount: 110, spread: 80, origin: { y: 0.6 } });
+            sounds.playCoin();
+            this.render();
+            if (this.onEquipChanged) this.onEquipChanged();
+          } else {
+            alert(res.message);
+          }
         } else {
-          alert(res.message);
+          this.renderItems();
         }
       };
 

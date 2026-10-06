@@ -841,11 +841,12 @@
       width: 100%;
     }
     .mode-card {
-      background: #FFFDF5;
+      background: #FFFFFF;
       border: 3.5px solid #000;
-      box-shadow: 6px 6px 0px #000;
+      box-shadow: 5px 5px 0px #000;
       border-radius: 22px;
-      padding: 18px 16px;
+      padding: 22px 16px 18px 16px;
+      min-height: 385px;
       box-sizing: border-box;
       display: flex;
       flex-direction: column;
@@ -856,8 +857,24 @@
       transition: transform 0.12s ease, box-shadow 0.12s ease;
     }
     .mode-card:hover {
-      transform: translateY(-8px) scale(1.02);
-      box-shadow: 8px 12px 0px #000;
+      transform: translateY(-6px);
+      box-shadow: 7px 10px 0px #000;
+    }
+    .mode-card > * {
+      position: relative;
+      z-index: 1;
+    }
+    .mode-card-badge {
+      font-family: var(--font-telemetry);
+      font-size: 9px;
+      font-weight: 900;
+      padding: 3px 9px;
+      border-radius: 6px;
+      border: 1.5px solid #000;
+      letter-spacing: 0.6px;
+      margin-bottom: 8px;
+      display: inline-block;
+      white-space: nowrap;
     }
     .mode-card-ribbon {
       position: absolute;
@@ -880,20 +897,20 @@
     .ribbon-purple { background: #A855F7; color: #FFF; text-shadow: 1px 1px 0 #000; }
 
     .mode-visual-bubble {
-      width: 72px;
-      height: 72px;
-      border-radius: 20px;
+      width: 82px;
+      height: 82px;
+      border-radius: 22px;
       border: 3px solid #000;
       box-shadow: 3px 3px 0 #000;
       display: flex;
       align-items: center;
       justify-content: center;
-      margin-top: 18px;
-      margin-bottom: 6px;
+      margin-top: 4px;
+      margin-bottom: 10px;
       transition: transform 0.12s ease;
     }
     .mode-card:hover .mode-visual-bubble {
-      transform: scale(1.1) rotate(-3deg);
+      transform: scale(1.08) rotate(-3deg);
     }
     .bubble-yellow { background: #FFF9D2; }
     .bubble-cyan   { background: #E0F7FA; }
@@ -903,13 +920,24 @@
 
     .mode-card-title {
       font-family: var(--font-display);
-      font-size: 21px;
+      font-size: 20px;
       font-weight: 900;
-      letter-spacing: 1px;
+      letter-spacing: 0.8px;
       color: #000;
-      margin: 2px 0;
+      margin: 2px 0 2px 0;
       line-height: 1.1;
     }
+    .mode-card-meta {
+      font-family: var(--font-display);
+      font-size: 9.5px;
+      font-weight: 800;
+      margin-bottom: 8px;
+      letter-spacing: 0.5px;
+    }
+    .meta-yellow { color: #B45309; }
+    .meta-cyan   { color: #0284C7; }
+    .meta-red    { color: #E11D48; }
+    .meta-purple { color: #7E22CE; }
     .mode-card-tag {
       font-family: var(--font-display);
       font-size: 9.5px;
@@ -928,11 +956,11 @@
 
     .mode-card-desc {
       font-size: 11.5px;
-      line-height: 1.35;
+      line-height: 1.4;
       font-weight: 700;
       color: #475569;
-      margin: 0 0 10px 0;
-      min-height: 38px;
+      margin: 0 0 16px 0;
+      min-height: 48px;
     }
     .mode-features-list {
       list-style: none;

@@ -1772,6 +1772,8 @@ class Game {
     const restartBtn = document.getElementById('restart-btn') as HTMLButtonElement | null;
     if (restartBtn) {
       restartBtn.addEventListener('click', () => {
+        sounds.isScoreboardActive = false;
+        sounds.isFadingOut = false;
         if (this.isMultiplayer) {
           if (!net.isHost) {
             sounds.playRecoil();
@@ -1863,6 +1865,12 @@ class Game {
       }
     };
 
+    storeModal.onPreviewHat = (hatId: string) => {
+      if (this.showroomKart) {
+        this.showroomKart.applyHat(hatId);
+      }
+    };
+
     storeModal.onOpen = () => {
       this.isStoreOpen = true;
       document.body.classList.add('showroom-store-open');
@@ -1875,6 +1883,7 @@ class Game {
       if (this.showroomKart) {
         this.showroomKart.applySkin(economy.getEquippedSkin());
         this.showroomKart.applyGlasses(economy.getEquippedGlasses());
+        this.showroomKart.applyHat(economy.getEquippedHat());
       }
       this.setupMenuCamera();
     };
@@ -1883,10 +1892,12 @@ class Game {
       if (this.showroomKart) {
         this.showroomKart.applySkin(economy.getEquippedSkin());
         this.showroomKart.applyGlasses(economy.getEquippedGlasses());
+        this.showroomKart.applyHat(economy.getEquippedHat());
       }
       if (this.player && this.player.kart) {
         this.player.kart.applySkin(economy.getEquippedSkin());
         this.player.kart.applyGlasses(economy.getEquippedGlasses());
+        this.player.kart.applyHat(economy.getEquippedHat());
       }
       lobbyUI.updateLobbyElements();
     };
@@ -2450,6 +2461,8 @@ class Game {
     this.state = GameState.FINISHED;
     this.isSpectating = false;
     this.hud.hideSpectatorOverlay();
+    speedlines.reset();
+    sounds.fadeEngineOut(1.0);
 
     let isPlayerWinner = false;
     if (this.rumbleManager.isTDM) {
@@ -2816,6 +2829,8 @@ class Game {
 
   public quitToLobby(forceClose: boolean = false) {
     sounds.stopEngine();
+    sounds.isScoreboardActive = false;
+    sounds.isFadingOut = false;
     if (this.rumbleVictoryTimeout) {
       clearTimeout(this.rumbleVictoryTimeout);
       this.rumbleVictoryTimeout = null;
@@ -2857,6 +2872,9 @@ class Game {
 
   public leaveMultiplayerLobby(forceClose: boolean = false) {
     this.isMultiplayer = false;
+    sounds.stopEngine();
+    sounds.isScoreboardActive = false;
+    sounds.isFadingOut = false;
     if (this.rumbleVictoryTimeout) {
       clearTimeout(this.rumbleVictoryTimeout);
       this.rumbleVictoryTimeout = null;
@@ -2940,6 +2958,8 @@ class Game {
     this.lastAnnouncedCountdown = '';
 
     // Reset finish countdown and spectator states
+    sounds.isScoreboardActive = false;
+    sounds.isFadingOut = false;
     this.isPlayerFinished = false;
     this.playerFinishTime = 0;
     this.racerFinishTimes.clear();
@@ -3562,7 +3582,7 @@ class Game {
     this.hud.hideSpectatorOverlay();
     this.hud.showWrongWay(false);
     speedlines.reset();
-    sounds.stopEngine();
+    sounds.fadeEngineOut(1.0);
 
     const standings = this.checkpoints.getStandings();
     const playerRank = this.checkpoints.getPlayerRank();
@@ -3933,7 +3953,8 @@ class Game {
         // Coast gently while falling, spectating, or finished; ignore drive inputs until respawned on deck
         this.player.input.update(dt);
         this.player.kart.applyInput(0, 0, false, dt, this.physics);
-        sounds.updateEnginePitch(0.1, false);
+        const coastSpeed = Math.min(1.0, Math.abs(this.player.kart.currentSpeed) / this.player.kart.stats.topSpeed);
+        sounds.updateEnginePitch(coastSpeed, false);
         if (!this.isSpectating) {
           this.player.updateCamera(dt, this.engine.camera);
         }

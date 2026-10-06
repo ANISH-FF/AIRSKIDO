@@ -8,6 +8,7 @@ import { economy } from '../core/Economy';
 
 import { buildApexChassis } from './kartBuilders/ApexBuilder';
 import { buildGlassesMesh } from './GlassesBuilder';
+import { buildHatMesh } from './HatBuilder';
 
 export interface KartStats {
   name: string;
@@ -173,9 +174,13 @@ export class Kart {
   private readonly _kIdentQuat = new THREE.Quaternion(); // identity — never mutated
   private readonly _kTargetPos = new THREE.Vector3();
 
-  // Character Accessories / Sunglasses
+  // Character Accessories / Sunglasses & Hats
+  private driverHeadMesh?: THREE.Mesh;
+  private driverEarsMesh?: THREE.Mesh;
   private glassesGroup?: THREE.Group;
   private equippedGlassesId: string = 'glasses_none';
+  private hatGroup?: THREE.Group;
+  private equippedHatId: string = 'hat_none';
 
   public readonly wheelIdL: string;
   public readonly wheelIdR: string;
@@ -340,17 +345,23 @@ export class Kart {
     const suitMesh = new THREE.Mesh(mergedSuit, this.driverSuitMat);
     this.driverGroup.add(suitMesh);
 
-    // 3. Driver Head & Outer Ears (Merged)
+    // 3. Driver Head (Sphere only)
     this.driverHeadMat = new THREE.MeshStandardMaterial({ color: this.stats.color, roughness: 0.35 });
     this.materialsToFlash.push(this.driverHeadMat);
     const headGeoms: THREE.BufferGeometry[] = [];
     addSphere(headGeoms, 0.36, 16, 16, 0, 0.70, 0.02, 1.05, 0.97, 1.0);
-    for (const side of [-1, 1]) {
-      addCone(headGeoms, 0.13, 0.28, 4, side * 0.245, 0.995, 0.02, -0.10, Math.PI / 4, -side * 0.28);
-    }
     const mergedHead = mergeGeometries(headGeoms, false);
-    const headMesh = new THREE.Mesh(mergedHead, this.driverHeadMat);
-    this.driverGroup.add(headMesh);
+    this.driverHeadMesh = new THREE.Mesh(mergedHead, this.driverHeadMat);
+    this.driverGroup.add(this.driverHeadMesh);
+
+    // 3b. Driver Ears (Separated so full hats don't suffer ugly clipping!)
+    const earGeoms: THREE.BufferGeometry[] = [];
+    for (const side of [-1, 1]) {
+      addCone(earGeoms, 0.13, 0.28, 4, side * 0.245, 0.995, 0.02, -0.10, Math.PI / 4, -side * 0.28);
+    }
+    const mergedEars = mergeGeometries(earGeoms, false);
+    this.driverEarsMesh = new THREE.Mesh(mergedEars, this.driverHeadMat);
+    this.driverGroup.add(this.driverEarsMesh);
 
     // 4. Bandana
     this.bandanaMat = new THREE.MeshStandardMaterial({ color: 0xffde59, roughness: 0.4 });
@@ -699,9 +710,10 @@ export class Kart {
 
     this.group.add(this.shieldGroup);
 
-    // Apply currently equipped skin & character glasses
+    // Apply currently equipped skin, character glasses & hat
     this.applySkin(economy.getEquippedSkin());
     this.applyGlasses(economy.getEquippedGlasses());
+    this.applyHat(economy.getEquippedHat());
   }
 
   public applyGlasses(glassesId: string) {
@@ -720,6 +732,45 @@ export class Kart {
 
   public getEquippedGlasses(): string {
     return this.equippedGlassesId;
+  }
+
+  public applyHat(hatId: string) {
+    this.equippedHatId = hatId || 'hat_none';
+    if (this.hatGroup && this.driverGroup) {
+      this.driverGroup.remove(this.hatGroup);
+      this.hatGroup = undefined;
+    }
+
+    const mesh = buildHatMesh(this.equippedHatId);
+    if (mesh && this.driverGroup) {
+      this.hatGroup = mesh;
+      this.driverGroup.add(this.hatGroup);
+    }
+
+    // Toggle ears visibility: Full hats cleanly tuck ears inside to eliminate clipping through brim/crown!
+    if (this.driverEarsMesh) {
+      const hidesEars = [
+        'hat_cowboy',
+        'hat_tophat',
+        'hat_beanie',
+        'hat_police',
+        'hat_viking',
+        'hat_santa',
+        'hat_sombrero',
+        'hat_chef',
+        'hat_propeller',
+        'hat_pirate',
+        'hat_frog',
+        'hat_wizard',
+        'hat_cat_ears',
+      ].includes(this.equippedHatId);
+
+      this.driverEarsMesh.visible = !hidesEars;
+    }
+  }
+
+  public getEquippedHat(): string {
+    return this.equippedHatId;
   }
 
   public applySkin(skinId: string) {
@@ -1090,10 +1141,18 @@ export class Kart {
         if (inEntryWindow) {
           this.isInAntiGravTube = true;
           this.wasInAntiGravTube = true;
-          const slice = this.track.getTrackSlice(this.splineT);
-          const tubeCenter = slice.position.clone().addScaledVector(slice.normal, tube.radius);
+          this.splineT = Math.max(tStart, this.splineT);
+          const normT = ((this.splineT % 1.0) + 1.0) % 1.0;
+          const curvePt = this.track.curve.getPointAt(normT);
+          const curveTangent = this.track.curve.getTangentAt(normT).normalize();
+          const worldUp = this._kRoadNormal.set(0, 1, 0);
+          let binormal = this._kBinormal.crossVectors(worldUp, curveTangent);
+          if (binormal.lengthSq() < 0.0001) binormal.set(1, 0, 0);
+          else binormal.normalize();
+          const normal = this._kTangent.crossVectors(curveTangent, binormal).normalize();
+          const tubeCenter = curvePt.clone().addScaledVector(normal, tube.radius);
           const toEntry = kartPosVec.clone().sub(tubeCenter);
-          const latDist = toEntry.dot(slice.binormal);
+          const latDist = toEntry.dot(binormal);
           this.tubeAngle = Math.asin(THREE.MathUtils.clamp(latDist / tube.radius, -0.65, 0.65));
         }
       }
@@ -1114,7 +1173,7 @@ export class Kart {
 
         // 2. Speed & Acceleration (Instant Anti-Grav Surge, Never Stalls)
         const draftSpeedBonus = this.isDrafting ? (1.0 + 0.12 * this.draftIntensity) : 1.0;
-        const topSpeedMultiplier = (this.boostTime > 0 ? 1.55 : 1.20) * draftSpeedBonus;
+        const topSpeedMultiplier = (this.boostTime > 0 ? 1.55 : 1.25) * draftSpeedBonus;
         const targetTopSpeed = this.stats.topSpeed * topSpeedMultiplier;
 
         if (throttle > 0 && this.currentSpeed < targetTopSpeed) {
@@ -1123,17 +1182,17 @@ export class Kart {
             this.currentSpeed + this.stats.acceleration * dt * 2.5
           );
         } else if (throttle < 0) {
-          this.currentSpeed = Math.max(5.0, this.currentSpeed - this.stats.acceleration * dt * 2.5);
+          this.currentSpeed = Math.max(12.0, this.currentSpeed - this.stats.acceleration * dt * 2.5);
         } else {
-          this.currentSpeed = THREE.MathUtils.lerp(this.currentSpeed, 0, dt * 0.10);
+          this.currentSpeed = THREE.MathUtils.lerp(this.currentSpeed, targetTopSpeed * 0.75, dt * 0.15);
         }
 
-        // Anti-gravity magnetic surge ensures car keeps cruising through the vortex
-        if (this.currentSpeed < 18.0) {
-          this.currentSpeed = Math.max(this.currentSpeed, 18.0);
+        // Anti-gravity magnetic surge ensures car keeps cruising through the vortex smoothly with zero stall
+        if (this.currentSpeed < 26.0) {
+          this.currentSpeed = Math.max(this.currentSpeed, 26.0);
         }
 
-        // 3. CONTINUOUS PROGRESSION: Advance splineT by actual physical distance traveled
+        // 3. CONTINUOUS SPLINE PROGRESSION: Advance splineT smoothly by physical distance traveled
         const dT = (this.currentSpeed * dt) / trackLength;
         this.splineT += dT;
 
@@ -1142,10 +1201,13 @@ export class Kart {
           this.isInAntiGravTube = false;
           this.wasInAntiGravTube = false;
           this.tubeAngle = 0;
-          const exitSlice = this.track.getTrackSlice(tEnd);
-          this.rigidBody.setTranslation({ x: exitSlice.position.x, y: exitSlice.position.y + 0.1, z: exitSlice.position.z }, true);
-          const exitVel = exitSlice.tangent.clone().multiplyScalar(this.currentSpeed);
+          const exitT = ((tEnd % 1.0) + 1.0) % 1.0;
+          const exitPt = this.track.curve.getPointAt(exitT);
+          const exitTangent = this.track.curve.getTangentAt(exitT).normalize();
+          this.rigidBody.setTranslation({ x: exitPt.x, y: exitPt.y + 0.35, z: exitPt.z }, true);
+          const exitVel = exitTangent.clone().multiplyScalar(Math.max(this.currentSpeed, 28.0));
           this.rigidBody.setLinvel({ x: exitVel.x, y: exitVel.y, z: exitVel.z }, true);
+          this.group.position.set(exitPt.x, exitPt.y + 0.35, exitPt.z);
           return;
         }
 
@@ -1164,20 +1226,27 @@ export class Kart {
           this.tubeAngle = THREE.MathUtils.lerp(this.tubeAngle, 0, blendProgress * Math.min(1.0, dt * 7.5));
         }
 
-        // 5. Compute Exact Tube Surface Target Position & Orientation
-        const slice = this.track.getTrackSlice(this.splineT);
-        const tubeCenter = slice.position.clone().addScaledVector(slice.normal, tube.radius);
+        // 5. Continuous Smooth Curve Position & Orientation (Zero Discrete Slice Snapping / Zero Jitter!)
+        const normT = ((this.splineT % 1.0) + 1.0) % 1.0;
+        const curvePt = this.track.curve.getPointAt(normT);
+        const driveForward = this.track.curve.getTangentAt(normT).normalize();
+        const worldUp = this._kRoadNormal.set(0, 1, 0);
+        let binormal = this._kBinormal.crossVectors(worldUp, driveForward);
+        if (binormal.lengthSq() < 0.0001) binormal.set(1, 0, 0);
+        else binormal.normalize();
+        const normal = this._kTangent.crossVectors(driveForward, binormal).normalize();
+
+        const tubeCenter = curvePt.clone().addScaledVector(normal, tube.radius);
         const effectiveRadius = tube.radius - 0.40;
 
         const targetPos = tubeCenter.clone()
-          .addScaledVector(slice.binormal, effectiveRadius * Math.sin(this.tubeAngle))
-          .addScaledVector(slice.normal, -effectiveRadius * Math.cos(this.tubeAngle));
+          .addScaledVector(binormal, effectiveRadius * Math.sin(this.tubeAngle))
+          .addScaledVector(normal, -effectiveRadius * Math.cos(this.tubeAngle));
 
-        const driveForward = slice.tangent.clone().normalize();
-        const kartUp = slice.normal.clone().multiplyScalar(Math.cos(this.tubeAngle))
-          .addScaledVector(slice.binormal, -Math.sin(this.tubeAngle)).normalize();
-        const driveRight = slice.binormal.clone().multiplyScalar(Math.cos(this.tubeAngle))
-          .addScaledVector(slice.normal, Math.sin(this.tubeAngle)).normalize();
+        const kartUp = normal.clone().multiplyScalar(Math.cos(this.tubeAngle))
+          .addScaledVector(binormal, -Math.sin(this.tubeAngle)).normalize();
+        const driveRight = binormal.clone().multiplyScalar(Math.cos(this.tubeAngle))
+          .addScaledVector(normal, Math.sin(this.tubeAngle)).normalize();
 
         const basisMat = new THREE.Matrix4().makeBasis(driveRight, kartUp, driveForward);
         const tubeQuat = new THREE.Quaternion().setFromRotationMatrix(basisMat);
@@ -1350,21 +1419,21 @@ export class Kart {
       }
     }
 
-    // Handle Natural Momentum Drifting (Activates strictly at 100+ km/h for racing tracks; 40+ km/h in Battle Arena)
+    // Handle Natural Momentum Drifting (Initiates on firm cornering at 85+ km/h; 40+ km/h in Battle Arena)
     const speedKmh = Math.abs(this.currentSpeed) * 3.6;
-    const minDriftKmh = isArena ? 40 : 98;
-    const sustainDriftKmh = isArena ? 28 : 68;
+    const minDriftKmh = isArena ? 40 : 85;
+    const sustainDriftKmh = isArena ? 28 : 55;
     let shouldDrift = false;
 
     if (this.isGrounded) {
       if (this.isDrifting) {
         // Sustain active drift through the corner as long as turning is held
-        if (Math.abs(steer) >= 0.18 && speedKmh >= sustainDriftKmh) {
+        if (Math.abs(steer) >= 0.15 && speedKmh >= sustainDriftKmh) {
           shouldDrift = true;
         }
       } else {
-        // Natural initiate: On aggressive steer or brake-flick cornering
-        if (speedKmh >= minDriftKmh && (Math.abs(steer) >= 0.52 || (throttle < -0.1 && Math.abs(steer) >= 0.35))) {
+        // Natural initiate: On firm steer (>= 0.45) at speed or brake-flick
+        if (speedKmh >= minDriftKmh && (Math.abs(steer) >= 0.45 || (throttle < -0.1 && Math.abs(steer) >= 0.28))) {
           shouldDrift = true;
         }
       }
@@ -1438,18 +1507,22 @@ export class Kart {
       // 2. Lateral Tire Grip along Road Surface
       const lateralVel = velVec.dot(driveRight);
       const driftGripRatio = THREE.MathUtils.clamp(this.stats.driftGrip / 1.3, 0.75, 1.45);
-      const gripFactor = this.isDrifting ? (0.36 * driftGripRatio) : 0.95;
+      // High momentum slide when drifting (0.28 vs 0.95 normal)
+      const gripFactor = this.isDrifting ? (0.28 * driftGripRatio) : 0.95;
       const lateralImpulse = -lateralVel * gripFactor * mass * Math.min(1.0, dt * 18.0);
       this.rigidBody.applyImpulse(
         { x: driveRight.x * lateralImpulse, y: driveRight.y * lateralImpulse, z: driveRight.z * lateralImpulse },
         true
       );
 
-      // 3. Steering Torque — Fixed left/right direction (agile response in battle arena):
+      // 3. Steering Torque with High-Speed Weight / Understeer:
       const speedFactor = Math.max(0.35, Math.min(1.0, Math.abs(this.currentSpeed) / 7.0));
       const steerDirection = this.currentSpeed >= -0.5 ? -1 : 1;
       const handlingMultiplier = isArena ? 1.25 : 1.0;
-      const turnRate = this.stats.handling * handlingMultiplier * (this.isDrifting ? 1.4 : 1.0) * steer * speedFactor * steerDirection;
+      // High-speed steering weight: at 80-170 km/h, normal steering gets realistic weight/understeer (down to 65%)
+      // In drift mode, steering gets a 1.55x boost so player can carve the corner sharply!
+      const highSpeedWeight = this.isDrifting ? 1.55 : THREE.MathUtils.lerp(1.0, 0.65, THREE.MathUtils.clamp((speedKmh - 75) / 85, 0, 1));
+      const turnRate = this.stats.handling * handlingMultiplier * highSpeedWeight * steer * speedFactor * steerDirection;
       this.rigidBody.setAngvel({ x: 0, y: turnRate, z: 0 }, true);
 
       // 4. Smooth Road Height Lock (Zero Bounce, Zero Hopping, Zero Sinking)
@@ -1509,8 +1582,8 @@ export class Kart {
       const targetMeshQuat = this._kTargetMeshQuat.setFromRotationMatrix(this._kBasisMat);
 
       // Realistic Drift Visuals: Oversteer slip angle + chassis roll weight transfer
-      const targetSlip = this.isDrifting ? (-Math.sign(steer) * 0.28) : 0.0;
-      const targetRoll = this.isDrifting ? (Math.sign(steer) * 0.07) : 0.0;
+      const targetSlip = this.isDrifting ? (-Math.sign(steer) * 0.35) : 0.0;
+      const targetRoll = this.isDrifting ? (Math.sign(steer) * 0.09) : 0.0;
       this.visualSlipAngle = THREE.MathUtils.lerp(this.visualSlipAngle, targetSlip, Math.min(1.0, dt * 10.0));
       this.visualRollAngle = THREE.MathUtils.lerp(this.visualRollAngle, targetRoll, Math.min(1.0, dt * 10.0));
 

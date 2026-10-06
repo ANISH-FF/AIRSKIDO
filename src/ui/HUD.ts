@@ -6,6 +6,7 @@ import { Kart } from '../entities/Kart';
 import { RumbleManager, RumbleRacer, RumbleTeam } from '../world/RumbleManager';
 import { economy } from '../core/Economy';
 import { RecordManager } from '../core/RecordManager';
+import { sounds } from '../core/Sound';
 
 export class HUD {
   private posEl: HTMLElement;
@@ -605,6 +606,7 @@ export class HUD {
     },
     racerTimes?: Map<string, number>
   ) {
+    sounds.fadeEngineOut(1.0);
     const modal = document.getElementById('finish-modal')!;
     const title = document.getElementById('finish-title')!;
     const subtext = document.getElementById('finish-subtext')!;
@@ -1286,6 +1288,7 @@ export class HUD {
     isPlayerWinner: boolean,
     racers: RumbleRacer[]
   ) {
+    sounds.fadeEngineOut(1.0);
     const modal = document.getElementById('finish-modal')!;
     const title = document.getElementById('finish-title')!;
     const subtext = document.getElementById('finish-subtext')!;

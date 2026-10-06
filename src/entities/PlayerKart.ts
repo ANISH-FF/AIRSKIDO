@@ -65,7 +65,7 @@ export class PlayerKart {
     // Dynamic Sound Engine pitch & tire drift screech
     const speedFraction = Math.min(1.0, Math.abs(this.kart.currentSpeed) / this.kart.stats.topSpeed);
     sounds.updateEnginePitch(speedFraction, throttle > 0);
-    sounds.updateDrift(this.kart.isDrifting, Math.min(1.0, this.kart.driftTime * 1.5));
+    sounds.updateDrift(this.kart.isDrifting, this.kart.isDrifting ? Math.min(1.0, 0.35 + this.kart.driftTime * 1.2) : 0);
 
     // Dynamic Follow Camera with smooth horizontal heading
     this.updateCamera(dt, camera);
@@ -111,6 +111,10 @@ export class PlayerKart {
 
       this._camDesiredPos.copy(this._camOffsetWithSpeed).applyQuaternion(kartRot).add(kartPos);
       this._camDesiredLookAt.copy(this.cameraTargetOffset).applyQuaternion(kartRot).add(kartPos);
+
+      // Keep camYaw continuously synced to avoid snap on exit
+      this._camFwdSnap.set(0, 0, 1).applyQuaternion(kartRot);
+      this.camYaw = Math.atan2(this._camFwdSnap.x, this._camFwdSnap.z);
     } else {
       // Normal track & arena: World UP stays up (zero disorienting roll)
       this._camWorldUp.set(0, 1, 0);
