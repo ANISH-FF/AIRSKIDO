@@ -105,26 +105,23 @@ export class MultiplayerManager {
   private sendInterval: number | null = null;
   private pingInterval: number | null = null;
 
-  // High-availability Google STUN + Cloudflare STUN + OpenRelay TURN cluster for zero-latency mobile & PC cross-network NAT traversal
+  // High-availability Google STUN + Cloudflare STUN + Private VPS Coturn Relay for 100% reliable cross-network NAT traversal
   private static readonly PEER_CONFIG = {
     debug: 1,
     config: {
       iceServers: [
         { urls: 'stun:stun.l.google.com:19302' },
         { urls: 'stun:stun1.l.google.com:19302' },
-        { urls: 'stun:stun2.l.google.com:19302' },
-        { urls: 'stun:stun3.l.google.com:19302' },
-        { urls: 'stun:stun4.l.google.com:19302' },
         { urls: 'stun:stun.cloudflare.com:3478' },
-        // High-performance OpenRelay TURN servers to bypass Mobile Carrier Symmetric NAT (Jio / Airtel 4G/5G <-> Home Wi-Fi)
+        { urls: 'stun:50.6.44.119:3478' },
+        // Private VPS Coturn Relay (Bypasses Jio / Airtel 4G/5G Symmetric NAT <-> Home Wi-Fi)
         {
           urls: [
-            'turn:openrelay.metered.ca:80',
-            'turn:openrelay.metered.ca:443',
-            'turn:openrelay.metered.ca:443?transport=tcp',
+            'turn:50.6.44.119:3478',
+            'turn:50.6.44.119:3478?transport=tcp',
           ],
-          username: 'openrelay',
-          credential: 'openrelay',
+          username: 'airskido',
+          credential: 'airskidorocks2026',
         },
       ],
       iceCandidatePoolSize: 10,
