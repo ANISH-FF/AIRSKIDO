@@ -1436,6 +1436,13 @@ class Game {
     const btnJoin = document.getElementById('btn-join-room') as HTMLButtonElement | null;
     const joinInput = document.getElementById('join-room-input') as HTMLInputElement | null;
     if (btnJoin && joinInput) {
+      joinInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          btnJoin.click();
+        }
+      });
+
       btnJoin.addEventListener('click', async () => {
         sounds.playSelect();
         const code = joinInput.value.trim().toUpperCase();

@@ -105,7 +105,7 @@ export class MultiplayerManager {
   private sendInterval: number | null = null;
   private pingInterval: number | null = null;
 
-  // High-availability Google STUN + Cloudflare STUN cluster for zero-latency mobile NAT traversal
+  // High-availability Google STUN + Cloudflare STUN + OpenRelay TURN cluster for zero-latency mobile & PC cross-network NAT traversal
   private static readonly PEER_CONFIG = {
     debug: 1,
     config: {
@@ -116,7 +116,18 @@ export class MultiplayerManager {
         { urls: 'stun:stun3.l.google.com:19302' },
         { urls: 'stun:stun4.l.google.com:19302' },
         { urls: 'stun:stun.cloudflare.com:3478' },
+        // High-performance OpenRelay TURN servers to bypass Mobile Carrier Symmetric NAT (Jio / Airtel 4G/5G <-> Home Wi-Fi)
+        {
+          urls: [
+            'turn:openrelay.metered.ca:80',
+            'turn:openrelay.metered.ca:443',
+            'turn:openrelay.metered.ca:443?transport=tcp',
+          ],
+          username: 'openrelay',
+          credential: 'openrelay',
+        },
       ],
+      iceCandidatePoolSize: 10,
       sdpSemantics: 'unified-plan',
     },
   };
@@ -269,12 +280,12 @@ export class MultiplayerManager {
           if (this.onError) this.onError(msg);
           reject(new Error(msg));
         }
-      }, 10000);
+      }, 18000);
 
       this.peer.on('open', (myId) => {
         this.myPeerId = myId;
         const hostPeerId = this.getPeerIdForRoom(this.roomCode);
-        const conn = this.peer!.connect(hostPeerId, { reliable: true });
+        const conn = this.peer!.connect(hostPeerId, { reliable: true, serialization: 'json' });
 
         conn.on('open', () => {
           if (resolved) return;
