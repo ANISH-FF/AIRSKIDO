@@ -4201,7 +4201,8 @@ class Game {
     if (this.isMultiplayer && !this.isMidRaceSpectator && (this.state === GameState.RACING || this.state === GameState.COUNTDOWN)) {
       this.netBroadcastTimer += dt;
       if (this.netBroadcastTimer >= 0.033) {
-        this.netBroadcastTimer = 0;
+        this.netBroadcastTimer -= 0.033;
+        if (this.netBroadcastTimer > 0.066) this.netBroadcastTimer = 0;
         const linvel = this.player.kart.rigidBody ? this.player.kart.rigidBody.linvel() : { x: 0, y: 0, z: 0 };
         const angvel = this.player.kart.rigidBody ? this.player.kart.rigidBody.angvel() : { x: 0, y: 0, z: 0 };
         net.broadcastTransform(
