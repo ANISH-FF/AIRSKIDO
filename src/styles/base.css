@@ -1242,29 +1242,61 @@
       }
     }
 
-    /* Flashing Wrong-Way Warning Banner */
+    /* Cute Neo-Brutalist Arcade Wrong-Way Pill Banner */
     #wrong-way-banner {
       position: absolute;
-      top: 20%;
+      top: 76px;
       left: 50%;
-      transform: translate(-50%, -50%);
-      font-family: var(--font-display);
-      font-size: 32px;
+      transform: translateX(-50%);
+      font-family: var(--font-display, 'Fredoka', sans-serif);
+      font-size: 18px;
       font-weight: 900;
-      letter-spacing: 2px;
-      color: #fff;
-      background: var(--brut-red);
-      border: var(--brut-border);
-      box-shadow: var(--brut-shadow-lg);
-      border-radius: 18px;
-      padding: 12px 30px;
+      letter-spacing: 0.5px;
+      color: #FFFFFF;
+      background: linear-gradient(135deg, #FF1E56 0%, #FF3366 50%, #E11D48 100%);
+      border: 3px solid #000;
+      box-shadow: 3.5px 3.5px 0px #000;
+      border-radius: 999px;
+      padding: 9px 24px;
       display: none;
-      z-index: 35;
+      align-items: center;
+      gap: 10px;
+      z-index: 1000;
       pointer-events: none;
-      animation: wrongWayFlash 0.35s infinite alternate;
+      text-align: center;
+      white-space: nowrap;
+      user-select: none;
+      animation: cuteWrongWayPulse 0.45s ease-in-out infinite alternate;
     }
 
-    @keyframes wrongWayFlash {
-      0% { transform: translate(-50%, -50%) scale(0.96); opacity: 0.95; }
-      100% { transform: translate(-50%, -50%) scale(1.04); opacity: 1; background: #000; color: var(--brut-red); }
+    .wrong-way-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      background: #FFE600;
+      color: #000;
+      border: 2px solid #000;
+      border-radius: 50%;
+      font-size: 14px;
+      font-weight: 900;
+      line-height: 1;
+      box-shadow: 1px 1px 0 #000;
+    }
+
+    .wrong-way-text {
+      text-shadow: 1.5px 1.5px 0 #000;
+      letter-spacing: 0.8px;
+    }
+
+    @keyframes cuteWrongWayPulse {
+      0% {
+        transform: translateX(-50%) scale(0.97);
+        filter: drop-shadow(0 0 6px rgba(255, 30, 86, 0.45));
+      }
+      100% {
+        transform: translateX(-50%) scale(1.03);
+        filter: drop-shadow(0 0 14px rgba(255, 51, 102, 0.85));
+      }
     }

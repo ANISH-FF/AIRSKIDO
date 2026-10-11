@@ -90,6 +90,8 @@ export class HUD {
   private lastRumbleTimer: string = '';
   private staticArenaMinimapCanvas: HTMLCanvasElement | null = null;
   private countdownTimeout: any = null;
+  private wrongWayEl: HTMLElement | null = null;
+  private isWrongWayVisible: boolean = false;
 
   constructor() {
     this.posEl = document.getElementById('hud-pos')!;
@@ -136,6 +138,7 @@ export class HUD {
     this.rumbleVictoryBannerEl = document.getElementById('rumble-victory-banner');
     this.rumbleBannerTitleEl = document.getElementById('rumble-banner-title');
     this.rumbleBannerSubtextEl = document.getElementById('rumble-banner-subtext');
+    this.wrongWayEl = document.getElementById('wrong-way-banner');
   }
 
   public showRumbleVictoryBanner(title: string, subtext: string, theme: 'frost' | 'blaze' | 'solo' | 'draw') {
@@ -454,9 +457,13 @@ export class HUD {
   }
 
   public showWrongWay(visible: boolean) {
-    const el = document.getElementById('wrong-way-banner');
-    if (el) {
-      el.style.display = visible ? 'block' : 'none';
+    if (this.isWrongWayVisible === visible) return;
+    this.isWrongWayVisible = visible;
+    if (!this.wrongWayEl) {
+      this.wrongWayEl = document.getElementById('wrong-way-banner');
+    }
+    if (this.wrongWayEl) {
+      this.wrongWayEl.style.display = visible ? 'flex' : 'none';
     }
   }
 

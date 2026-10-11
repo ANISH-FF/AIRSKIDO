@@ -1416,11 +1416,18 @@
     text-shadow: 4px 4px 0px #000 !important;
   }
   #wrong-way-banner {
-    top: 42px !important;
-    font-size: 12px !important;
-    padding: 3px 12px !important;
-    border-width: 2px !important;
-    border-radius: 8px !important;
+    top: 62px !important;
+    font-size: 13px !important;
+    padding: 6px 16px !important;
+    border-width: 2.5px !important;
+    box-shadow: 2.5px 2.5px 0px #000 !important;
+    gap: 7px !important;
+  }
+  .wrong-way-icon {
+    width: 19px !important;
+    height: 19px !important;
+    font-size: 11px !important;
+    border-width: 1.5px !important;
   }
   #finish-countdown-banner {
     top: 8px !important;
