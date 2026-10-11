@@ -7,10 +7,10 @@
  */
 export const NET_CONFIG = {
   // Toggle between your private VPS signaling server and public fallback
-  USE_CUSTOM_SIGNALING: false,
+  USE_CUSTOM_SIGNALING: true,
 
   // Your VPS domain (e.g. 'net.airskido.com')
-  CUSTOM_HOST: '',
+  CUSTOM_HOST: 'net.airskido.io',
 
   // Standard SSL port for WSS (HTTPS)
   CUSTOM_PORT: 443,
