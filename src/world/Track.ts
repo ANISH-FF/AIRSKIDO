@@ -137,10 +137,18 @@ export class Track {
       obj.traverse((child) => {
         if (child instanceof THREE.Mesh) {
           child.geometry?.dispose();
-          if (Array.isArray(child.material)) {
-            child.material.forEach((m) => m.dispose());
-          } else {
-            child.material?.dispose();
+          const mats = Array.isArray(child.material) ? child.material : [child.material];
+          for (const m of mats) {
+            if (!m) continue;
+            if (m.map) m.map.dispose();
+            if (m.lightMap) m.lightMap.dispose();
+            if (m.bumpMap) m.bumpMap.dispose();
+            if (m.normalMap) m.normalMap.dispose();
+            if (m.specularMap) m.specularMap.dispose();
+            if (m.roughnessMap) m.roughnessMap.dispose();
+            if (m.metalnessMap) m.metalnessMap.dispose();
+            if (m.alphaMap) m.alphaMap.dispose();
+            m.dispose();
           }
         }
       });
@@ -418,7 +426,7 @@ export class Track {
     roadTex.wrapT = THREE.RepeatWrapping;
     roadTex.repeat.set(1, 1);
     const isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) || window.innerWidth <= 840;
-    roadTex.anisotropy = isMobile ? 2 : 16;
+    roadTex.anisotropy = isMobile ? 8 : 16;
     roadTex.generateMipmaps = true;
     roadTex.minFilter = THREE.LinearMipmapLinearFilter;
     roadTex.magFilter = THREE.LinearFilter;
@@ -514,18 +522,35 @@ export class Track {
     sCtx.fillStyle = '#0a0e17';
     sCtx.fillRect(0, 0, 512, 128);
     sCtx.fillStyle = '#00f0ff';
-    sCtx.font = 'bold 50px Rajdhani, Arial, sans-serif';
+    let fontSize = 46;
+    sCtx.font = `bold ${fontSize}px Rajdhani, Arial, sans-serif`;
+    while (sCtx.measureText(this.config.archTitle).width > 470 && fontSize > 20) {
+      fontSize -= 2;
+      sCtx.font = `bold ${fontSize}px Rajdhani, Arial, sans-serif`;
+    }
     sCtx.textAlign = 'center';
     sCtx.textBaseline = 'middle';
     sCtx.fillText(this.config.archTitle, 256, 64);
 
     const signTex = new THREE.CanvasTexture(signCanvas);
-    const signPlane = new THREE.Mesh(
+
+    // Front sign: clearly visible to oncoming racers approaching the finish line
+    const signPlaneFront = new THREE.Mesh(
       new THREE.PlaneGeometry(16, 3.6),
-      new THREE.MeshBasicMaterial({ map: signTex, side: THREE.DoubleSide })
+      new THREE.MeshBasicMaterial({ map: signTex })
     );
-    signPlane.position.set(0, 11.5, 0.9);
-    archGroup.add(signPlane);
+    signPlaneFront.position.set(0, 11.5, -0.85);
+    signPlaneFront.rotation.y = Math.PI;
+    archGroup.add(signPlaneFront);
+
+    // Back sign: faces racers looking backward after crossing the finish line
+    const signTexBack = new THREE.CanvasTexture(signCanvas);
+    const signPlaneBack = new THREE.Mesh(
+      new THREE.PlaneGeometry(16, 3.6),
+      new THREE.MeshBasicMaterial({ map: signTexBack })
+    );
+    signPlaneBack.position.set(0, 11.5, 0.85);
+    archGroup.add(signPlaneBack);
 
     // Checkered Finish Line
     const checkCanvas = document.createElement('canvas');
@@ -601,6 +626,7 @@ export class Track {
     });
 
     for (const cfg of this.config.boostPads) {
+      const sliceIdx = Math.round(cfg.t * Track.SAMPLES);
       const slice = this.getTrackSlice(cfg.t);
       const pt = slice.position.clone();
       const tangent = slice.tangent;
@@ -608,18 +634,46 @@ export class Track {
       const normal = slice.normal;
 
       const pad = new THREE.Mesh(padGeom, padMat);
-      pad.position.copy(pt).addScaledVector(normal, 0.06);
 
-      const rotMatrix = new THREE.Matrix4().makeBasis(binormal, normal, tangent);
-      pad.quaternion.setFromRotationMatrix(rotMatrix);
+      // If inside Anti-Grav Tube: mount boost pad ON THE CEILING (UPAR)!
+      const isInsideTube = !!(this.config.antiGravTube?.enabled &&
+        sliceIdx >= this.config.antiGravTube.startSlice &&
+        sliceIdx <= this.config.antiGravTube.endSlice);
 
-      this.addToScene(scene, pad);
-      this.boostPads.push({
-        position: pt.clone(),
-        direction: tangent.clone(),
-        mesh: pad,
-        isRampPad: cfg.isRamp,
-      });
+      if (isInsideTube) {
+        const radius = this.config.antiGravTube!.radius;
+        const center = pt.clone().addScaledVector(normal, radius);
+        const ceilingPos = center.addScaledVector(normal, radius - 0.08);
+        pad.position.copy(ceilingPos);
+
+        const rotMatrix = new THREE.Matrix4().makeBasis(
+          binormal.clone().negate(),
+          normal.clone().negate(),
+          tangent
+        );
+        pad.quaternion.setFromRotationMatrix(rotMatrix);
+
+        this.addToScene(scene, pad);
+        this.boostPads.push({
+          position: ceilingPos.clone(),
+          direction: tangent.clone(),
+          mesh: pad,
+          isRampPad: cfg.isRamp,
+        });
+      } else {
+        pad.position.copy(pt).addScaledVector(normal, 0.06);
+
+        const rotMatrix = new THREE.Matrix4().makeBasis(binormal, normal, tangent);
+        pad.quaternion.setFromRotationMatrix(rotMatrix);
+
+        this.addToScene(scene, pad);
+        this.boostPads.push({
+          position: pt.clone(),
+          direction: tangent.clone(),
+          mesh: pad,
+          isRampPad: cfg.isRamp,
+        });
+      }
     }
   }
 
@@ -647,6 +701,24 @@ export class Track {
         rightP.position.set((sliceArch.halfWidth + 1.5), 6.0, 0);
         gantry.add(rightP);
 
+        // Solid Horizontal Overhead Crossbar Header (firmly connecting both pillars)
+        const spanWidth = (sliceArch.halfWidth + 1.5) * 2 + 1.4;
+        const headerGeom = new THREE.BoxGeometry(spanWidth, 2.0, 1.4);
+        const headerMat = new THREE.MeshStandardMaterial({ color: 0x161c28, roughness: 0.4, metalness: 0.85 });
+        const headerMesh = new THREE.Mesh(headerGeom, headerMat);
+        headerMesh.position.set(0, 11.5, 0);
+        gantry.add(headerMesh);
+
+        // Neon Hazard Border Accent Trim on Crossbar
+        const accentGeom = new THREE.BoxGeometry(spanWidth + 0.1, 0.22, 1.45);
+        const accentMat = new THREE.MeshBasicMaterial({ color: 0xffea00 });
+        const accentTop = new THREE.Mesh(accentGeom, accentMat);
+        accentTop.position.set(0, 12.52, 0);
+        gantry.add(accentTop);
+        const accentBot = new THREE.Mesh(accentGeom, accentMat);
+        accentBot.position.set(0, 10.48, 0);
+        gantry.add(accentBot);
+
         const warnCanvas = document.createElement('canvas');
         warnCanvas.width = 512;
         warnCanvas.height = 128;
@@ -671,8 +743,12 @@ export class Track {
         wCtx.fillText('HIT NITRO // CLEAR THE SKY JUMP', 256, 82);
 
         const warnTex = new THREE.CanvasTexture(warnCanvas);
-        const warnSign = new THREE.Mesh(new THREE.PlaneGeometry(16, 4.0), new THREE.MeshBasicMaterial({ map: warnTex }));
-        warnSign.position.set(0, 11.0, 0.6);
+        const warnSign = new THREE.Mesh(
+          new THREE.PlaneGeometry(16, 3.8),
+          new THREE.MeshBasicMaterial({ map: warnTex })
+        );
+        warnSign.position.set(0, 11.5, -0.75);
+        warnSign.rotation.y = Math.PI;
         gantry.add(warnSign);
         this.addToScene(scene, gantry);
       }
@@ -880,10 +956,95 @@ export class Track {
       this.addToScene(scene, railMesh);
     });
 
-    // 4. Grand Cyber Entrance Portal (Slice startSlice)
+    // 4. 360° Wall-Ride Gate: Floor Barrier Mesh at Slice 174
+    // Blocks bottom floor, forcing riders to roll 360° onto the wall & ceiling to bypass!
+    const barrierSlice = 174;
+    const bNormT = (barrierSlice % Track.SAMPLES) / Track.SAMPLES;
+    const bSlice = this.getTrackSlice(bNormT);
+    const bCenter = bSlice.position.clone().addScaledVector(bSlice.normal, radius);
+
+    const barrierGroup = new THREE.Group();
+    barrierGroup.position.copy(bCenter);
+    barrierGroup.quaternion.setFromRotationMatrix(
+      new THREE.Matrix4().makeBasis(bSlice.binormal, bSlice.normal, bSlice.tangent)
+    );
+
+    // Lower Barrier Semi-Cylinder Arch (Covers bottom floor)
+    const lowerArchGeom = new THREE.TorusGeometry(radius - 0.15, 0.45, 8, 32, Math.PI);
+    lowerArchGeom.rotateZ(Math.PI);
+    const barFrameMat = new THREE.MeshStandardMaterial({ color: 0x161c28, roughness: 0.3, metalness: 0.85 });
+    barrierGroup.add(new THREE.Mesh(lowerArchGeom, barFrameMat));
+
+    // Glowing Neon Hazard Outline on Lower Arch
+    const lowerNeonGeom = new THREE.TorusGeometry(radius - 0.05, 0.14, 8, 32, Math.PI);
+    lowerNeonGeom.rotateZ(Math.PI);
+    const neonBarMat = new THREE.MeshBasicMaterial({ color: 0xff0055 });
+    barrierGroup.add(new THREE.Mesh(lowerNeonGeom, neonBarMat));
+
+    // Solid Lower Barricade Wall covering the floor (reaches all the way to asphalt with zero gap)
+    const barricadeGeom = new THREE.BoxGeometry(radius * 1.75, radius, 1.4);
+    const bMat = new THREE.MeshStandardMaterial({ color: 0x161c28, roughness: 0.3, metalness: 0.85 });
+    const bWall = new THREE.Mesh(barricadeGeom, bMat);
+    bWall.position.set(0, -radius * 0.5, 0);
+    barrierGroup.add(bWall);
+
+    // Glowing Hologram Billboard mounted on the Floor Barrier Wall
+    const barCanvas = document.createElement('canvas');
+    barCanvas.width = 512;
+    barCanvas.height = 256;
+    const barCtx = barCanvas.getContext('2d')!;
+    barCtx.fillStyle = '#ff0055';
+    barCtx.fillRect(0, 0, 512, 256);
+    barCtx.fillStyle = '#ffea00';
+    for (let x = -80; x < 600; x += 45) {
+      barCtx.beginPath();
+      barCtx.moveTo(x, 0); barCtx.lineTo(x + 25, 0); barCtx.lineTo(x, 256); barCtx.lineTo(x - 25, 256);
+      barCtx.fill();
+    }
+    barCtx.fillStyle = '#080d16';
+    barCtx.fillRect(16, 16, 480, 224);
+
+    barCtx.fillStyle = '#ff0055';
+    barCtx.font = 'bold 24px Rajdhani, Arial';
+    barCtx.textAlign = 'center';
+    barCtx.textBaseline = 'middle';
+    barCtx.fillText('⚠️ FLOOR LOCKED // 360° WALL RIDE ⚠️', 256, 58);
+
+    barCtx.fillStyle = '#00f0ff';
+    barCtx.font = 'bold 20px Teko, Arial';
+    barCtx.fillText('STEER 360° ONTO CEILING TO PASS', 256, 108);
+
+    barCtx.fillStyle = '#ffea00';
+    barCtx.font = 'bold 50px Arial';
+    barCtx.fillText('⬆   ⬆   ⬆', 256, 180);
+
+    const barTex = new THREE.CanvasTexture(barCanvas);
+    const barSignFront = new THREE.Mesh(
+      new THREE.PlaneGeometry(14, 6.5),
+      new THREE.MeshBasicMaterial({ map: barTex, side: THREE.DoubleSide })
+    );
+    barSignFront.position.set(0, -radius * 0.45, -0.82);
+    barSignFront.rotation.y = Math.PI; // Faces oncoming racers approaching inside the tube
+    barrierGroup.add(barSignFront);
+
+    const barSignBack = new THREE.Mesh(
+      new THREE.PlaneGeometry(14, 6.5),
+      new THREE.MeshBasicMaterial({ map: barTex, side: THREE.DoubleSide })
+    );
+    barSignBack.position.set(0, -radius * 0.45, 0.82);
+    barrierGroup.add(barSignBack);
+
+    // Upper Open Passage Guide Neon Ring (Ceiling Passage)
+    const upperGuideGeom = new THREE.TorusGeometry(radius - 0.1, 0.22, 8, 32, Math.PI);
+    const cyanGuideMat = new THREE.MeshBasicMaterial({ color: 0x00f0ff });
+    barrierGroup.add(new THREE.Mesh(upperGuideGeom, cyanGuideMat));
+
+    this.addToScene(scene, barrierGroup);
+
+    // 5. Grand Cyber Entrance Portal (Slice startSlice)
     this.createTubePortal(scene, startSlice, true, tubeCfg.name);
 
-    // 5. Grand Cyber Exit Portal (Slice endSlice)
+    // 6. Grand Cyber Exit Portal (Slice endSlice)
     this.createTubePortal(scene, endSlice, false, 'GRAVITY RESTORED // EXIT');
   }
 
@@ -961,12 +1122,23 @@ export class Track {
     );
 
     const pTex = new THREE.CanvasTexture(pCanvas);
-    const signMesh = new THREE.Mesh(
+
+    // Front sign: faces oncoming racers approaching from -Z (normal, non-mirrored text)
+    const signFront = new THREE.Mesh(
       new THREE.PlaneGeometry(16, 4.0),
-      new THREE.MeshBasicMaterial({ map: pTex, side: THREE.DoubleSide })
+      new THREE.MeshBasicMaterial({ map: pTex })
     );
-    signMesh.position.set(0, radius + 1.8, isEntry ? -0.5 : 0.5);
-    portalGroup.add(signMesh);
+    signFront.position.set(0, radius + 1.8, -0.5);
+    signFront.rotation.y = Math.PI;
+    portalGroup.add(signFront);
+
+    // Back sign: faces racers looking backward (+Z)
+    const signBack = new THREE.Mesh(
+      new THREE.PlaneGeometry(16, 4.0),
+      new THREE.MeshBasicMaterial({ map: pTex })
+    );
+    signBack.position.set(0, radius + 1.8, 0.5);
+    portalGroup.add(signBack);
 
     this.addToScene(scene, portalGroup);
   }
@@ -1298,7 +1470,7 @@ export class Track {
     const mCX = 512;
     const mCY = 512;
 
-    // Mario Kart / F1 Racing Kerb Ring at radius = 72m (corresponds to r = 485px in 146m diameter overlay)
+    // Grand Prix Racing Kerb Ring at radius = 72m (corresponds to r = 485px in 146m diameter overlay)
     // 72 alternating red & white segments
     const kerbRadius = 485;
     const kerbWidth = 24;

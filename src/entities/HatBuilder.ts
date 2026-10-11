@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 
 /**
- * AIRSKID RACING // 3D CHARACTER HATS & HEADWEAR BUILDER
+ * AIRSKIDO RACING // 3D CHARACTER HATS & HEADWEAR BUILDER
  * AAA arcade-quality 3D headwear calibrated for the driver character.
  * Sits comfortably on the crown of the head at (0, 1.04, 0.02)
  * Designed to fit between the ears (ears at x = +/- 0.245, y = 0.995).

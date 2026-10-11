@@ -3,6 +3,7 @@ import { sounds } from '../core/Sound';
 import { storeModal } from './StoreModal';
 import { settingsModal } from './SettingsModal';
 import confetti from 'canvas-confetti';
+import { CelebrationFX } from './CelebrationFX';
 
 export class LobbyUI {
   constructor() {
@@ -46,7 +47,7 @@ export class LobbyUI {
       btnClaimLoot.onclick = () => {
         if (economy.canClaimDaily()) {
           const res = economy.claimDaily();
-          confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
+          CelebrationFX.celebrateCrateUnlock();
           sounds.playCoin();
           this.updateDailyChestModal();
           this.updateLobbyElements();

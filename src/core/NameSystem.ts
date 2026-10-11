@@ -5,7 +5,7 @@
  * 1. Alphanumeric only (letters & numbers: a-z, A-Z, 0-9), NO SPACES.
  * 2. 3 to 14 characters limit.
  * 3. Case-insensitive uniqueness check (e.g. 'anish' and 'Anish' cannot be claimed by different players).
- * 4. Permanent immutable Player ID (#AS-XXXXXX) assigned on first visit.
+ * 4. Permanent immutable 8-digit numeric Player UID (e.g. 84920153) assigned on first visit.
  * 5. Instant Guest mode for zero friction (default: Racer_XXXX).
  * 6. Clean, professional typography & status badges (ZERO emojis).
  */
@@ -19,7 +19,7 @@ export interface GoogleUserInfo {
 }
 
 export interface RacerProfile {
-  playerId: string;       // Permanent Immutable ID (e.g. "AS-849201")
+  playerId: string;       // Permanent Immutable 8-Digit UID (e.g. "84920153")
   username: string;       // Display Callsign (e.g. "Racer_8492" or "maxx01")
   isCustomName: boolean;  // false for default guest, true once player changes name
   googleUser?: GoogleUserInfo | null; // Linked Google account
@@ -41,8 +41,10 @@ export interface CloudNameBackend {
   releaseName?: (lowerName: string, playerId: string) => Promise<boolean>;
 }
 
-const STORAGE_PROFILE_KEY = 'airskid_racer_profile_v1';
-const STORAGE_REGISTRY_KEY = 'airskid_registered_usernames_v1';
+const STORAGE_PROFILE_KEY = 'airskido_racer_profile_v1';
+const STORAGE_REGISTRY_KEY = 'airskido_registered_usernames_v1';
+
+import { isBotReservedName } from './BotKartSettings';
 
 export class NameSystem {
   private profile: RacerProfile;
@@ -56,29 +58,51 @@ export class NameSystem {
   // ── 1. PROFILE INITIALIZATION (Instant Guest Mode) ────────────────
   private loadOrCreateProfile(): RacerProfile {
     try {
-      const saved = localStorage.getItem(STORAGE_PROFILE_KEY);
+      const saved = localStorage.getItem(STORAGE_PROFILE_KEY) || localStorage.getItem('airskid_racer_profile_v1');
       if (saved) {
         const parsed = JSON.parse(saved) as RacerProfile;
         if (parsed.playerId && parsed.username) {
-          return {
-            playerId: parsed.playerId,
-            username: parsed.username,
+          let cleanId = String(parsed.playerId).trim();
+
+          // Auto-migrate legacy "AS-XXXXXX" or non-numeric IDs to clean pure numeric UID
+          if (cleanId.startsWith('AS-') || !/^\d{4,10}$/.test(cleanId)) {
+            const digits = cleanId.replace(/\D/g, '');
+            if (digits.length >= 4) {
+              cleanId = digits;
+            } else {
+              cleanId = `${Math.floor(10000000 + Math.random() * 90000000)}`;
+            }
+          }
+
+          let cleanUsername = parsed.username;
+          if (cleanUsername.startsWith('Racer_')) {
+            cleanUsername = cleanUsername.replace(/^Racer_/, 'Racer');
+          }
+
+          const profile: RacerProfile = {
+            playerId: cleanId,
+            username: cleanUsername,
             isCustomName: !!parsed.isCustomName,
             googleUser: parsed.googleUser || null,
             createdAt: parsed.createdAt || Date.now(),
             updatedAt: parsed.updatedAt || Date.now(),
           };
+
+          if (profile.playerId !== parsed.playerId || profile.username !== parsed.username) {
+            this.saveProfile(profile);
+          }
+          return profile;
         }
       }
     } catch {
       // ignore parse error and generate fresh profile
     }
 
-    // Generate brand-new guest identity
+    // Generate brand-new guest identity with 8-digit pure numeric UID (10,000,000 to 99,999,999)
     const randomSuffix = Math.floor(1000 + Math.random() * 9000); // 4-digit code e.g. 8492
-    const randomIdNumber = Math.floor(100000 + Math.random() * 900000); // 6-digit e.g. 849201
-    const newId = `AS-${randomIdNumber}`;
-    const newGuestName = `Racer_${randomSuffix}`;
+    const randomIdNumber = Math.floor(10000000 + Math.random() * 90000000); // 8-digit numeric UID
+    const newId = `${randomIdNumber}`;
+    const newGuestName = `Racer${randomSuffix}`;
 
     const newProfile: RacerProfile = {
       playerId: newId,
@@ -105,7 +129,7 @@ export class NameSystem {
   // ── 2. NAME REGISTRY STORAGE (Uniqueness Lock Simulation) ───────────
   private loadRegistry(): Record<string, string> {
     try {
-      const raw = localStorage.getItem(STORAGE_REGISTRY_KEY);
+      const raw = localStorage.getItem(STORAGE_REGISTRY_KEY) || localStorage.getItem('airskid_registered_usernames_v1');
       if (raw) return JSON.parse(raw);
     } catch {
       // fallback
@@ -182,14 +206,25 @@ export class NameSystem {
       };
     }
 
-    // Check registry for conflict
+    // Check registry for conflict (including leetspeak variants '0' vs 'o')
     const registry = this.loadRegistry();
-    const ownerId = registry[lower];
+    const oToZero = lower.replace(/o/g, '0');
+    const zeroToO = lower.replace(/0/g, 'o');
+    const ownerId = registry[lower] || registry[oToZero] || registry[zeroToO];
 
     if (ownerId && ownerId !== this.profile.playerId) {
       return {
         valid: false,
         message: 'NAME ALREADY TAKEN BY ANOTHER RACER',
+        status: 'taken',
+      };
+    }
+
+    // Check if name is reserved by official bot racers
+    if (isBotReservedName(trimmed)) {
+      return {
+        valid: false,
+        message: 'RESERVED OFFICIAL CALLSIGN',
         status: 'taken',
       };
     }
@@ -294,10 +329,12 @@ export class NameSystem {
   }
 
   public syncFromCloud(username: string, playerId?: string, googleUser?: GoogleUserInfo | null) {
+    const rawId = playerId || this.profile.playerId;
+    const cleanPlayerId = String(rawId || '').trim().replace(/^AS-?/i, '');
     const updated: RacerProfile = {
       ...this.profile,
       username: username || this.profile.username,
-      playerId: playerId || this.profile.playerId,
+      playerId: cleanPlayerId || this.profile.playerId,
       isCustomName: true,
       googleUser: googleUser !== undefined ? googleUser : this.profile.googleUser,
       updatedAt: Date.now(),

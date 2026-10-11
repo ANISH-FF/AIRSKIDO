@@ -1,4 +1,6 @@
 import { ACTIVE_ENGINE_CONFIG, DEFAULT_ENGINE_AUDIO_CONFIG, SampleEngineAudioConfig } from './EngineSound';
+import engineAudioUrl from '../sounds/enginetest.wav';
+import driftAudioUrl from '../sounds/drift.mp3';
 
 // Web Audio API procedural sound engine - Pure Steady Racing Synthesizer
 // Features: Clean racing sawtooth core + sub-bass body + overtone harmonic + aerodynamic intake airflow.
@@ -86,6 +88,9 @@ export class SoundEngine {
   private isDriftActive: boolean = false;
   private driftSampleBuffer: AudioBuffer | null = null;
   private driftSampleSource: AudioBufferSourceNode | null = null;
+  private driftSampleSource2: AudioBufferSourceNode | null = null;
+  private driftGain2: GainNode | null = null;
+  private driftStartTime: number = 0;
   private isDriftSampleLoading: boolean = false;
   private driftStopTimeout: number | null = null;
 
@@ -187,14 +192,23 @@ export class SoundEngine {
     }
   }
 
-  // Pre-load user-provided drift audio sample (/src/sounds/drift.mp3)
+  // Pre-load user-provided drift audio sample
   private async loadDriftSample() {
     if (this.driftSampleBuffer || this.isDriftSampleLoading || !this.ctx) return;
     this.isDriftSampleLoading = true;
     try {
-      const response = await fetch('/src/sounds/drift.mp3');
-      if (response.ok) {
-        const arrayBuffer = await response.arrayBuffer();
+      const urlsToTry = [driftAudioUrl, './sounds/drift.mp3', '/sounds/drift.mp3', '/src/sounds/drift.mp3'];
+      let arrayBuffer: ArrayBuffer | null = null;
+      for (const url of urlsToTry) {
+        try {
+          const response = await fetch(url);
+          if (response.ok) {
+            arrayBuffer = await response.arrayBuffer();
+            break;
+          }
+        } catch {}
+      }
+      if (arrayBuffer && this.ctx) {
         this.driftSampleBuffer = await this.ctx.decodeAudioData(arrayBuffer);
       }
     } catch (e) {
@@ -204,18 +218,30 @@ export class SoundEngine {
     }
   }
 
-  // Pre-load authentic racing car engine audio sample (/src/sounds/engine.wav)
+  // Pre-load authentic racing car engine audio sample
   private async loadEngineSample() {
     if (this.engineSampleBuffer || this.isEngineSampleLoading || !this.ctx) return;
     this.isEngineSampleLoading = true;
     try {
-      // Timestamp query ensures browser loads the latest user-provided engine.wav
-      let response = await fetch('/src/sounds/engine.wav?t=' + Date.now(), { cache: 'no-cache' });
-      if (!response.ok) {
-        response = await fetch('/src/sounds/engine.wav');
+      const urlsToTry = [
+        engineAudioUrl,
+        `./sounds/enginetest.wav?t=${Date.now()}`,
+        './sounds/enginetest.wav',
+        `/sounds/enginetest.wav?t=${Date.now()}`,
+        '/sounds/enginetest.wav',
+        '/src/sounds/enginetest.wav'
+      ];
+      let arrayBuffer: ArrayBuffer | null = null;
+      for (const url of urlsToTry) {
+        try {
+          const response = await fetch(url, { cache: 'no-cache' });
+          if (response.ok) {
+            arrayBuffer = await response.arrayBuffer();
+            break;
+          }
+        } catch {}
       }
-      if (response.ok) {
-        const arrayBuffer = await response.arrayBuffer();
+      if (arrayBuffer && this.ctx) {
         this.engineSampleBuffer = await this.ctx.decodeAudioData(arrayBuffer);
         // If engine is already active and waiting, transition to real sample immediately
         if (this.engineRunning && !this.engineSampleSource && this.ctx) {
@@ -458,10 +484,10 @@ export class SoundEngine {
     const clampedSpeed = Math.min(1.0, Math.max(0.0, speedFraction));
 
     // Smooth continuous racing load & RPM target
-    // Immediate throttle rev bite (+22% load under gas), smooth coasting momentum
+    // Natural throttle rev bite, smooth coasting momentum
     let targetRPM = clampedSpeed;
     if (isAccelerating) {
-      targetRPM = Math.min(1.0, 0.22 + clampedSpeed * 0.78);
+      targetRPM = Math.min(1.0, 0.12 + clampedSpeed * 0.88);
     } else {
       targetRPM = Math.max(0.0, clampedSpeed * 0.72);
     }
@@ -471,7 +497,7 @@ export class SoundEngine {
     const dt = this.lastRPMUpdateTime > 0 ? Math.min(0.1, (now - this.lastRPMUpdateTime) / 1000) : 0.016;
     this.lastRPMUpdateTime = now;
 
-    const lerpRate = isAccelerating ? 9.0 : 5.5; // Responsive throttle pickup, natural coasting drop
+    const lerpRate = isAccelerating ? 7.5 : 4.5; // Natural throttle pickup, organic coasting decay
     this.currentEngineRPM += (targetRPM - this.currentEngineRPM) * Math.min(1.0, dt * lerpRate);
 
     // ── CASE 1: REAL RECORDED CAR ENGINE AUDIO (SAMPLE-BASED) ──
@@ -482,18 +508,18 @@ export class SoundEngine {
       const targetRate = isAccelerating
         ? cfg.accelBaseRate + this.currentEngineRPM * cfg.accelRateMultiplier
         : cfg.coastBaseRate + this.currentEngineRPM * cfg.coastRateMultiplier;
-      this.engineSampleSource.playbackRate.setTargetAtTime(targetRate, t, 0.06);
+      this.engineSampleSource.playbackRate.setTargetAtTime(targetRate, t, 0.08);
 
       // Warm frequency contour: opens low-pass filter gently without harsh ear-piercing frequencies
       const targetCutoff = isAccelerating
         ? cfg.accelBaseCutoff + this.currentEngineRPM * cfg.accelCutoffMultiplier
         : cfg.coastBaseCutoff + this.currentEngineRPM * cfg.coastCutoffMultiplier;
-      this.engineFilter.frequency.setTargetAtTime(targetCutoff, t, 0.06);
+      this.engineFilter.frequency.setTargetAtTime(targetCutoff, t, 0.08);
 
       // Bass & vibration: steady soothing low-shelf thrum
       if (this.engineBassBoost) {
         const targetBassBoost = isAccelerating ? cfg.accelBassBoostGain : cfg.coastBassBoostGain;
-        this.engineBassBoost.gain.setTargetAtTime(targetBassBoost, t, 0.06);
+        this.engineBassBoost.gain.setTargetAtTime(targetBassBoost, t, 0.08);
       }
 
       // Smooth, soothing car volume (with subtle ducking during drift so tire screeches take center stage)
@@ -501,7 +527,7 @@ export class SoundEngine {
       const targetGain = (isAccelerating
         ? cfg.accelBaseGain + this.currentEngineRPM * cfg.accelGainMultiplier
         : cfg.coastBaseGain + this.currentEngineRPM * cfg.coastGainMultiplier) * this.engineConfig.masterEngineGain * driftDucking;
-      this.engineGain.gain.setTargetAtTime(targetGain, t, 0.06);
+      this.engineGain.gain.setTargetAtTime(targetGain, t, 0.08);
 
       this.wasAccelerating = isAccelerating;
       this.lastSpeedFraction = clampedSpeed;
@@ -584,6 +610,9 @@ export class SoundEngine {
     }
 
     if (isDrifting && intensity > 0.01) {
+      if (!this.isDriftActive) {
+        this.driftStartTime = performance.now();
+      }
       this.isDriftActive = true;
       if (this.driftStopTimeout) {
         clearTimeout(this.driftStopTimeout);
@@ -591,21 +620,65 @@ export class SoundEngine {
       }
 
       const clamped = Math.min(1.0, Math.max(0.0, intensity));
+      const driftElapsed = Math.max(0, (performance.now() - this.driftStartTime) / 1000);
 
       // 1. Primary: High-fidelity user-provided /src/sounds/drift.mp3
       if (this.driftSampleBuffer) {
+        const bufDuration = this.driftSampleBuffer.duration;
+        const baseLoopStart = Math.min(0.38, bufDuration * 0.25);
+        const baseLoopEnd = Math.max(baseLoopStart + 0.45, bufDuration - 0.08);
+
+        // Voice 1: Starts at 0.0s on drift initiation (crisp, aggressive tire bite screech).
+        // Once past baseLoopStart, continuous 360 drift loops only the sustained friction body,
+        // so the initial tire bite NEVER repeats unnaturally!
         if (!this.driftSampleSource) {
           this.driftSampleSource = this.ctx.createBufferSource();
           this.driftSampleSource.buffer = this.driftSampleBuffer;
           this.driftSampleSource.loop = true;
+          this.driftSampleSource.loopStart = baseLoopStart;
+          this.driftSampleSource.loopEnd = baseLoopEnd;
           this.driftSampleSource.connect(this.driftGain);
-          this.driftSampleSource.start(t);
+          this.driftSampleSource.start(t, 0.0);
         }
-        // Dynamic volume & pitch tracking drift intensity (punchy mix cut: hero action event)
-        const targetGain = 1.45 + clamped * 0.95;
-        const targetRate = 0.98 + clamped * 0.24;
-        this.driftGain.gain.setTargetAtTime(targetGain, t, 0.03);
-        this.driftSampleSource.playbackRate.setTargetAtTime(targetRate, t, 0.03);
+
+        // Voice 2: Sustained organic cross-layer for extended drifts & 360 donuts (> 0.70s).
+        // Layered with an offset loop window & micro-detune so long donuts NEVER feel like a static loop!
+        if (driftElapsed > 0.70 && !this.driftSampleSource2) {
+          if (!this.driftGain2) {
+            this.driftGain2 = this.ctx.createGain();
+            this.driftGain2.gain.setValueAtTime(0, t);
+            this.driftGain2.connect(this.getMasterDestination());
+          }
+          this.driftSampleSource2 = this.ctx.createBufferSource();
+          this.driftSampleSource2.buffer = this.driftSampleBuffer;
+          this.driftSampleSource2.loop = true;
+          const offsetLoopStart = Math.min(0.52, bufDuration * 0.35);
+          const offsetLoopEnd = Math.max(offsetLoopStart + 0.40, bufDuration - 0.16);
+          this.driftSampleSource2.loopStart = offsetLoopStart;
+          this.driftSampleSource2.loopEnd = offsetLoopEnd;
+          this.driftSampleSource2.connect(this.driftGain2);
+          this.driftSampleSource2.start(t, offsetLoopStart);
+          this.driftGain2.gain.setValueAtTime(0, t);
+        }
+
+        // Dynamic centrifugal tire scrub & organic pitch flutter during 360 spins
+        const flutter = Math.sin(driftElapsed * 3.6) * 0.024 + Math.cos(driftElapsed * 2.2) * 0.016;
+        const targetRate1 = 0.98 + clamped * 0.22 + flutter;
+        this.driftSampleSource.playbackRate.setTargetAtTime(targetRate1, t, 0.04);
+
+        if (this.driftSampleSource2 && this.driftGain2) {
+          const targetRate2 = (0.98 + clamped * 0.22) * 1.025 - flutter * 0.8;
+          this.driftSampleSource2.playbackRate.setTargetAtTime(targetRate2, t, 0.04);
+
+          // Smoothly cross-fade Voice 2 in during continuous donuts
+          const voice2Weight = Math.min(0.65, (driftElapsed - 0.70) * 0.80);
+          const baseGain = 1.45 + clamped * 0.95;
+          this.driftGain.gain.setTargetAtTime(baseGain * (1.0 - voice2Weight * 0.35), t, 0.04);
+          this.driftGain2.gain.setTargetAtTime(baseGain * voice2Weight, t, 0.04);
+        } else {
+          const targetGain = 1.45 + clamped * 0.95;
+          this.driftGain.gain.setTargetAtTime(targetGain, t, 0.04);
+        }
         return;
       }
 
@@ -654,20 +727,85 @@ export class SoundEngine {
       if (this.driftGritFilter) this.driftGritFilter.frequency.setTargetAtTime(gritFreq, t, 0.03);
     } else {
       this.isDriftActive = false;
-      this.driftGain.gain.setTargetAtTime(0.0, t, 0.05);
+      this.driftGain.gain.setTargetAtTime(0.0, t, 0.06);
+      if (this.driftGain2) {
+        this.driftGain2.gain.setTargetAtTime(0.0, t, 0.06);
+      }
 
       if (!this.driftStopTimeout) {
         this.driftStopTimeout = window.setTimeout(() => {
           this.driftStopTimeout = null;
-          if (!this.isDriftActive && this.driftSampleSource) {
-            try {
-              this.driftSampleSource.stop();
-              this.driftSampleSource.disconnect();
-            } catch {}
-            this.driftSampleSource = null;
+          if (!this.isDriftActive) {
+            if (this.driftSampleSource) {
+              try {
+                this.driftSampleSource.stop();
+                this.driftSampleSource.disconnect();
+              } catch {}
+              this.driftSampleSource = null;
+            }
+            if (this.driftSampleSource2) {
+              try {
+                this.driftSampleSource2.stop();
+                this.driftSampleSource2.disconnect();
+              } catch {}
+              this.driftSampleSource2 = null;
+            }
           }
-        }, 110);
+        }, 120);
       }
+    }
+  }
+
+  /**
+   * Immediately silences and halts all tire drift screech audio voices
+   */
+  public stopDrift() {
+    this.isDriftActive = false;
+    if (this.driftStopTimeout) {
+      clearTimeout(this.driftStopTimeout);
+      this.driftStopTimeout = null;
+    }
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime;
+    if (this.driftGain) {
+      try {
+        this.driftGain.gain.cancelScheduledValues(t);
+        this.driftGain.gain.setValueAtTime(0, t);
+      } catch {}
+    }
+    if (this.driftGain2) {
+      try {
+        this.driftGain2.gain.cancelScheduledValues(t);
+        this.driftGain2.gain.setValueAtTime(0, t);
+      } catch {}
+    }
+    if (this.driftSampleSource) {
+      try {
+        this.driftSampleSource.stop();
+        this.driftSampleSource.disconnect();
+      } catch {}
+      this.driftSampleSource = null;
+    }
+    if (this.driftSampleSource2) {
+      try {
+        this.driftSampleSource2.stop();
+        this.driftSampleSource2.disconnect();
+      } catch {}
+      this.driftSampleSource2 = null;
+    }
+    if (this.driftFlutterOsc) {
+      try {
+        this.driftFlutterOsc.stop();
+        this.driftFlutterOsc.disconnect();
+      } catch {}
+      this.driftFlutterOsc = null;
+    }
+    if (this.driftNoiseNode) {
+      try {
+        this.driftNoiseNode.stop();
+        this.driftNoiseNode.disconnect();
+      } catch {}
+      this.driftNoiseNode = null;
     }
   }
 
@@ -706,6 +844,14 @@ export class SoundEngine {
         const curDrift = Math.max(0.0001, this.driftGain.gain.value);
         this.driftGain.gain.setValueAtTime(curDrift, t);
         this.driftGain.gain.exponentialRampToValueAtTime(0.0001, t + 0.12);
+      } catch {}
+    }
+    if (this.driftGain2) {
+      try {
+        this.driftGain2.gain.cancelScheduledValues(t);
+        const curDrift2 = Math.max(0.0001, this.driftGain2.gain.value);
+        this.driftGain2.gain.setValueAtTime(curDrift2, t);
+        this.driftGain2.gain.exponentialRampToValueAtTime(0.0001, t + 0.12);
       } catch {}
     }
     this.isDriftActive = false;
@@ -874,6 +1020,13 @@ export class SoundEngine {
       } catch {}
       this.driftSampleSource = null;
     }
+    if (this.driftSampleSource2) {
+      try {
+        this.driftSampleSource2.stop();
+        this.driftSampleSource2.disconnect();
+      } catch {}
+      this.driftSampleSource2 = null;
+    }
     if (this.driftStopTimeout) {
       clearTimeout(this.driftStopTimeout);
       this.driftStopTimeout = null;
@@ -881,6 +1034,11 @@ export class SoundEngine {
     if (this.driftGain && this.ctx) {
       try {
         this.driftGain.gain.setValueAtTime(0, this.ctx.currentTime);
+      } catch {}
+    }
+    if (this.driftGain2 && this.ctx) {
+      try {
+        this.driftGain2.gain.setValueAtTime(0, this.ctx.currentTime);
       } catch {}
     }
     this.isDriftActive = false;
@@ -1031,7 +1189,7 @@ export class SoundEngine {
     if (!this.ctx || this.isMuted) return;
 
     const now = performance.now();
-    if (now - this.lastCrashSoundTime < 80) return;
+    if (now - this.lastCrashSoundTime < 400) return;
     this.lastCrashSoundTime = now;
 
     const clampedStrength = Math.min(2.0, Math.max(0.4, impactStrength));
@@ -1084,28 +1242,8 @@ export class SoundEngine {
     osc.stop(t + 0.33);
   }
 
-  // Fall off track whoosh / abyss Doppler drop
-  public playFall() {
-    this.initCtx();
-    if (!this.ctx || this.isMuted) return;
-
-    const t = this.ctx.currentTime;
-    const osc = this.ctx.createOscillator();
-    const gain = this.ctx.createGain();
-
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(520, t);
-    osc.frequency.exponentialRampToValueAtTime(55, t + 0.85);
-
-    gain.gain.setValueAtTime(0.30, t);
-    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.90);
-
-    osc.connect(gain);
-    gain.connect(this.getMasterDestination());
-
-    osc.start(t);
-    osc.stop(t + 0.92);
-  }
+  // Fall off track - 100% silent (no sound while falling into abyss)
+  public playFall() {}
 
   // Quantum Respawn Teleport Shimmer
   public playRespawn() {

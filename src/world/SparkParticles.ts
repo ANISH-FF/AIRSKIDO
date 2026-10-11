@@ -193,4 +193,10 @@ export class SparkParticles {
     }
     this.hadActiveLastFrame = hasActive;
   }
+
+  public dispose(scene?: THREE.Scene) {
+    if (this.geometry) this.geometry.dispose();
+    if (this.material) this.material.dispose();
+    if (scene && this.mesh) scene.remove(this.mesh);
+  }
 }

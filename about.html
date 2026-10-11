@@ -2,32 +2,94 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AirSkid — About Us // How I Built AirSkid</title>
-  <meta name="description" content="The story of AirSkid Racing: How solo indie developer Anish built a high-octane 3D browser racer using Three.js, WASM physics, and WebRTC." />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>About AIRSKIDO — Built Solo by Anish Srivastava</title>
+  <meta name="description" content="AIRSKIDO is the lightest (<5MB) and fastest 3D multiplayer racing game on the web. Built solo from scratch by Anish Srivastava through thousands of bug fixes. Zero pay-to-win, 100% skill." />
+  <link rel="canonical" href="https://airskido.io/about.html" />
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/x-icon" href="./favicon.ico?v=3" />
+  <link rel="shortcut icon" type="image/x-icon" href="./favicon.ico?v=3" />
+  <link rel="apple-touch-icon" href="./favicon.png?v=3" />
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="About AIRSKIDO — Built Solo by Anish Srivastava" />
+  <meta property="og:description" content="Meet Anish Srivastava, the solo creator behind AIRSKIDO. The lightest (<5MB) & fastest 3D multiplayer racing game on the web. Boots in 0.4s, zero pay-to-win." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://airskido.io/about.html" />
+  <meta property="og:image" content="/src/logo/airskido_logo.webp" />
+
+  <!-- Twitter Cards -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="About AIRSKIDO — Built Solo by Anish Srivastava" />
+  <meta name="twitter:description" content="The lightest (<5MB) and fastest 3D multiplayer web racing game on the internet. Built solo from scratch by Anish Srivastava through thousands of bug fixes." />
+  <meta name="twitter:image" content="/src/logo/airskido_logo.webp" />
+
+  <!-- Schema.org Structured Data for Google Knowledge Graph & Discoverability -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Person",
+        "@id": "https://airskido.io/about.html#developer",
+        "name": "Anish Srivastava",
+        "jobTitle": "Creator & Solo Developer of AIRSKIDO",
+        "nationality": {
+          "@type": "Country",
+          "name": "India"
+        },
+        "email": "anish@airskido.io",
+        "url": "https://airskido.io/about.html",
+        "description": "Solo creator and developer of AIRSKIDO, the lightest (<5MB) and fastest 3D multiplayer web racing game across the internet. Hand-crafted from scratch through thousands of bug fixes."
+      },
+      {
+        "@type": "VideoGame",
+        "name": "AIRSKIDO",
+        "url": "https://airskido.io",
+        "image": "https://airskido.io/logo/airskido_logo.webp",
+        "description": "Ultra-lightweight (<5MB) and fastest 3D arcade multiplayer web racing game on the internet, built solo by Anish Srivastava. Boots in 0.4 seconds with zero downloads.",
+        "genre": ["Racing", "Arcade", "Action", "Multiplayer"],
+        "gamePlatform": ["Web Browser", "Mobile Browser", "Desktop"],
+        "operatingSystem": "All modern web browsers",
+        "fileSize": "5MB",
+        "author": {
+          "@id": "https://airskido.io/about.html#developer"
+        },
+        "creator": {
+          "@id": "https://airskido.io/about.html#developer"
+        }
+      }
+    ]
+  }
+  </script>
+
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700;800&family=Rajdhani:wght@700;800;900&family=Space+Grotesk:wght@600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700;800&family=Rajdhani:wght@700;800;900&family=Space+Grotesk:wght@500;600;700;800&display=swap" rel="stylesheet" />
+
   <style>
     :root {
-      --bg-canvas: #FAF6EE;
+      --canvas: #FAF7F0;
       --card-bg: #FFFFFF;
-      --ink: #000000;
+      --ink: #0A0A0C;
+      --ink-secondary: #334155;
+      --ink-muted: #64748B;
       --yellow: #FFE600;
+      --yellow-hover: #FFF066;
       --cyan: #00D2FF;
       --coral: #FF385C;
-      --green: #10B981;
-      --purple: #8B5CF6;
-      --muted: #64748B;
-      --border-thick: 3.5px solid #000000;
-      --shadow-base: 5px 5px 0px #000000;
-      --shadow-lg: 8px 8px 0px #000000;
-      --shadow-btn: 3.5px 3.5px 0px #000000;
-      --radius-card: 20px;
+      --emerald: #10B981;
+      --border-main: 2.5px solid #000000;
+      --shadow-sm: 2.5px 2.5px 0px #000000;
+      --shadow-md: 4px 4px 0px #000000;
+      --shadow-btn: 3px 3px 0px #000000;
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
       --radius-pill: 999px;
       --font-display: 'Rajdhani', sans-serif;
-      --font-telemetry: 'Space Grotesk', sans-serif;
-      --font-fun: 'Fredoka', sans-serif;
+      --font-body: 'Space Grotesk', sans-serif;
     }
 
     * {
@@ -38,480 +100,649 @@
 
     html {
       scroll-behavior: smooth;
-      background-color: var(--bg-canvas);
+      background-color: var(--canvas);
       color: var(--ink);
-      font-family: var(--font-telemetry);
+      font-family: var(--font-body);
     }
 
     body {
       min-height: 100vh;
-      background-color: var(--bg-canvas);
-      background-image: radial-gradient(rgba(0, 0, 0, 0.15) 1.5px, transparent 1.5px);
-      background-size: 24px 24px;
-      line-height: 1.65;
-      font-size: 15px;
-      padding-bottom: 70px;
+      background-color: var(--canvas);
+      background-image: radial-gradient(rgba(0, 0, 0, 0.09) 1.2px, transparent 1.2px);
+      background-size: 20px 20px;
+      line-height: 1.55;
+      font-size: 14.5px;
+      padding-bottom: 50px;
+      -webkit-font-smoothing: antialiased;
     }
 
-    /* ── TOP STICKY BRUTOPIA NAV ── */
-    .brut-nav {
+    /* ── COMPACT TOP NAV ── */
+    .compact-nav {
       position: sticky;
       top: 0;
       z-index: 100;
-      background: #FFFFFF;
-      border-bottom: var(--border-thick);
-      padding: 14px 24px;
-      box-shadow: 0 4px 0 rgba(0, 0, 0, 0.05);
+      background: var(--card-bg);
+      border-bottom: var(--border-main);
+      padding: 10px 18px;
+      box-shadow: 0 3px 0 rgba(0, 0, 0, 0.03);
     }
 
-    .brut-nav-inner {
-      max-width: 1100px;
+    .compact-nav-inner {
+      max-width: 820px;
       margin: 0 auto;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 16px;
+      gap: 12px;
     }
 
-    .brand-group {
+    .brand-left-group {
       display: flex;
       align-items: center;
       gap: 12px;
+    }
+
+    .brand-link {
+      display: flex;
+      align-items: center;
+      gap: 10px;
       text-decoration: none;
     }
 
     .brand-logo-img {
-      height: 34px;
+      height: 44px;
       width: auto;
       object-fit: contain;
+      display: block;
+      transition: transform 0.12s ease;
     }
 
-    .brand-pill {
-      background: var(--coral);
-      color: #FFFFFF;
-      font-family: var(--font-display);
-      font-size: 12px;
-      font-weight: 900;
-      padding: 4px 10px;
-      border: 2px solid #000;
-      border-radius: var(--radius-pill);
-      box-shadow: 2px 2px 0 #000;
-      letter-spacing: 0.5px;
+    .brand-link:hover .brand-logo-img {
+      transform: scale(1.03);
     }
 
-    .nav-actions {
+    .nav-tagline-wrap {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
     }
 
-    .nav-link {
+    .nav-tagline-divider {
+      width: 2px;
+      height: 22px;
+      background: #000;
+      opacity: 0.2;
+    }
+
+    .nav-tagline-text {
+      font-family: var(--font-display);
+      font-size: 15px;
+      font-weight: 900;
+      letter-spacing: 0.6px;
+      color: #000;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .nav-actions-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .nav-item-link {
       font-family: var(--font-display);
       font-size: 14px;
       font-weight: 800;
-      color: #000;
+      color: var(--ink);
       text-decoration: none;
-      padding: 6px 14px;
-      border: 2px solid transparent;
-      border-radius: 10px;
-      transition: all 0.12s ease;
+      padding: 4px 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
     }
 
-    .nav-link:hover {
-      background: #F1F5F9;
-      border-color: #000;
+    .nav-item-link:hover {
+      color: var(--coral);
     }
 
-    .btn-play-game {
+    .btn-quick-play {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
       background: var(--yellow);
       color: #000;
       text-decoration: none;
       font-family: var(--font-display);
-      font-size: 15px;
+      font-size: 14px;
       font-weight: 900;
-      letter-spacing: 0.5px;
-      padding: 8px 18px;
-      border: 2.5px solid #000;
-      border-radius: 12px;
+      padding: 6px 14px;
+      border: 2px solid #000;
+      border-radius: 10px;
       box-shadow: var(--shadow-btn);
       transition: all 0.1s ease;
       cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
     }
 
-    .btn-play-game:hover {
-      transform: translate(-1.5px, -1.5px);
-      box-shadow: 5px 5px 0 #000;
-      background: #FFF066;
+    .btn-quick-play:hover {
+      background: var(--yellow-hover);
+      transform: translate(-1px, -1px);
+      box-shadow: 4px 4px 0 #000;
     }
 
-    .btn-play-game:active {
-      transform: translate(2px, 2px);
+    .btn-quick-play:active {
+      transform: translate(1.5px, 1.5px);
+      box-shadow: 1px 1px 0 #000;
+    }
+
+    /* ── PAGE CONTAINER ── */
+    .container {
+      max-width: 820px;
+      margin: 22px auto 0;
+      padding: 0 16px;
+    }
+
+    /* ── COMPACT HERO CARD ── */
+    .hero-box {
+      background: var(--card-bg);
+      border: var(--border-main);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      padding: 24px 24px 20px;
+      margin-bottom: 18px;
+    }
+
+    /* ── CLASSY BIG GAMER MOTTO BANNER ── */
+    .hero-gamer-banner {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--yellow);
+      border: 2px solid #000;
+      border-radius: var(--radius-md);
+      padding: 7px 16px;
+      box-shadow: 3px 3px 0 #000;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .banner-badge-icon {
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      background: #000;
+      color: var(--yellow);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .banner-title {
+      font-family: var(--font-display);
+      font-size: 20px;
+      font-weight: 900;
+      letter-spacing: 0.8px;
+      color: #000;
+      text-transform: uppercase;
+      line-height: 1;
+    }
+
+    .banner-pill-tag {
+      font-size: 11px;
+      font-weight: 800;
+      background: #000;
+      color: #FFF;
+      padding: 3px 9px;
+      border-radius: var(--radius-pill);
+      letter-spacing: 0.4px;
+      text-transform: uppercase;
+    }
+
+    .hero-badge-strip {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+
+    .badge-chip {
+      font-size: 11px;
+      font-weight: 800;
+      padding: 3px 9px;
+      border: 1.5px solid #000;
+      border-radius: var(--radius-pill);
       box-shadow: 1.5px 1.5px 0 #000;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
     }
 
-    /* ── CONTAINER ── */
-    .page-container {
-      max-width: 1020px;
-      margin: 36px auto 0;
-      padding: 0 20px;
+    .chip-yellow { background: var(--yellow); color: #000; }
+    .chip-cyan { background: var(--cyan); color: #000; }
+    .chip-dark { background: #000; color: #FFF; }
+
+    .hero-title {
+      font-family: var(--font-display);
+      font-size: 32px;
+      font-weight: 900;
+      line-height: 1.1;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+      margin-bottom: 8px;
     }
 
-    /* ── HERO BANNER CARD ── */
-    .hero-card {
+    .creator-line {
+      font-family: var(--font-display);
+      font-size: 18px;
+      font-weight: 800;
+      color: #000;
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+
+    .creator-pill {
+      background: var(--yellow);
+      padding: 1px 7px;
+      border: 1.5px solid #000;
+      box-shadow: 2px 2px 0 #000;
+      border-radius: 6px;
+      font-weight: 900;
+      display: inline-block;
+    }
+
+    .hero-subtext {
+      font-size: 14.5px;
+      color: var(--ink-secondary);
+      font-weight: 500;
+      line-height: 1.6;
+      margin-bottom: 18px;
+    }
+
+    .hero-subtext strong {
+      color: #000;
+      font-weight: 800;
+    }
+
+    /* ── COMPACT TELEMETRY ROW ── */
+    .telemetry-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+
+    .telemetry-item {
+      background: var(--canvas);
+      border: 1.5px solid #000;
+      border-radius: var(--radius-md);
+      padding: 10px 12px;
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .telemetry-number {
+      font-family: var(--font-display);
+      font-size: 22px;
+      font-weight: 900;
+      line-height: 1;
+      color: #000;
+    }
+
+    .telemetry-caption {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--ink-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      line-height: 1.3;
+    }
+
+    /* ── COMPACT CONTENT CARDS ── */
+    .content-card {
+      background: var(--card-bg);
+      border: var(--border-main);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      padding: 22px 24px;
+      margin-bottom: 18px;
+    }
+
+    .card-header-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+      padding-bottom: 10px;
+      border-bottom: 1.5px solid #000;
+    }
+
+    .card-icon {
+      width: 32px;
+      height: 32px;
+      border: 1.5px solid #000;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      box-shadow: 1.5px 1.5px 0 #000;
+      background: var(--yellow);
+    }
+
+    .card-title {
+      font-family: var(--font-display);
+      font-size: 21px;
+      font-weight: 900;
+      color: #000;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .card-body p {
+      font-size: 14px;
+      color: var(--ink-secondary);
+      font-weight: 500;
+      line-height: 1.65;
+      margin-bottom: 12px;
+    }
+
+    .card-body p:last-child {
+      margin-bottom: 0;
+    }
+
+    .card-body strong {
+      color: #000;
+      font-weight: 800;
+    }
+
+    /* ── COMPACT SPLIT FEATURE GRID ── */
+    .split-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .split-box {
+      border: 1.5px solid #000;
+      border-radius: var(--radius-md);
+      padding: 14px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .box-bad {
+      background: #FFF1F2;
+    }
+
+    .box-good {
+      background: #F0FDF4;
+    }
+
+    .box-title {
+      font-family: var(--font-display);
+      font-size: 14.5px;
+      font-weight: 900;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .box-bad .box-title { color: #BE123C; }
+    .box-good .box-title { color: #15803D; }
+
+    .box-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .box-list li {
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--ink-secondary);
+      line-height: 1.4;
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+    }
+
+    /* ── COMPACT CONNECT / IDEA BOX ── */
+    .connect-card {
+      background: linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%);
+      border: var(--border-main);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      padding: 22px 24px;
+      margin-bottom: 18px;
+    }
+
+    .connect-eyebrow {
+      font-size: 11px;
+      font-weight: 800;
+      background: var(--yellow);
+      padding: 2px 8px;
+      border: 1.5px solid #000;
+      border-radius: var(--radius-pill);
+      box-shadow: 1.5px 1.5px 0 #000;
+      display: inline-block;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      margin-bottom: 8px;
+    }
+
+    .connect-title {
+      font-family: var(--font-display);
+      font-size: 24px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      margin-bottom: 8px;
+    }
+
+    .connect-desc {
+      font-size: 14px;
+      color: var(--ink-secondary);
+      font-weight: 600;
+      line-height: 1.55;
+      margin-bottom: 14px;
+    }
+
+    .connect-chips-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+
+    .quick-chip {
+      font-family: var(--font-body);
+      font-size: 11.5px;
+      font-weight: 800;
+      padding: 6px 12px;
       background: #FFFFFF;
-      border: var(--border-thick);
-      border-radius: var(--radius-card);
-      box-shadow: var(--shadow-lg);
-      padding: 38px 36px 32px;
-      margin-bottom: 28px;
-      position: relative;
-      overflow: hidden;
+      color: var(--ink);
+      border: 1.5px solid #000;
+      border-radius: 8px;
+      box-shadow: 2px 2px 0 #000;
+      cursor: pointer;
+      transition: all 0.1s ease;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
     }
 
-    .hero-strip {
+    .quick-chip:hover, .quick-chip.active {
+      background: var(--yellow);
+      transform: translate(-1px, -1px);
+      box-shadow: 3px 3px 0 #000;
+    }
+
+    .connect-buttons-row {
       display: flex;
       align-items: center;
       gap: 10px;
       flex-wrap: wrap;
-      margin-bottom: 14px;
     }
 
-    .badge-pill {
-      font-family: var(--font-display);
-      font-size: 13px;
-      font-weight: 900;
-      padding: 4px 12px;
-      border: 2px solid #000;
-      border-radius: var(--radius-pill);
-      box-shadow: 2px 2px 0 #000;
-    }
-
-    .badge-yellow { background: var(--yellow); color: #000; }
-    .badge-cyan { background: var(--cyan); color: #000; }
-    .badge-coral { background: var(--coral); color: #FFF; }
-    .badge-purple { background: #DDD6FE; color: #5B21B6; }
-
-    .hero-title {
-      font-family: var(--font-display);
-      font-size: 42px;
-      font-weight: 900;
-      line-height: 1.1;
-      letter-spacing: 0.5px;
-      color: #000;
-      margin-bottom: 14px;
-    }
-
-    .hero-desc {
-      font-size: 16.5px;
-      color: #334155;
-      font-weight: 600;
-      max-width: 860px;
-      margin-bottom: 20px;
-    }
-
-    /* ── CREATOR STATS BAR ── */
-    .stats-bar-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 14px;
-      margin-top: 18px;
-    }
-
-    .stat-pill-card {
-      background: #F8FAFC;
-      border: 2.5px solid #000;
-      border-radius: 14px;
-      padding: 12px 16px;
-      box-shadow: 3px 3px 0 #000;
-      display: flex;
+    .btn-mail-action {
+      display: inline-flex;
       align-items: center;
-      gap: 12px;
-    }
-
-    .stat-icon {
-      font-size: 26px;
-      flex-shrink: 0;
-    }
-
-    .stat-meta {
-      display: flex;
-      flex-direction: column;
-    }
-
-    .stat-val {
-      font-family: var(--font-display);
-      font-size: 18px;
-      font-weight: 900;
-      color: #000;
-      line-height: 1.1;
-    }
-
-    .stat-lbl {
-      font-size: 11px;
-      font-weight: 700;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    /* ── STORY CARDS ── */
-    .story-card {
-      background: #FFFFFF;
-      border: var(--border-thick);
-      border-radius: var(--radius-card);
-      box-shadow: var(--shadow-base);
-      padding: 32px 34px;
-      margin-bottom: 26px;
-    }
-
-    .section-header {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      border-bottom: 2.5px solid #000;
-      padding-bottom: 12px;
-      margin-bottom: 20px;
-    }
-
-    .section-icon-box {
-      width: 44px;
-      height: 44px;
-      border: 2.5px solid #000;
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 22px;
-      flex-shrink: 0;
-      box-shadow: 2px 2px 0 #000;
-    }
-
-    .section-title {
-      font-family: var(--font-display);
-      font-size: 24px;
-      font-weight: 900;
-      color: #000;
-      letter-spacing: 0.5px;
-    }
-
-    .prose p {
-      font-size: 15.5px;
-      color: #1E293B;
-      font-weight: 500;
-      margin-bottom: 16px;
-      line-height: 1.7;
-    }
-
-    .prose strong {
-      color: #000;
-      font-weight: 800;
-    }
-
-    /* ── TECH STACK SHOWCASE GRID ── */
-    .tech-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap: 16px;
-      margin: 20px 0;
-    }
-
-    .tech-item-card {
-      background: #FFFFFF;
-      border: 2.5px solid #000;
-      border-radius: 16px;
-      padding: 18px;
-      box-shadow: 4px 4px 0 #000;
-      display: flex;
-      flex-direction: column;
       gap: 8px;
-      transition: transform 0.1s ease;
+      background: #000;
+      color: #FFF;
+      text-decoration: none;
+      font-family: var(--font-display);
+      font-size: 15px;
+      font-weight: 900;
+      padding: 9px 18px;
+      border: 2px solid #000;
+      border-radius: 10px;
+      box-shadow: var(--shadow-btn);
+      transition: all 0.1s ease;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
     }
 
-    .tech-item-card:hover {
-      transform: translateY(-2px);
+    .btn-mail-action:hover {
+      background: #18181B;
+      transform: translate(-1px, -1px);
+      box-shadow: 4px 4px 0 #000;
+    }
+
+    .btn-copy-box {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #FFFFFF;
+      color: var(--ink);
+      font-family: var(--font-body);
+      font-size: 12.5px;
+      font-weight: 800;
+      padding: 8px 14px;
+      border: 1.5px solid #000;
+      border-radius: 10px;
+      box-shadow: 2px 2px 0 #000;
+      cursor: pointer;
+      transition: all 0.1s ease;
+    }
+
+    .btn-copy-box:hover {
+      background: #F8FAFC;
+    }
+
+    .copy-toast {
+      display: none;
+      font-size: 11px;
+      font-weight: 800;
+      background: #000;
+      color: #FFE600;
+      padding: 3px 8px;
+      border-radius: 6px;
+      letter-spacing: 0.3px;
+    }
+
+    /* ── COMPACT BOTTOM CTA ── */
+    .bottom-cta-strip {
+      background: var(--yellow);
+      border: var(--border-main);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      padding: 22px 20px;
+      text-align: center;
+      margin-top: 24px;
+    }
+
+    .bottom-cta-heading {
+      font-family: var(--font-display);
+      font-size: 26px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      margin-bottom: 6px;
+    }
+
+    .bottom-cta-sub {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: var(--ink-secondary);
+      margin-bottom: 16px;
+    }
+
+    .btn-cta-launch {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #000;
+      color: #FFF;
+      text-decoration: none;
+      font-family: var(--font-display);
+      font-size: 16px;
+      font-weight: 900;
+      padding: 10px 24px;
+      border: 2px solid #000;
+      border-radius: 12px;
+      box-shadow: var(--shadow-btn);
+      transition: all 0.1s ease;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+
+    .btn-cta-launch:hover {
+      background: #18181B;
+      transform: translate(-1.5px, -1.5px);
       box-shadow: 5px 5px 0 #000;
     }
 
-    .tech-badge-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .tech-badge {
-      font-family: var(--font-display);
-      font-size: 12px;
-      font-weight: 900;
-      padding: 2px 8px;
-      border: 1.5px solid #000;
-      border-radius: 6px;
-      background: var(--yellow);
-    }
-
-    .tech-icon {
-      font-size: 24px;
-    }
-
-    .tech-title {
-      font-family: var(--font-display);
-      font-size: 18px;
-      font-weight: 900;
-      color: #000;
-    }
-
-    .tech-desc {
-      font-size: 13px;
-      color: #475569;
-      font-weight: 600;
-      line-height: 1.5;
-    }
-
-    /* ── HIGHLIGHT CALLOUT BOXES ── */
-    .callout-box {
-      border: 2.5px solid #000;
-      border-radius: 14px;
-      padding: 18px 20px;
-      margin: 18px 0;
-      display: flex;
-      gap: 14px;
-      align-items: flex-start;
-      box-shadow: 3.5px 3.5px 0 #000;
-    }
-
-    .callout-box.callout-yellow { background: #FEF9C3; }
-    .callout-box.callout-cyan { background: #E0F2FE; }
-    .callout-box.callout-green { background: #DCFCE7; }
-    .callout-box.callout-coral { background: #FFE4E6; }
-
-    .callout-icon {
-      font-size: 26px;
-      line-height: 1;
-    }
-
-    .callout-text h4 {
-      font-family: var(--font-display);
-      font-size: 18px;
-      font-weight: 900;
-      color: #000;
-      margin-bottom: 4px;
-    }
-
-    .callout-text p {
-      font-size: 14px;
-      color: #334155;
-      margin-bottom: 0;
-      font-weight: 600;
-      line-height: 1.55;
-    }
-
-    /* ── BIG PLAY CTA BANNER ── */
-    .cta-banner {
-      background: var(--yellow);
-      border: var(--border-thick);
-      border-radius: var(--radius-card);
-      box-shadow: var(--shadow-lg);
-      padding: 40px 32px;
-      text-align: center;
-      margin-top: 36px;
-    }
-
-    .cta-title {
-      font-family: var(--font-display);
-      font-size: 38px;
-      font-weight: 900;
-      color: #000;
-      margin-bottom: 8px;
-      letter-spacing: 0.5px;
-    }
-
-    .cta-desc {
-      font-size: 16px;
-      color: #1E293B;
-      font-weight: 700;
-      max-width: 600px;
-      margin: 0 auto 24px;
-    }
-
-    .btn-big-race {
-      display: inline-flex;
-      align-items: center;
-      gap: 12px;
-      background: #000000;
-      color: #FFFFFF;
-      text-decoration: none;
-      font-family: var(--font-display);
-      font-size: 20px;
-      font-weight: 900;
-      padding: 14px 34px;
-      border: 3px solid #000000;
-      border-radius: 16px;
-      box-shadow: 5px 5px 0px rgba(0, 0, 0, 0.35);
-      transition: all 0.12s ease;
-      cursor: pointer;
-    }
-
-    .btn-big-race:hover {
-      background: #18181B;
-      transform: translate(-2px, -2px);
-      box-shadow: 7px 7px 0px rgba(0, 0, 0, 0.45);
-    }
-
-    .btn-big-race:active {
-      transform: translate(2px, 2px);
-      box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.25);
-    }
-
-    /* ── FOOTER ── */
-    .brut-footer {
-      max-width: 1020px;
-      margin: 40px auto 0;
-      padding: 24px;
-      background: #FFFFFF;
-      border: var(--border-thick);
-      border-radius: var(--radius-card);
-      box-shadow: var(--shadow-base);
+    /* ── MINIMAL FOOTER ── */
+    .page-footer {
+      max-width: 820px;
+      margin: 24px auto 0;
+      padding: 16px 20px;
+      background: var(--card-bg);
+      border: var(--border-main);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-sm);
       display: flex;
       align-items: center;
       justify-content: space-between;
       flex-wrap: wrap;
-      gap: 16px;
+      gap: 12px;
     }
 
-    .footer-left {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-
-    .footer-brand {
-      font-family: var(--font-display);
-      font-size: 18px;
-      font-weight: 900;
-      color: #000;
-    }
-
-    .footer-copy {
+    .footer-left-txt {
       font-size: 12px;
       font-weight: 700;
-      color: var(--muted);
+      color: var(--ink-muted);
     }
 
-    .footer-links {
+    .footer-links-row {
       display: flex;
       align-items: center;
-      gap: 14px;
+      gap: 12px;
     }
 
     .footer-link {
       font-family: var(--font-display);
-      font-size: 14px;
+      font-size: 13.5px;
       font-weight: 800;
-      color: #000;
+      color: var(--ink);
       text-decoration: none;
-      transition: color 0.1s ease;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
     }
 
     .footer-link:hover {
@@ -519,299 +750,383 @@
       text-decoration: underline;
     }
 
-    @media (max-width: 768px) {
-      .hero-title { font-size: 32px; }
-      .hero-card { padding: 24px 20px; }
-      .story-card { padding: 22px 18px; }
-      .tech-grid { grid-template-columns: 1fr; }
-      .cta-title { font-size: 28px; }
-      .brut-footer { flex-direction: column; text-align: center; }
-      .footer-links { justify-content: center; }
+    /* ── MOBILE OPTIMIZATIONS (PERFECT ON PHONES) ── */
+    @media (max-width: 680px) {
+      body {
+        padding-bottom: 30px;
+        font-size: 13.5px;
+      }
+      .brand-logo-img {
+        height: 36px;
+      }
+      .nav-tagline-wrap {
+        display: none;
+      }
+      .nav-item-link {
+        display: none;
+      }
+      .hero-gamer-banner {
+        padding: 5px 10px;
+        gap: 6px;
+        margin-bottom: 12px;
+      }
+      .banner-title {
+        font-size: 15px;
+      }
+      .banner-badge-icon {
+        width: 20px;
+        height: 20px;
+      }
+      .container {
+        padding: 0 12px;
+        margin-top: 14px;
+      }
+      .hero-box {
+        padding: 18px 16px;
+        margin-bottom: 14px;
+      }
+      .hero-title {
+        font-size: 24px;
+      }
+      .creator-line {
+        font-size: 15px;
+      }
+      .telemetry-row {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+      }
+      .telemetry-item {
+        padding: 8px 10px;
+      }
+      .telemetry-number {
+        font-size: 19px;
+      }
+      .telemetry-caption {
+        font-size: 10px;
+      }
+      .content-card {
+        padding: 16px;
+        margin-bottom: 14px;
+      }
+      .card-title {
+        font-size: 18px;
+      }
+      .split-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+      .connect-card {
+        padding: 16px;
+      }
+      .connect-title {
+        font-size: 20px;
+      }
+      .btn-mail-action {
+        width: 100%;
+        justify-content: center;
+      }
+      .btn-copy-box {
+        width: 100%;
+        justify-content: center;
+      }
+      .bottom-cta-heading {
+        font-size: 22px;
+      }
+      .btn-cta-launch {
+        width: 100%;
+        justify-content: center;
+      }
+      .page-footer {
+        flex-direction: column;
+        text-align: center;
+        padding: 14px;
+      }
+      .footer-links-row {
+        justify-content: center;
+      }
     }
   </style>
 </head>
 <body>
 
-  <!-- ── 1. BRUTOPIA ARCADE NAVBAR ── -->
-  <header class="brut-nav">
-    <div class="brut-nav-inner">
-      <a href="index.html" class="brand-group" title="Back to AirSkid Game">
-        <img src="/src/logo/airskid_logo.webp" alt="AIRSKID" class="brand-logo-img" />
-        <span class="brand-pill">DEVELOPER STORY</span>
-      </a>
+  <!-- ── 1. COMPACT TOP NAV ── -->
+  <header class="compact-nav">
+    <div class="compact-nav-inner">
+      <div class="brand-left-group">
+        <a href="index.html" class="brand-link" title="Return to AIRSKIDO">
+          <img src="/src/logo/airskido_logo.webp" alt="AIRSKIDO" class="brand-logo-img" onerror="this.onerror=null;this.src='./logo/airskido_logo.webp';" />
+        </a>
+        <div class="nav-tagline-wrap">
+          <span class="nav-tagline-divider"></span>
+          <span class="nav-tagline-text">MADE BY GAMER FOR GAMERS</span>
+        </div>
+      </div>
 
-      <div class="nav-actions">
-        <a href="privacy.html" class="nav-link">Privacy Policy</a>
-        <a href="terms.html" class="nav-link">Terms of Service</a>
-        <a href="index.html" class="btn-play-game">
-          <span>🏎️</span>
-          <span>PLAY AIRSKID</span>
+      <div class="nav-actions-row">
+        <a href="terms.html" class="nav-item-link">Terms</a>
+        <a href="privacy.html" class="nav-item-link">Privacy</a>
+        <a href="index.html" class="btn-quick-play">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+          </svg>
+          <span>RACE NOW</span>
         </a>
       </div>
     </div>
   </header>
 
   <!-- ── 2. MAIN CONTAINER ── -->
-  <main class="page-container">
+  <main class="container">
 
     <!-- Hero Card -->
-    <div class="hero-card">
-      <div class="hero-strip">
-        <span class="badge-pill badge-yellow">INDIE GAME DEV</span>
-        <span class="badge-pill badge-cyan">HOW I BUILT THIS</span>
-        <span class="badge-pill badge-coral">THREE.JS + WASM</span>
-        <span class="badge-pill badge-purple">BY ANISH</span>
+    <section class="hero-box">
+
+      <!-- Classy Big Gamer Motto Banner -->
+      <div class="hero-gamer-banner">
+        <div class="banner-badge-icon">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+          </svg>
+        </div>
+        <span class="banner-title">MADE BY GAMER FOR GAMERS</span>
+        <span class="banner-pill-tag">100% RAW SKILL</span>
       </div>
-      <h1 class="hero-title">HOW I BUILT AIRSKID RACING</h1>
-      <p class="hero-desc">
-        Hey racers! I'm <strong>Anish</strong>, the solo indie creator and engineer behind AirSkid.
-        Here is the deep-dive story of how I engineered a console-grade, 60-FPS 3D arcade racer with real-time WebRTC multiplayer, 
-        Trackmania-style time sprint leaderboards, and chaotic Mario Kart-style party brawls — entirely inside the browser with zero downloads.
+
+      <div class="hero-badge-strip">
+        <span class="badge-chip chip-yellow">FULL-STACK ARCHITECTURE</span>
+        <span class="badge-chip chip-cyan">&lt; 5MB BENCHMARK</span>
+        <span class="badge-chip chip-dark">24K+ LINES OF CODE</span>
+      </div>
+
+      <h1 class="hero-title">THE STORY BEHIND AIRSKIDO</h1>
+
+      <div class="creator-line">
+        <span>ENGINEERED BY</span>
+        <span class="creator-pill">ANISH SRIVASTAVA</span>
+        <span style="color: var(--ink-muted); font-size: 15px; font-weight: 700;">// FULL-STACK DEVELOPER (INDIA)</span>
+      </div>
+
+      <p class="hero-subtext">
+        Most web car games ship 30MB to 50MB of bloated engine wrappers, slow loading spinners, and sluggish starter cars. 
+        <strong>AIRSKIDO was hand-coded from scratch with over 24,000 lines of pure code</strong> — engineered from ground up for maximum speed and instant responsiveness. 
+        Zero engine bloat. Zero pay-to-win. 100% pure racing skill.
       </p>
 
-      <!-- Key Tech Metrics -->
-      <div class="stats-bar-grid">
-        <div class="stat-pill-card">
-          <span class="stat-icon">⚡</span>
-          <div class="stat-meta">
-            <span class="stat-val">60 FPS WASM</span>
-            <span class="stat-lbl">Rapier3D Physics</span>
-          </div>
+      <!-- 4-Grid Telemetry Strip -->
+      <div class="telemetry-row">
+        <div class="telemetry-item">
+          <span class="telemetry-number">&lt; 4.8 MB</span>
+          <span class="telemetry-caption">Total Client Size (vs 35MB+ competitors)</span>
         </div>
-
-        <div class="stat-pill-card">
-          <span class="stat-icon">🏎️</span>
-          <div class="stat-meta">
-            <span class="stat-val">1 MASTER CHASSIS</span>
-            <span class="stat-lbl">Universal Car Physics</span>
-          </div>
+        <div class="telemetry-item">
+          <span class="telemetry-number">0.4s</span>
+          <span class="telemetry-caption">Cold Boot Load Time</span>
         </div>
-
-        <div class="stat-pill-card">
-          <span class="stat-icon">🌐</span>
-          <div class="stat-meta">
-            <span class="stat-val">P2P WEBRTC</span>
-            <span class="stat-lbl">Zero-Lag Multiplayer</span>
-          </div>
+        <div class="telemetry-item">
+          <span class="telemetry-number">~24,000</span>
+          <span class="telemetry-caption">Hand-Written Lines of Code</span>
         </div>
-
-        <div class="stat-pill-card">
-          <span class="stat-icon">🎨</span>
-          <div class="stat-meta">
-            <span class="stat-val">BRUTOPIA UI</span>
-            <span class="stat-lbl">Neo-Brutalist Arcade</span>
-          </div>
+        <div class="telemetry-item">
+          <span class="telemetry-number">100%</span>
+          <span class="telemetry-caption">Raw Skill (Zero Pay-to-Win)</span>
         </div>
       </div>
-    </div>
+    </section>
 
-    <!-- Chapter 1: The Spark & Vision -->
-    <section class="story-card">
-      <div class="section-header">
-        <div class="section-icon-box" style="background: var(--yellow);">💡</div>
-        <h2 class="section-title">1. THE VISION — WHY BUILD A 3D WEB RACER?</h2>
+    <!-- Card 1: The Solo Battle (1,000+ Bugs to Hyperspeed) -->
+    <section class="content-card">
+      <div class="card-header-bar">
+        <div class="card-icon">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#000" stroke-width="2.2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        </div>
+        <h2 class="card-title">THE SOLO BATTLE: FROM 1,000+ BUGS TO HYPERSPEED</h2>
       </div>
-      <div class="prose">
+      <div class="card-body">
         <p>
-          Most browser games today are either lightweight 2D hyper-casual titles or bloated web ports that take forever to download.
-          I wanted to push the boundaries of what is possible on the modern open web: 
-          <strong>What if you could open a browser tab, share a 6-digit room code with your friends on Discord or WhatsApp, and immediately jump into an intense 60-FPS 3D racing brawl with no launcher, no login wall, and zero friction?</strong>
+          Building a complete 3D racing game with real-time multiplayer completely alone was brutally difficult. 
+          There was no dev team, no publisher funding, and no commercial engine shortcuts—just one developer working through endless sleepless nights to create something extraordinary directly in a web browser.
         </p>
         <p>
-          I combined two distinct gameplay obsessions that I love:
+          Along the way, Anish encountered <strong>thousands of stubborn bugs</strong>: karts launching into outer space from invisible bumps, wheels glitching through track colliders, multiplayer car desyncs, and weird browser frame drops. Instead of giving up or bloating the game with heavy third-party engines, every single bug was tracked down, isolated, and crushed solo.
         </p>
-        <ul>
-          <li><strong>Trackmania’s micro-second obsession:</strong> Perfect apex lines, 1-lap Time Sprint trials, and global milliseconds leaderboards.</li>
-          <li><strong>Smash Karts & Mario Kart’s laugh-out-loud party mayhem:</strong> Bumper ramming, slipstream drafting, arena sumo knockouts, and high-impact physical chaos.</li>
-        </ul>
-        <div class="callout-box callout-yellow">
-          <div class="callout-icon">🎯</div>
-          <div class="callout-text">
-            <h4>The Single Universal Car Decision</h4>
-            <p>Early on, I experimented with multiple car classes. But I quickly realized that the best competitive games — from Rocket League to Trackmania — succeed because <em>everyone drives the exact same fair physics chassis</em>. Winning comes down purely to drift control, boost timing, and line mastery. Customization should be 100% cosmetic (Paints, Shades, Trails)!</p>
+        <p>
+          The result is <strong>the lightest (&lt;5MB) and fastest 3D multiplayer racing game across the entire internet</strong>. It cold-boots in under 0.4 seconds on any browser or mobile device, locks at buttery-smooth 60 FPS, and lets you battle friends in real-time with zero installs or downloads.
+        </p>
+
+        <div class="split-grid" style="margin-top: 14px;">
+          <div class="split-box" style="background: #FEF9C3; border-color: #000;">
+            <span class="box-title" style="color: #854D0E;">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#854D0E" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              <span>The Solo Struggle</span>
+            </span>
+            <ul class="box-list">
+              <li>• Conquered 1,000+ stubborn physics &amp; sync bugs</li>
+              <li>• Hundreds of sleepless solo debugging marathons</li>
+              <li>• Zero shortcuts, built from scratch with pure grit</li>
+            </ul>
+          </div>
+          <div class="split-box" style="background: #ECFEFF; border-color: #000;">
+            <span class="box-title" style="color: #0E7490;">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#0E7490" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+              <span>The Achievement</span>
+            </span>
+            <ul class="box-list">
+              <li>• Lightest (&lt;5MB) 3D multiplayer web racer on Earth</li>
+              <li>• Instant 0.4s boot in any browser or phone</li>
+              <li>• Silky-smooth 60 FPS real-time multiplayer</li>
+            </ul>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- Chapter 2: The Physics & Engineering Engine -->
-    <section class="story-card">
-      <div class="section-header">
-        <div class="section-icon-box" style="background: var(--cyan);">⚙️</div>
-        <h2 class="section-title">2. THE ENGINEERING — WASM RAPIER3D PHYSICS</h2>
+    <!-- Card 2: The Driving Philosophy (Anti-Slow, Zero Pay-to-Win) -->
+    <section class="content-card">
+      <div class="card-header-bar">
+        <div class="card-icon" style="background: var(--coral); color: #FFF;">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#FFF" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+        </div>
+        <h2 class="card-title">THE GAMER-FIRST PHILOSOPHY</h2>
       </div>
-      <div class="prose">
+      <div class="card-body">
         <p>
-          The hardest part of any 3D driving game is vehicle physics. Standard JavaScript physics engines often suffer from garbage collection (GC) micro-stutters, causing cars to glitch or fall through track floor colliders during high-speed loops.
+          Have you noticed what typical racing games do? They intentionally make starter cars slow, sluggish, and unable to turn around simple curves. 
+          They force you to grind 20 hours or pay money to upgrade parts just to get normal steering. 
+          <strong>As a gamer and full-stack developer, Anish is completely against that.</strong>
         </p>
-        <p>
-          To solve this, I compiled <strong>Rapier3D (written in Rust) directly into WebAssembly (WASM)</strong>. 
-          Running physics inside WASM unlocked unbelievable benefits:
-        </p>
-        <ul>
-          <li><strong>Zero Floor Clipping:</strong> Continuous collision detection (CCD) prevents cars from sinking or falling off bankings even at 150 km/h.</li>
-          <li><strong>Authentic Drift Momentum:</strong> True tire lateral slip simulation that dynamically kicks the rear out during handbrake turns while allowing snappy counter-steering.</li>
-          <li><strong>Air Launch & Recoil Trajectories:</strong> When you hit a kicker ramp or get rammed in Sky Rumble, realistic 3D torque vectors spin and tumble the car through the clouds.</li>
-        </ul>
-      </div>
-    </section>
 
-    <!-- Chapter 3: Multiplayer WebRTC Architecture -->
-    <section class="story-card">
-      <div class="section-header">
-        <div class="section-icon-box" style="background: var(--coral); color: #FFF;">🌐</div>
-        <h2 class="section-title">3. ZERO-LAG MULTIPLAYER — WEBRTC MESH</h2>
-      </div>
-      <div class="prose">
-        <p>
-          Instead of hosting expensive, centralized game servers that add artificial ping delay, AirSkid uses a <strong>decentralized Peer-to-Peer (P2P) WebRTC mesh</strong>.
-        </p>
-        <div class="callout-box callout-cyan">
-          <div class="callout-icon">🚀</div>
-          <div class="callout-text">
-            <h4>How P2P Room Sync Works</h4>
-            <p>One player acts as Room Host, and peers connect directly over UDP data channels. We use client-side prediction, dead-reckoning extrapolation, and Hermite quaternion interpolation so opponent cars move buttery smooth at 60 FPS even across high-ping cellular networks!</p>
+        <div class="split-grid">
+          <div class="split-box box-bad">
+            <span class="box-title">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="#BE123C" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              <span>Typical Racing Games</span>
+            </span>
+            <ul class="box-list">
+              <li>• Painfully slow starter cars that can barely turn</li>
+              <li>• Grinding hours just to unlock basic responsiveness</li>
+              <li>• Pay-to-win upgrades that unbalance competition</li>
+              <li>• 30MB to 50MB heavy downloads and loading bars</li>
+            </ul>
           </div>
-        </div>
-      </div>
-    </section>
 
-    <!-- Chapter 4: The Brutopia Aesthetic -->
-    <section class="story-card">
-      <div class="section-header">
-        <div class="section-icon-box" style="background: var(--purple); color: #FFF;">🎨</div>
-        <h2 class="section-title">4. THE BRUTOPIA ART STYLE & UI SCALE MATRIX</h2>
-      </div>
-      <div class="prose">
-        <p>
-          Tired of generic, dark, washed-out tech UI, I crafted the <strong>Brutopia Design System</strong> specifically for AirSkid:
-        </p>
-        <ul>
-          <li><strong>Chunky Neo-Brutalist Lines:</strong> Bold 3.5px solid black borders and tactile 5px hard drop shadows that physically depress when clicked.</li>
-          <li><strong>High-Energy Arcade Primaries:</strong> Golden Neo-Yellow (`#FFE600`), Electric Cyan (`#00D2FF`), and Coral Smash Red (`#FF385C`).</li>
-          <li><strong>Universal Screen Matrix (`UIScaleEngine`):</strong> Whether you're playing on a 4K desktop monitor, an iPad, or a budget Android smartphone, the entire UI auto-scales dynamically with zero overlapping cards.</li>
-        </ul>
-      </div>
-    </section>
-
-    <!-- Chapter 5: Tech Stack Breakdown -->
-    <section class="story-card">
-      <div class="section-header">
-        <div class="section-icon-box" style="background: var(--green); color: #FFF;">💻</div>
-        <h2 class="section-title">5. THE FULL TECHNOLOGY STACK</h2>
-      </div>
-      <div class="prose">
-        <p>Here are the core technologies and engines powering AirSkid behind the scenes:</p>
-      </div>
-
-      <div class="tech-grid">
-        <div class="tech-item-card">
-          <div class="tech-badge-row">
-            <span class="tech-badge">3D GRAPHICS</span>
-            <span class="tech-icon">🎮</span>
-          </div>
-          <h3 class="tech-title">Three.js (WebGL)</h3>
-          <p class="tech-desc">Custom camera smoothing, procedural skybox clouds, real-time shadow cascades, and dynamic burnout smoke particles.</p>
-        </div>
-
-        <div class="tech-item-card">
-          <div class="tech-badge-row">
-            <span class="tech-badge">PHYSICS</span>
-            <span class="tech-icon">🦀</span>
-          </div>
-          <h3 class="tech-title">Rapier3D WASM</h3>
-          <p class="tech-desc">Rust-compiled WebAssembly physics engine running at an unwavering 60Hz tick rate for authentic vehicle kinematics.</p>
-        </div>
-
-        <div class="tech-item-card">
-          <div class="tech-badge-row">
-            <span class="tech-badge">NETWORKING</span>
-            <span class="tech-icon">🌐</span>
-          </div>
-          <h3 class="tech-title">WebRTC & PeerJS</h3>
-          <p class="tech-desc">Decentralized peer-to-peer data channels transmitting car transforms and bumper impulse packets at low latency.</p>
-        </div>
-
-        <div class="tech-item-card">
-          <div class="tech-badge-row">
-            <span class="tech-badge">LANGUAGE</span>
-            <span class="tech-icon">⚡</span>
-          </div>
-          <h3 class="tech-title">TypeScript & Vite</h3>
-          <p class="tech-desc">Strictly-typed modular architecture built with Vite for lightning-fast HMR and minified sub-second builds.</p>
-        </div>
-
-        <div class="tech-item-card">
-          <div class="tech-badge-row">
-            <span class="tech-badge">BACKEND</span>
-            <span class="tech-icon">🔥</span>
-          </div>
-          <h3 class="tech-title">Google Firebase</h3>
-          <p class="tech-desc">Firestore dual-track sprint leaderboards (Normal & Hardcore) and Google OAuth for persistent cloud garages.</p>
-        </div>
-
-        <div class="tech-item-card">
-          <div class="tech-badge-row">
-            <span class="tech-badge">AUDIO</span>
-            <span class="tech-icon">🔊</span>
-          </div>
-          <h3 class="tech-title">Web Audio Synth</h3>
-          <p class="tech-desc">Procedural oscillator synthesis for engine rev pitch-shifting, drift tire screeches, and celebratory arcade jingles.</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- Chapter 6: Personal Note from Anish -->
-    <section class="story-card">
-      <div class="section-header">
-        <div class="section-icon-box" style="background: var(--yellow);">❤️</div>
-        <h2 class="section-title">6. A NOTE FROM THE CREATOR</h2>
-      </div>
-      <div class="prose">
-        <p>
-          Building AirSkid has been a labor of true passion. Every single curve of the sky track, every spark emitted from a high-speed wall scrape, and every UI pixel was hand-crafted to make web gaming feel energetic, joyous, and polished.
-        </p>
-        <p>
-          I want to thank every pilot who hops in for a race, challenges their friends to a Sky Rumble battle, or grinds for the #1 spot on the global sprint leaderboards. You make this journey worth every line of code!
-        </p>
-        <div class="callout-box callout-green">
-          <div class="callout-icon">📬</div>
-          <div class="callout-text">
-            <h4>Want to chat or share feedback?</h4>
-            <p>Drop me an email at <strong>anish@airskid.io</strong>. I'd love to hear your fastest lap times, gameplay clips, and ideas for Season 2!</p>
+          <div class="split-box box-good">
+            <span class="box-title">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="#15803D" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+              <span>The AIRSKIDO Standard</span>
+            </span>
+            <ul class="box-list">
+              <li>• Full top speed and razor-sharp drift agility on Lap 1</li>
+              <li>• Universal chassis: Everyone drives identical fair physics</li>
+              <li>• 100% Raw Skill: Apex line, drift angle &amp; timing decide wins</li>
+              <li>• Sub-5MB lightweight footprint boots in 0.4 seconds</li>
+            </ul>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- ── 3. BIG CALL TO ACTION ── -->
-    <div class="cta-banner">
-      <h2 class="cta-title">READY TO HIT THE SKY TRACK?</h2>
-      <p class="cta-desc">
-        Jump behind the wheel, master the drift curves, and claim your place in the AirSkid Hall of Fame right now!
+    <!-- Card 3: Direct Line to Anish / Idea Box -->
+    <section class="connect-card" id="contact">
+      <span class="connect-eyebrow">COMMUNITY &amp; DIRECT CONNECT</span>
+      <h2 class="connect-title">MADE BY GAMER FOR GAMERS</h2>
+      <p class="connect-desc">
+        AIRSKIDO is an independent creation driven by community ideas. 
+        Have a concept for a sky track? Want a new kart skin? Found an edge-case bug? 
+        <strong>Reach out directly to Anish. Kisi ko kuch bhi issue hai ya suggestion hai, hum dekh lenge.</strong>
       </p>
-      <a href="index.html" class="btn-big-race">
-        <span>🏎️</span>
-        <span>LAUNCH AIRSKID & RACE NOW!</span>
-        <span>🏁</span>
+
+      <!-- Category Chips -->
+      <div class="connect-chips-wrap">
+        <button type="button" class="quick-chip active" data-subject="AIRSKIDO Track / Feature Concept" data-template="Hey Anish, I have an idea for a track or feature in AIRSKIDO: ">
+          💡 TRACK / FEATURE IDEA
+        </button>
+        <button type="button" class="quick-chip" data-subject="AIRSKIDO Handling & Physics Feedback" data-template="Hey Anish, here is my feedback on kart physics and handling: ">
+          🏎️ HANDLING &amp; PHYSICS
+        </button>
+        <button type="button" class="quick-chip" data-subject="AIRSKIDO Custom Livery / Skin Request" data-template="Hey Anish, I would love to see this kart skin or hat in AIRSKIDO: ">
+          🎨 KART SKINS &amp; HATS
+        </button>
+        <button type="button" class="quick-chip" data-subject="AIRSKIDO Bug Report / Issue" data-template="Hey Anish, I encountered an issue in AIRSKIDO: ">
+          🐛 BUG REPORT
+        </button>
+      </div>
+
+      <!-- Quick Action Buttons -->
+      <div class="connect-buttons-row">
+        <a id="btn-mail-link" href="mailto:anish@airskido.io?subject=AIRSKIDO%20Track%20%2F%20Feature%20Concept&body=Hey%20Anish%2C%20I%20have%20an%20idea%20for%20a%20track%20or%20feature%20in%20AIRSKIDO%3A%20" class="btn-mail-action">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#FFF" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          <span>SEND NOTE TO ANISH</span>
+        </a>
+
+        <button type="button" id="btn-copy-mail" class="btn-copy-box" title="Copy anish@airskido.io">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#000" stroke-width="2.2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          <span>COPY: anish@airskido.io</span>
+        </button>
+
+        <span id="toast-notify" class="copy-toast">COPIED TO CLIPBOARD!</span>
+      </div>
+    </section>
+
+    <!-- Bottom Launch Banner -->
+    <div class="bottom-cta-strip">
+      <h3 class="bottom-cta-heading">THE TRACK IS READY</h3>
+      <p class="bottom-cta-sub">No downloads. No 40MB loading spinners. Full-throttle drifting awaits.</p>
+      <a href="index.html" class="btn-cta-launch">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#FFF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="5 3 19 12 5 21 5 3"></polygon>
+        </svg>
+        <span>ENTER COCKPIT &amp; RACE</span>
       </a>
     </div>
 
-    <!-- ── 4. FOOTER ── -->
-    <footer class="brut-footer">
-      <div class="footer-left">
-        <span class="footer-brand">AIRSKID RACING // BRUTOPIA EDITION</span>
-        <span class="footer-copy">© 2026 Developed with ❤️ by Anish. All rights reserved.</span>
-      </div>
-
-      <div class="footer-links">
-        <a href="privacy.html" class="footer-link">Privacy Policy</a>
-        <a href="terms.html" class="footer-link">Terms of Service</a>
-        <a href="index.html" class="footer-link" style="color: var(--yellow); font-weight: 900; background: #000; padding: 4px 10px; border-radius: 6px;">Play Game 🏎️</a>
+    <!-- Minimal Footer -->
+    <footer class="page-footer">
+      <span class="footer-left-txt">© 2026 AIRSKIDO // Engineered by Full-Stack Developer Anish Srivastava.</span>
+      <div class="footer-links-row">
+        <a href="privacy.html" class="footer-link">Privacy</a>
+        <span style="color: var(--ink-muted);">•</span>
+        <a href="terms.html" class="footer-link">Terms</a>
+        <span style="color: var(--ink-muted);">•</span>
+        <a href="index.html" class="footer-link" style="background: var(--yellow); padding: 2px 8px; border: 1.5px solid #000; border-radius: 6px;">Play Game</a>
       </div>
     </footer>
 
   </main>
+
+  <!-- Interactive Category Script -->
+  <script>
+    (function() {
+      const mailBtn = document.getElementById('btn-mail-link');
+      const copyBtn = document.getElementById('btn-copy-mail');
+      const toast = document.getElementById('toast-notify');
+      const chips = document.querySelectorAll('.quick-chip');
+
+      chips.forEach((chip) => {
+        chip.addEventListener('click', () => {
+          chips.forEach(c => c.classList.remove('active'));
+          chip.classList.add('active');
+
+          const subject = chip.getAttribute('data-subject') || 'AIRSKIDO Player Note';
+          const template = chip.getAttribute('data-template') || 'Hey Anish, ';
+
+          if (mailBtn) {
+            mailBtn.href = `mailto:anish@airskido.io?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(template)}`;
+          }
+        });
+      });
+
+      if (copyBtn && toast) {
+        copyBtn.addEventListener('click', () => {
+          navigator.clipboard.writeText('anish@airskido.io').then(() => {
+            toast.style.display = 'inline-block';
+            setTimeout(() => { toast.style.display = 'none'; }, 2200);
+          }).catch(() => {
+            window.location.href = 'mailto:anish@airskido.io';
+          });
+        });
+      }
+    })();
+  </script>
 
 </body>
 </html>

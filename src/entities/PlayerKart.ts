@@ -7,8 +7,8 @@ import { sounds } from '../core/Sound';
 export class PlayerKart {
   public kart: Kart;
   public input: InputManager;
-  private cameraOffset = new THREE.Vector3(0, 3.2, -6.6);
-  private cameraTargetOffset = new THREE.Vector3(0, 1.2, 3.8);
+  private cameraOffset = new THREE.Vector3(0, 2.85, -5.9);
+  private cameraTargetOffset = new THREE.Vector3(0, 1.05, 2.6);
 
   private currentCamPos = new THREE.Vector3();
   private currentCamLookAt = new THREE.Vector3();
@@ -25,13 +25,14 @@ export class PlayerKart {
   private readonly _camSmoothHeading = new THREE.Quaternion();
   private readonly _camDesiredPos = new THREE.Vector3();
   private readonly _camDesiredLookAt = new THREE.Vector3();
-  private readonly _camAirOffset = new THREE.Vector3(0, 3.8, -7.5);
+  private readonly _camAirOffset = new THREE.Vector3(0, 3.3, -6.5);
   private readonly _camShakeRight = new THREE.Vector3();
   private readonly _camShakeUp = new THREE.Vector3();
   private readonly _camFwdSnap = new THREE.Vector3();
 
   constructor(kart: Kart, input: InputManager, initialCamPos?: THREE.Vector3) {
     this.kart = kart;
+    this.kart.isPlayer = true;
     this.input = input;
     this.kart.setCastShadow(true); // Player kart exclusively casts shadows
 
@@ -54,8 +55,8 @@ export class PlayerKart {
     this.input.update(dt);
     const { throttle, steer, drift, nitro } = this.input.state;
 
-    // Tactical Nitro trigger (Consumes 1 of 3 canisters in racing modes; Sky Rumble uses pure momentum & arena pads)
-    if (nitro && !this.isRumbleMode) {
+    // Tactical Nitro trigger (Consumes 1 of 3 canisters in racing modes; DISABLED in Sky Rumble Arena)
+    if (nitro && !this.isRumbleMode && !(this.kart.track && this.kart.track.isArena)) {
       this.kart.useNitro();
     }
 
@@ -91,9 +92,14 @@ export class PlayerKart {
 
     const isAirborne = kartToFollow.airLaunchTimer > 0 || (kartPos.y < -4.0);
     const speedFraction = Math.min(1.0, Math.abs(kartToFollow.currentSpeed) / kartToFollow.stats.topSpeed);
+    const isNitro = kartToFollow.boostTime > 0;
 
-    // Subtle pull-back at high speed (~0.8m) — zero allocation
-    this._camSpeedPullBack.set(0, speedFraction * 0.2, -speedFraction * 0.8);
+    // Tight console-arcade camera framing:
+    // At normal speeds (even top speed), distance barely pulls back (~0.22m) so the kart stays close, chunky & detailed.
+    // On active Nitro boost, delivers a punchy explosive pull-back (~0.5m) and dynamic FOV rush!
+    const speedPullZ = -(speedFraction * 0.22 + (isNitro ? 0.48 : 0));
+    const speedPullY = speedFraction * 0.08 + (isNitro ? 0.16 : 0);
+    this._camSpeedPullBack.set(0, speedPullY, speedPullZ);
     this._camOffsetWithSpeed.copy(this.cameraOffset).add(this._camSpeedPullBack);
 
     // Ghost respawn: immediately align camera behind respawn orientation
@@ -135,7 +141,7 @@ export class PlayerKart {
         }
 
         this._camSmoothHeading.setFromAxisAngle(this._camAxisY, this.camYaw);
-        this._camAirOffset.set(0, 3.8, -7.5).applyQuaternion(this._camSmoothHeading);
+        this._camAirOffset.set(0, 3.3, -6.5).applyQuaternion(this._camSmoothHeading);
         this._camDesiredPos.copy(kartPos).add(this._camAirOffset);
         this._camDesiredLookAt.set(kartPos.x, kartPos.y + 0.8, kartPos.z);
       } else {
@@ -179,9 +185,10 @@ export class PlayerKart {
 
     camera.lookAt(this.currentCamLookAt);
 
-    // Subtle FOV expansion (64 to 72 max) — only call updateProjectionMatrix when FOV actually changes
-    const baseFOV = 64;
-    const targetFOV = baseFOV + (isAirborne ? 4 : speedFraction * 4) + (kartToFollow.boostTime > 0 ? 5.5 : 0);
+    // Cinematic dynamic FOV:
+    // Clean 63° base, subtle +1.8° speed sensation at top speed (zero car shrinking!), and punchy +4.5° rush on Nitro
+    const baseFOV = 63;
+    const targetFOV = baseFOV + (isAirborne ? 2.5 : speedFraction * 1.8) + (kartToFollow.boostTime > 0 ? 4.5 : 0);
     if (Math.abs(camera.fov - targetFOV) > 0.01) {
       camera.fov = THREE.MathUtils.lerp(camera.fov, targetFOV, dt * 8);
       camera.updateProjectionMatrix();

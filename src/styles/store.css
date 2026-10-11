@@ -1,5 +1,5 @@
 /* ================================================================
-   AIRSKID RACING // 3D GARAGE TUNING SHOP & ITEM CARDS
+   AIRSKIDO RACING // 3D GARAGE TUNING SHOP & ITEM CARDS
    ================================================================ */
     /* ── DEFAULT (LOBBY MODE): SHOWROOM ELEMENTS HIDDEN ── */
     .showroom-nav-cluster,
@@ -107,23 +107,29 @@
     }
 
     .showroom-title-cluster {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 2px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--brut-white, #FFFFFF);
+      border: var(--brut-border, 2.5px solid #000);
+      box-shadow: var(--brut-shadow, 3px 3px 0 #000);
+      border-radius: 12px;
+      padding: 7px 16px;
+      user-select: none;
     }
     .showroom-badge-tag {
       font-family: var(--font-display);
       font-size: 9px;
       font-weight: 900;
-      letter-spacing: 1px;
-      background: var(--brut-yellow);
+      letter-spacing: 0.8px;
+      background: var(--brut-yellow, #FFE600);
       color: #000;
       border: 1.5px solid #000;
       border-radius: 6px;
-      padding: 1px 7px;
-      box-shadow: 1.5px 1.5px 0 #000;
+      padding: 2px 7px;
+      box-shadow: 1px 1px 0 #000;
       text-transform: uppercase;
+      white-space: nowrap;
     }
     .showroom-badge-tag.tag-green {
       background: var(--brut-green);
@@ -139,25 +145,29 @@
       opacity: 0.92;
     }
     .showroom-action-btn.locked-level-btn {
-      background: #94a3b8 !important;
-      color: #1e293b !important;
-      border: 2px solid #334155 !important;
-      box-shadow: 2px 2px 0 #334155 !important;
-      cursor: not-allowed;
+      background: #18181b !important;
+      color: #fde047 !important;
+      border: 2px solid #000 !important;
+      box-shadow: 2px 2px 0 #000 !important;
+      cursor: pointer !important;
+      opacity: 1 !important;
+      font-weight: 900 !important;
+      letter-spacing: 0.5px !important;
     }
     .showroom-action-btn.locked-level-btn:hover {
-      background: #cbd5e1 !important;
-      transform: none !important;
+      background: #27272a !important;
+      transform: translate(-1px, -1px) !important;
+      box-shadow: 3px 3px 0 #000 !important;
     }
     .showroom-title-main {
       font-family: var(--font-display);
-      font-size: 18px;
+      font-size: 13.5px;
       font-weight: 900;
-      letter-spacing: 1.5px;
+      letter-spacing: 0.8px;
       color: #000;
       margin: 0;
-      text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
-      line-height: 1.1;
+      line-height: 1;
+      white-space: nowrap;
     }
 
     .showroom-drag-hint {
@@ -262,7 +272,11 @@
 
     /* ── SHOWROOM ITEM CARDS ── */
     .showroom-card {
-      flex: 0 0 230px;
+      flex: 0 0 215px !important;
+      width: 215px !important;
+      min-height: 180px !important;
+      max-height: 180px !important;
+      height: 180px !important;
       background: #FFFFFF;
       border: 2.5px solid #000;
       box-shadow: 3.5px 3.5px 0 #000;
@@ -270,13 +284,13 @@
       padding: 10px 12px;
       display: flex;
       flex-direction: column;
-      gap: 5px;
       text-align: left;
       cursor: pointer;
       scroll-snap-align: start;
       transition: all 0.12s ease;
       position: relative;
       user-select: none;
+      box-sizing: border-box;
     }
     .showroom-card:hover {
       transform: translateY(-2px);
@@ -298,14 +312,38 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      height: 28px;
       margin-bottom: 2px;
     }
     .skin-swatch-circle {
-      width: 22px;
-      height: 22px;
+      width: 24px;
+      height: 24px;
       border-radius: 50%;
       border: 2px solid #000;
       box-shadow: 1.5px 1.5px 0 #000;
+      flex-shrink: 0;
+    }
+    .showroom-card-emoji {
+      font-size: 24px;
+      line-height: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      user-select: none;
+      flex-shrink: 0;
+    }
+    .showroom-card-svg {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      flex-shrink: 0;
+    }
+    .showroom-card-svg svg {
+      width: 22px;
+      height: 22px;
+      display: block;
     }
     .machine-color-badge {
       width: 20px;
@@ -317,11 +355,16 @@
 
     .showroom-card-title {
       font-family: var(--font-display);
-      font-size: 14px;
+      font-size: 13.5px;
       font-weight: 900;
       letter-spacing: 0.5px;
       color: #000;
       line-height: 1.15;
+      height: 16px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin: 2px 0 4px 0;
     }
     .showroom-card-subtitle {
       font-size: 9.5px;
@@ -329,19 +372,29 @@
       color: #0284c7;
       text-transform: uppercase;
       letter-spacing: 0.5px;
+      height: 13px;
+      line-height: 13px;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      margin: 0;
     }
     .showroom-card-desc {
-      font-size: 10px;
-      font-weight: 600;
-      color: #475569;
-      line-height: 1.25;
-      min-height: 26px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #1e293b;
+      line-height: 1.45;
+      flex: 1;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      white-space: normal;
+      margin: 4px 0 8px 0;
+      letter-spacing: 0.15px;
     }
     .showroom-card-hint {
-      font-size: 8.5px;
-      font-weight: 900;
-      color: #64748b;
-      letter-spacing: 0.5px;
+      display: none;
     }
 
     .machine-specs-bars {
@@ -374,53 +427,160 @@
 
     .showroom-action-btn {
       width: 100%;
-      padding: 6px 10px;
-      font-size: 11.5px;
+      height: 32px;
+      padding: 0 10px;
+      font-size: 11px;
       font-weight: 900;
-      margin-top: 3px;
+      margin-top: auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      box-sizing: border-box;
     }
 
-    @media (max-width: 768px) {
+    @media (max-width: 860px), (max-height: 560px) {
       .showroom-nav-cluster {
-        gap: 8px !important;
+        gap: 6px !important;
       }
       .showroom-drag-hint {
         display: none !important;
       }
-      .showroom-title-main {
-        font-size: 15px;
-      }
       .showroom-back-btn {
-        padding: 6px 12px;
-        font-size: 12px;
+        padding: 5px 10px !important;
+        font-size: 11px !important;
+        border-radius: 9px !important;
+        gap: 5px !important;
       }
-      .showroom-card {
-        flex: 0 0 195px;
-        padding: 8px 10px;
+      .showroom-back-btn svg {
+        width: 14px !important;
+        height: 14px !important;
       }
-      .spec-bar-track {
-        width: 110px;
-      }
-    }
-    @media (max-height: 500px) {
-      .showroom-nav-cluster {
+      .showroom-title-cluster {
+        padding: 5px 12px !important;
         gap: 6px !important;
+        border-radius: 9px !important;
+        border-width: 2px !important;
+        box-shadow: 2px 2px 0 #000 !important;
+      }
+      .showroom-badge-tag {
+        display: inline-block !important;
+        font-size: 7.5px !important;
+        padding: 1px 5px !important;
+        border-radius: 5px !important;
+      }
+      .showroom-title-main {
+        font-size: 11px !important;
+        letter-spacing: 0.5px !important;
       }
       .showroom-bottom-deck {
-        padding: 6px 14px 8px;
-        gap: 6px;
+        padding: 4px 8px 6px !important;
+        gap: 4px !important;
+        border-top-width: 2.5px !important;
+        box-shadow: 0 -4px 18px rgba(0, 0, 0, 0.12) !important;
+      }
+      .showroom-tabs-bar {
+        gap: 5px !important;
+        padding-bottom: 0 !important;
       }
       .showroom-tab-btn {
-        padding: 4px 12px;
-        font-size: 11px;
+        padding: 4px 8px !important;
+        font-size: 10px !important;
+        border-radius: 8px !important;
+        border-width: 2px !important;
+        box-shadow: 2px 2px 0 #000 !important;
+        gap: 4px !important;
+      }
+      .showroom-tab-btn .tab-icon {
+        font-size: 12px !important;
+      }
+      .showroom-shelf-scroll {
+        gap: 8px !important;
+        padding: 1px 2px 3px !important;
       }
       .showroom-card {
-        flex: 0 0 180px;
-        padding: 6px 8px;
-        gap: 3px;
+        flex: 0 0 134px !important;
+        width: 134px !important;
+        min-height: 92px !important;
+        max-height: 92px !important;
+        height: 92px !important;
+        padding: 5px 7px !important;
+        border-radius: 8px !important;
+        border-width: 2px !important;
+        box-shadow: 2px 2px 0 #000 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: space-between !important;
+        box-sizing: border-box !important;
+        gap: 0 !important;
+      }
+      .showroom-card-header {
+        height: 18px !important;
+        margin-bottom: 1px !important;
+      }
+      .skin-swatch-circle {
+        width: 16px !important;
+        height: 16px !important;
+        border-radius: 5px !important;
+      }
+      .showroom-card-emoji {
+        font-size: 16px !important;
+        line-height: 1 !important;
+      }
+      .showroom-card-svg {
+        width: 16px !important;
+        height: 16px !important;
+      }
+      .showroom-card-svg svg {
+        width: 14px !important;
+        height: 14px !important;
+      }
+      .machine-color-badge {
+        width: 14px !important;
+        height: 14px !important;
+      }
+      .showroom-card-title {
+        font-size: 10px !important;
+        height: 12px !important;
+        line-height: 12px !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+      }
+      .showroom-card-subtitle {
+        font-size: 7.5px !important;
+        letter-spacing: 0.3px !important;
       }
       .showroom-card-desc {
-        display: none;
+        display: none !important;
+      }
+      .showroom-card-hint {
+        font-size: 7px !important;
+        height: 9px !important;
+        line-height: 9px !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+      }
+      .machine-specs-bars {
+        gap: 2px !important;
+        margin: 1px 0 2px !important;
+      }
+      .spec-row {
+        font-size: 7px !important;
+      }
+      .spec-bar-track {
+        width: 70px !important;
+        height: 4.5px !important;
+        border-width: 1px !important;
+      }
+      .showroom-action-btn {
+        height: 22px !important;
+        padding: 0 5px !important;
+        font-size: 8.5px !important;
+        border-radius: 6px !important;
+        border-width: 1.5px !important;
+        margin-top: auto !important;
       }
     }
 
@@ -574,4 +734,91 @@
       border: 1.5px solid #000;
       border-radius: 6px;
       padding: 2px 8px;
+    }
+
+    /* ── CUTE IN-GAME ARCADE TOAST ALERT ── */
+    .showroom-cute-toast {
+      position: fixed;
+      top: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-35px) scale(0.92);
+      opacity: 0;
+      pointer-events: none;
+      z-index: 999999;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: #fffdf0;
+      color: #000;
+      border: 3px solid #000;
+      box-shadow: 4px 4px 0 #000;
+      border-radius: 16px;
+      padding: 10px 18px;
+      max-width: 90vw;
+      box-sizing: border-box;
+      transition: transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.2s ease;
+      user-select: none;
+      cursor: pointer;
+    }
+    .showroom-cute-toast.active {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateX(-50%) translateY(0) scale(1);
+    }
+    .cute-toast-icon {
+      font-size: 26px;
+      line-height: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: cuteToastBounce 0.45s ease;
+    }
+    @keyframes cuteToastBounce {
+      0% { transform: scale(0.5) rotate(-15deg); }
+      50% { transform: scale(1.2) rotate(10deg); }
+      100% { transform: scale(1) rotate(0); }
+    }
+    .cute-toast-content {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+    }
+    .cute-toast-title {
+      font-family: var(--font-display);
+      font-size: 13px;
+      font-weight: 900;
+      letter-spacing: 0.6px;
+      color: #000;
+      line-height: 1.1;
+      text-transform: uppercase;
+    }
+    .cute-toast-sub {
+      font-size: 11px;
+      font-weight: 700;
+      color: #475569;
+      line-height: 1.25;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .cute-toast-close {
+      background: var(--brut-yellow, #ffe600);
+      border: 2px solid #000;
+      box-shadow: 1.5px 1.5px 0 #000;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 900;
+      cursor: pointer;
+      margin-left: 6px;
+      flex-shrink: 0;
+      transition: transform 0.1s ease;
+    }
+    .cute-toast-close:hover {
+      transform: scale(1.1);
     }

@@ -28,6 +28,8 @@ export class NameModal {
   private nameClaimContainer: HTMLElement | null = null;
   private nameLockedContainer: HTMLElement | null = null;
   private nameLockedDisplay: HTMLElement | null = null;
+  private validationDebounceTimer: number | null = null;
+  private validationCheckId: number = 0;
 
   constructor() {
     this.modalEl = document.getElementById('change-name-modal');
@@ -141,7 +143,7 @@ export class NameModal {
         if (res.success) {
           sounds.playCoin();
         } else {
-          sounds.playCrash(0.8);
+          sounds.playRecoil();
           if (res.error && res.error.includes('FIREBASE_NOT_CONFIGURED') && this.envNoticeEl) {
             this.envNoticeEl.style.display = 'block';
           }
@@ -168,7 +170,7 @@ export class NameModal {
     if (profile.isCustomName) {
       if (this.nameClaimContainer) this.nameClaimContainer.style.display = 'none';
       if (this.nameLockedContainer) this.nameLockedContainer.style.display = 'block';
-      if (this.nameLockedDisplay) this.nameLockedDisplay.textContent = profile.username.toUpperCase();
+      if (this.nameLockedDisplay) this.nameLockedDisplay.textContent = profile.username;
     } else {
       if (this.nameClaimContainer) this.nameClaimContainer.style.display = 'block';
       if (this.nameLockedContainer) this.nameLockedContainer.style.display = 'none';
@@ -188,6 +190,10 @@ export class NameModal {
 
   public close() {
     sounds.playSelect();
+    if (this.validationDebounceTimer) {
+      window.clearTimeout(this.validationDebounceTimer);
+      this.validationDebounceTimer = null;
+    }
     if (this.modalEl) {
       this.modalEl.style.display = 'none';
     }
@@ -198,7 +204,7 @@ export class NameModal {
       this.playerIdEl.textContent = '#' + profile.playerId;
     }
     if (this.currentEl) {
-      this.currentEl.textContent = profile.username.toUpperCase();
+      this.currentEl.textContent = profile.username;
     }
   }
 
@@ -259,20 +265,86 @@ export class NameModal {
     const val = this.inputEl?.value || '';
     const res: NameValidationResult = nameSystem.validateName(val);
 
-    if (this.statusEl) {
-      this.statusEl.textContent = res.message;
-      this.statusEl.className = `name-status-badge status-${res.status}`;
+    if (this.validationDebounceTimer) {
+      window.clearTimeout(this.validationDebounceTimer);
+      this.validationDebounceTimer = null;
     }
 
-    if (this.saveBtn) {
-      const isSameAsCurrent = val.trim().toLowerCase() === nameSystem.username.toLowerCase();
-      this.saveBtn.disabled = !res.valid || isSameAsCurrent;
-      if (this.saveBtn.disabled) {
-        this.saveBtn.classList.add('btn-disabled');
-      } else {
-        this.saveBtn.classList.remove('btn-disabled');
+    if (!res.valid) {
+      if (this.statusEl) {
+        this.statusEl.textContent = res.message;
+        this.statusEl.className = `name-status-badge status-${res.status}`;
       }
+      if (this.saveBtn) {
+        this.saveBtn.disabled = true;
+        this.saveBtn.classList.add('btn-disabled');
+      }
+      return;
     }
+
+    const trimmed = val.trim();
+    const isSameAsCurrent = trimmed.toLowerCase() === nameSystem.username.toLowerCase();
+    if (isSameAsCurrent) {
+      if (this.statusEl) {
+        this.statusEl.textContent = 'CURRENT ACTIVE CALLSIGN';
+        this.statusEl.className = 'name-status-badge status-valid';
+      }
+      if (this.saveBtn) {
+        this.saveBtn.disabled = true;
+        this.saveBtn.classList.add('btn-disabled');
+      }
+      return;
+    }
+
+    // Format is valid! Set checking status immediately and debounce cloud verification
+    if (this.statusEl) {
+      this.statusEl.textContent = 'CHECKING AVAILABILITY...';
+      this.statusEl.className = 'name-status-badge status-checking';
+    }
+    if (this.saveBtn) {
+      this.saveBtn.disabled = true;
+      this.saveBtn.classList.add('btn-disabled');
+    }
+
+    this.validationCheckId++;
+    const currentCheckId = this.validationCheckId;
+
+    this.validationDebounceTimer = window.setTimeout(async () => {
+      try {
+        const available = await cloudSyncService.isUsernameAvailable(trimmed.toLowerCase());
+        if (this.validationCheckId !== currentCheckId) return;
+
+        if (!available) {
+          if (this.statusEl) {
+            this.statusEl.textContent = 'NAME ALREADY TAKEN BY ANOTHER RACER';
+            this.statusEl.className = 'name-status-badge status-taken';
+          }
+          if (this.saveBtn) {
+            this.saveBtn.disabled = true;
+            this.saveBtn.classList.add('btn-disabled');
+          }
+        } else {
+          if (this.statusEl) {
+            this.statusEl.textContent = 'NAME AVAILABLE';
+            this.statusEl.className = 'name-status-badge status-valid';
+          }
+          if (this.saveBtn) {
+            this.saveBtn.disabled = false;
+            this.saveBtn.classList.remove('btn-disabled');
+          }
+        }
+      } catch {
+        if (this.validationCheckId !== currentCheckId) return;
+        if (this.statusEl) {
+          this.statusEl.textContent = 'NAME AVAILABLE';
+          this.statusEl.className = 'name-status-badge status-valid';
+        }
+        if (this.saveBtn) {
+          this.saveBtn.disabled = false;
+          this.saveBtn.classList.remove('btn-disabled');
+        }
+      }
+    }, 280);
   }
 
   private async handleSave() {
@@ -294,7 +366,7 @@ export class NameModal {
       if (this.nameLockedDisplay) this.nameLockedDisplay.textContent = newName;
       this.close();
     } else {
-      sounds.playCrash(0.8);
+      sounds.playRecoil();
       if (this.statusEl) {
         this.statusEl.textContent = res.error || 'INVALID CALLSIGN';
         this.statusEl.className = 'name-status-badge status-taken';

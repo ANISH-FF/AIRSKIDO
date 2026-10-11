@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import confetti from 'canvas-confetti';
+import { CelebrationFX } from './CelebrationFX';
 import { Track } from '../world/Track';
 import { RacerProgress } from '../world/CheckpointSystem';
 import { Kart } from '../entities/Kart';
@@ -7,12 +8,18 @@ import { RumbleManager, RumbleRacer, RumbleTeam } from '../world/RumbleManager';
 import { economy } from '../core/Economy';
 import { RecordManager } from '../core/RecordManager';
 import { sounds } from '../core/Sound';
+import { nameSystem } from '../core/NameSystem';
+
+const VIP_CROWN_SVG = `<svg viewBox="0 0 24 24" width="12" height="12" class="standing-vip-crown" fill="currentColor"><path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5zm14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z"/></svg>`;
 
 export class HUD {
   private posEl: HTMLElement;
   private lapEl: HTMLElement;
   private timeEl: HTMLElement;
+  private timeBoxEl: HTMLElement | null = null;
+  private pbBoxEl: HTMLElement | null = null;
   private pbTimeEl: HTMLElement | null = null;
+  public isTimeSprintActive: boolean = false;
   private speedEl: HTMLElement;
   private nitroEl: HTMLElement;
   private alertEl: HTMLElement;
@@ -82,6 +89,7 @@ export class HUD {
   private lastRumbleTitle: string = '';
   private lastRumbleTimer: string = '';
   private staticArenaMinimapCanvas: HTMLCanvasElement | null = null;
+  private countdownTimeout: any = null;
 
   constructor() {
     this.posEl = document.getElementById('hud-pos')!;
@@ -102,6 +110,8 @@ export class HUD {
     this.spectatorNameEl = document.getElementById('spectator-target-name');
     this.spectatorPosEl = document.getElementById('spectator-target-pos');
     this.pbTimeEl = document.getElementById('hud-pb-time');
+    this.timeBoxEl = document.getElementById('hud-time-box');
+    this.pbBoxEl = document.getElementById('hud-pb-box');
 
     this.nitroPip1 = document.getElementById('nitro-pip-1');
     this.nitroPip2 = document.getElementById('nitro-pip-2');
@@ -155,9 +165,14 @@ export class HUD {
   }
 
   public setTimeSprintMode(active: boolean) {
-    const pbBox = document.getElementById('hud-pb-box');
-    if (pbBox) {
-      pbBox.style.display = active ? 'flex' : 'none';
+    this.isTimeSprintActive = active;
+    if (!this.timeBoxEl) this.timeBoxEl = document.getElementById('hud-time-box');
+    if (!this.pbBoxEl) this.pbBoxEl = document.getElementById('hud-pb-box');
+    if (this.timeBoxEl) {
+      this.timeBoxEl.style.display = active ? 'block' : 'none';
+    }
+    if (this.pbBoxEl) {
+      this.pbBoxEl.style.display = active ? 'block' : 'none';
     }
   }
 
@@ -185,6 +200,86 @@ export class HUD {
     this.hideSpectatorOverlay();
     this.hideRumbleVictoryBanner();
     this.hideSmashCombat();
+    this.hideCountdown();
+  }
+
+  public resetForNewRace(totalLaps: number = 3) {
+    this.hideCountdown();
+    this.lastSpeedStr = '0';
+    if (this.speedEl) {
+      this.speedEl.innerText = '0';
+    }
+
+    this.lastTimeStr = '00:00.0';
+    if (this.timeEl) {
+      this.timeEl.innerText = '00:00.0';
+    }
+
+    this.lastLapStr = `1/${totalLaps}`;
+    if (this.lapEl) {
+      this.lapEl.innerText = `1/${totalLaps}`;
+      this.lapEl.style.color = 'var(--brut-black)';
+    }
+
+    this.lastRank = 1;
+    if (this.posEl) {
+      this.posEl.innerText = '1st';
+      this.posEl.style.background = 'linear-gradient(135deg, #ffe600, #ff9900)';
+      this.posEl.style.color = '#000';
+    }
+
+    this.lastNitroPct = 0;
+    if (this.nitroEl) {
+      this.nitroEl.style.width = '0%';
+    }
+
+    this.lastNitroCharges = 3;
+    if (this.nitroPip1) this.nitroPip1.classList.add('active');
+    if (this.nitroPip2) this.nitroPip2.classList.add('active');
+    if (this.nitroPip3) this.nitroPip3.classList.add('active');
+    if (this.nitroCountEl) {
+      this.nitroCountEl.innerText = '3/3';
+      this.nitroCountEl.classList.remove('depleted');
+    }
+    if (this.touchNitroLabel) {
+      this.touchNitroLabel.innerText = 'NITRO (3)';
+    }
+    if (this.touchNitroBtn) {
+      this.touchNitroBtn.classList.remove('depleted');
+    }
+
+    // Reset Live Standings Card on Left
+    this.lastStandingsHtml = '';
+    this.standingsThrottle = 0;
+    if (this.standingsListEl) {
+      this.standingsListEl.innerHTML = '';
+    }
+
+    if (this.isRumbleModeActive) {
+      const topLeft = document.querySelector('.top-left-hud') as HTMLElement | null;
+      const topRight = document.querySelector('.top-right-hud') as HTMLElement | null;
+      const standingsCard = document.getElementById('live-standings-card');
+      const pbBox = document.getElementById('hud-pb-box');
+      if (topLeft) topLeft.style.setProperty('display', 'none', 'important');
+      if (topRight) topRight.style.setProperty('display', 'none', 'important');
+      if (standingsCard) standingsCard.style.setProperty('display', 'none', 'important');
+      if (pbBox) pbBox.style.setProperty('display', 'none', 'important');
+    } else {
+      this.setTimeSprintMode(this.isTimeSprintActive);
+    }
+
+    this.hideFinishCountdown();
+    this.hideSpectatorOverlay();
+    this.showWrongWay(false);
+    this.hideSmashCombat();
+    if (this.alertTimeout) {
+      clearTimeout(this.alertTimeout);
+      this.alertTimeout = null;
+    }
+    if (this.alertEl) {
+      this.alertEl.className = '';
+      this.alertEl.innerText = '';
+    }
   }
 
   public updateStatus(
@@ -196,13 +291,18 @@ export class HUD {
     boostFraction: number,
     nitroCharges: number = 3
   ) {
-    if (rank !== this.lastRank) {
-      this.lastRank = rank;
-      const suffixes = ['th', 'st', 'nd', 'rd', 'th'];
-      const suffix = suffixes[rank] || 'th';
-      this.posEl.innerText = `${rank}${suffix}`;
+    const safeRank = (typeof rank === 'number' && !isNaN(rank) && rank > 0) ? Math.floor(rank) : 1;
+    if (safeRank !== this.lastRank) {
+      this.lastRank = safeRank;
+      const j = safeRank % 10;
+      const k = safeRank % 100;
+      let suffix = 'th';
+      if (j === 1 && k !== 11) suffix = 'st';
+      else if (j === 2 && k !== 12) suffix = 'nd';
+      else if (j === 3 && k !== 13) suffix = 'rd';
+      this.posEl.innerText = `${safeRank}${suffix.toUpperCase()}`;
 
-      if (rank === 1) {
+      if (safeRank === 1) {
         this.posEl.style.background = 'linear-gradient(135deg, #ffe600, #ff9900)';
         this.posEl.style.color = '#000';
       } else {
@@ -268,7 +368,7 @@ export class HUD {
     }
   }
 
-  public showAlert(text: string, type: 'smash' | 'recoil' | 'respawn' | 'boost' | 'nitro' | 'lap' = 'smash') {
+  public showAlert(text: string, type: 'smash' | 'recoil' | 'respawn' | 'boost' | 'nitro' | 'lap' = 'smash', durationMs: number = 2500) {
     if (this.alertTimeout) clearTimeout(this.alertTimeout);
 
     this.alertEl.className = `active ${type}`;
@@ -276,7 +376,7 @@ export class HUD {
 
     this.alertTimeout = window.setTimeout(() => {
       this.alertEl.className = '';
-    }, 1200);
+    }, durationMs);
   }
 
   // Giant arcade center splash (like countdown start "SMASH!")
@@ -316,23 +416,41 @@ export class HUD {
   }
 
   public showCountdown(value: string) {
+    if (this.countdownTimeout) {
+      clearTimeout(this.countdownTimeout);
+      this.countdownTimeout = null;
+    }
+    if (!this.countdownEl) return;
     this.countdownEl.style.display = 'block';
     this.countdownEl.innerText = value;
     this.countdownEl.style.transform = 'translate(-50%, -50%) scale(1.2)';
 
-    setTimeout(() => {
-      this.countdownEl.style.transform = 'translate(-50%, -50%) scale(1.0)';
+    this.countdownTimeout = setTimeout(() => {
+      if (this.countdownEl) {
+        this.countdownEl.style.transform = 'translate(-50%, -50%) scale(1.0)';
+      }
     }, 50);
 
     if (value === 'GO!' || value === 'SMASH!') {
-      setTimeout(() => {
-        this.countdownEl.style.display = 'none';
+      this.countdownTimeout = setTimeout(() => {
+        if (this.countdownEl) {
+          this.countdownEl.style.display = 'none';
+          this.countdownEl.innerText = '';
+        }
+        this.countdownTimeout = null;
       }, 900);
     }
   }
 
   public hideCountdown() {
-    this.countdownEl.style.display = 'none';
+    if (this.countdownTimeout) {
+      clearTimeout(this.countdownTimeout);
+      this.countdownTimeout = null;
+    }
+    if (this.countdownEl) {
+      this.countdownEl.style.display = 'none';
+      this.countdownEl.innerText = '';
+    }
   }
 
   public showWrongWay(visible: boolean) {
@@ -563,15 +681,10 @@ export class HUD {
     ctx.restore();
   }
 
-  public setRoomBadge(roomCode: string | null) {
+  public setRoomBadge(_roomCode: string | null) {
     const badge = document.getElementById('room-badge');
     if (badge) {
-      if (roomCode) {
-        badge.style.display = 'block';
-        badge.innerText = `ROOM: ${roomCode}`;
-      } else {
-        badge.style.display = 'none';
-      }
+      badge.style.display = 'none'; // Permanently hidden on in-game HUD to protect streamer privacy
     }
   }
 
@@ -612,6 +725,12 @@ export class HUD {
     const subtext = document.getElementById('finish-subtext')!;
     const tbody = document.getElementById('results-body')!;
 
+    modal.classList.remove('has-tdm');
+    const tdmResults = document.getElementById('rumble-tdm-results');
+    if (tdmResults) tdmResults.style.display = 'none';
+    const resultsTable = document.getElementById('results-table');
+    if (resultsTable) resultsTable.style.display = 'table';
+
     modal.style.display = 'flex';
     this.showWrongWay(false);
 
@@ -624,12 +743,8 @@ export class HUD {
         finishBadge.style.borderColor = '#000000';
       }
       subtext.innerText = 'Sky track mastered. Recoil chaos conquered.';
-      // Fire confetti celebration!
-      confetti({
-        particleCount: 120,
-        spread: 70,
-        origin: { y: 0.6 },
-      });
+      // Fire premium multi-stage fireworks celebration!
+      CelebrationFX.celebrateVictory('yellow');
     } else {
       title.innerText = 'RACE COMPLETE';
       title.style.color = '#FFFFFF';
@@ -640,14 +755,14 @@ export class HUD {
       subtext.innerText = 'Final standings recorded.';
     }
 
-    // Populate Trackmania Personal Best (PB) Banner
+    // Populate Personal Best (PB) Banner - STRICTLY ONLY for Time Sprint mode!
     const recordBanner = document.getElementById('finish-record-banner');
     const recordTitle = document.getElementById('finish-record-title');
     const recordStat = document.getElementById('finish-record-stat');
     const recordDelta = document.getElementById('finish-record-delta');
     const recordIcon = document.getElementById('finish-record-icon');
 
-    if (recordBanner && recordInfo) {
+    if (this.isTimeSprintActive && recordBanner && recordInfo) {
       recordBanner.style.display = 'flex';
       if (recordInfo.isNewPB) {
         recordBanner.classList.add('is-new-record');
@@ -712,9 +827,10 @@ export class HUD {
         }
       }
 
+      const isVip = racer.isPlayer ? economy.isVip() : !!racer.isVip;
       const tag = racer.isPlayer
-        ? (economy.isVip() ? '👑 (YOU - VIP)' : '(YOU)')
-        : (racer.name.toLowerCase().includes('bot') || racer.name.toLowerCase().includes('ai') ? '(AI)' : '(ONLINE)');
+        ? (isVip ? `${VIP_CROWN_SVG} (YOU - VIP)` : '(YOU)')
+        : (isVip ? `${VIP_CROWN_SVG} (VIP)` : (racer.name.toLowerCase().includes('bot') || racer.name.toLowerCase().includes('ai') ? '(AI)' : '(ONLINE)'));
 
       row.innerHTML = `
         <td>#${idx + 1}</td>
@@ -728,14 +844,27 @@ export class HUD {
     this.hideSpectatorOverlay();
   }
 
+  public showGrandRecordCelebration(params: {
+    trackName: string;
+    timeSeconds: number;
+    deltaSeconds: number;
+    prevPB: number | null;
+    globalRank?: number | null;
+    onClose?: () => void;
+  }) {
+    if (params.onClose) params.onClose();
+  }
+
   private standingsThrottle: number = 0;
 
-  public updateLiveStandings(standings: RacerProgress[], totalLaps: number, spectatedId?: string) {
-    if (!this.standingsListEl) return;
+  public updateLiveStandings(standings: RacerProgress[], totalLaps: number, spectatedId?: string, force: boolean = false) {
+    if (!this.standingsListEl || this.isRumbleModeActive) return;
 
-    // Throttle to 10Hz (every 6th frame at 60fps) to eliminate 50+ string template concatenations/sec
-    this.standingsThrottle = (this.standingsThrottle + 1) % 6;
-    if (this.standingsThrottle !== 0) return;
+    if (!force) {
+      // Throttle to 10Hz (every 6th frame at 60fps) to eliminate 50+ string template concatenations/sec
+      this.standingsThrottle = (this.standingsThrottle + 1) % 6;
+      if (this.standingsThrottle !== 0) return;
+    }
 
     let html = '';
     for (let i = 0; i < standings.length; i++) {
@@ -753,9 +882,10 @@ export class HUD {
         lapHtml = `<span class="standing-lap-tag">L${Math.min(racer.lap, totalLaps)}/${totalLaps}</span>`;
       }
 
+      const isVip = isPlayer ? economy.isVip() : !!racer.isVip;
       const displayName = isPlayer
-        ? (economy.isVip() ? '👑 YOU' : 'YOU')
-        : racer.name.toUpperCase();
+        ? (isVip ? `${VIP_CROWN_SVG}YOU` : 'YOU')
+        : (isVip ? `${VIP_CROWN_SVG}${racer.name}` : racer.name);
 
       html += `
         <div class="${rowClass}">
@@ -789,25 +919,31 @@ export class HUD {
     isEliminated: boolean = false,
     customHeader?: string
   ) {
-    if (this.spectatorOverlayEl && this.spectatorNameEl && this.spectatorPosEl) {
-      this.spectatorOverlayEl.style.display = 'flex';
-      this.spectatorNameEl.innerText = targetName.toUpperCase();
-      const tagStr = typeof targetRankOrTag === 'number' ? `#${targetRankOrTag}` : targetRankOrTag;
-      if (typeof tagStr === 'string' && tagStr.includes('<')) {
-        this.spectatorPosEl.innerHTML = tagStr;
-      } else {
-        this.spectatorPosEl.innerText = tagStr;
-      }
+    if (!this.spectatorOverlayEl) {
+      this.spectatorOverlayEl = document.getElementById('spectator-overlay');
+    }
+    if (!this.spectatorOverlayEl) return;
 
-      const badgeSpan = this.spectatorOverlayEl.querySelector('.spectator-badge span:nth-child(2)') as HTMLElement | null;
-      if (badgeSpan) {
-        if (customHeader) {
-          badgeSpan.innerHTML = `${customHeader} // SPECTATING: <strong id="spectator-target-name">${targetName.toUpperCase()}</strong>`;
-        } else {
-          badgeSpan.innerHTML = isEliminated
-            ? `ELIMINATED // SPECTATING: <strong id="spectator-target-name">${targetName.toUpperCase()}</strong>`
-            : `SPECTATING: <strong id="spectator-target-name">${targetName.toUpperCase()}</strong>`;
-        }
+    this.spectatorOverlayEl.style.display = 'flex';
+
+    const posEl = document.getElementById('spectator-target-pos') || this.spectatorPosEl;
+    if (posEl) {
+      const tagStr = typeof targetRankOrTag === 'number' ? `#${targetRankOrTag}` : (targetRankOrTag || '#2');
+      if (typeof tagStr === 'string' && tagStr.includes('<')) {
+        posEl.innerHTML = tagStr;
+      } else {
+        posEl.innerText = tagStr;
+      }
+    }
+
+    const badgeSpan = this.spectatorOverlayEl.querySelector('.spectator-badge span:nth-child(2)') as HTMLElement | null;
+    if (badgeSpan) {
+      if (customHeader) {
+        badgeSpan.innerHTML = `${customHeader} // SPECTATING: <strong id="spectator-target-name">${targetName}</strong>`;
+      } else {
+        badgeSpan.innerHTML = isEliminated
+          ? `ELIMINATED // SPECTATING: <strong id="spectator-target-name">${targetName}</strong>`
+          : `SPECTATING: <strong id="spectator-target-name">${targetName}</strong>`;
       }
     }
   }
@@ -840,20 +976,26 @@ export class HUD {
 
   public setRumbleMode(active: boolean) {
     this.isRumbleModeActive = active;
+    document.body.classList.toggle('is-rumble-mode', active);
+    const hudContainer = document.getElementById('hud-container');
+    if (hudContainer) hudContainer.classList.toggle('is-rumble-mode', active);
+
     const topLeft = document.querySelector('.top-left-hud') as HTMLElement | null;
     const topRight = document.querySelector('.top-right-hud') as HTMLElement | null;
     const standingsCard = document.getElementById('live-standings-card');
+    const pbBox = document.getElementById('hud-pb-box');
     const nitroCard = document.querySelector('.nitro-card') as HTMLElement | null;
     const touchNitroRow = document.querySelector('.touch-steer-top-row') as HTMLElement | null;
 
     const topBar = document.getElementById('top-bar');
 
     if (active) {
-      if (topLeft) topLeft.style.display = 'none';
-      if (topRight) topRight.style.display = 'none';
-      if (standingsCard) standingsCard.style.display = 'none';
-      if (nitroCard) nitroCard.style.display = 'none';
-      if (touchNitroRow) touchNitroRow.style.display = 'none';
+      if (topLeft) topLeft.style.setProperty('display', 'none', 'important');
+      if (topRight) topRight.style.setProperty('display', 'none', 'important');
+      if (standingsCard) standingsCard.style.setProperty('display', 'none', 'important');
+      if (pbBox) pbBox.style.setProperty('display', 'none', 'important');
+      if (nitroCard) nitroCard.style.setProperty('display', 'none', 'important');
+      if (touchNitroRow) touchNitroRow.style.setProperty('display', 'none', 'important');
       if (topBar) topBar.classList.add('rumble-top-bar');
       if (this.rumbleHudBar) this.rumbleHudBar.style.display = 'flex';
       if (this.killfeedContainer) {
@@ -863,11 +1005,12 @@ export class HUD {
       }
     } else {
       this.resetRumbleHud();
-      if (topLeft) topLeft.style.display = 'flex';
-      if (topRight) topRight.style.display = 'block';
-      if (standingsCard) standingsCard.style.display = 'flex';
-      if (nitroCard) nitroCard.style.display = 'flex';
-      if (touchNitroRow) touchNitroRow.style.display = 'block';
+      if (topLeft) topLeft.style.removeProperty('display');
+      if (topRight) topRight.style.removeProperty('display');
+      if (standingsCard) standingsCard.style.removeProperty('display');
+      this.setTimeSprintMode(this.isTimeSprintActive);
+      if (nitroCard) nitroCard.style.removeProperty('display');
+      if (touchNitroRow) touchNitroRow.style.removeProperty('display');
       if (topBar) topBar.classList.remove('rumble-top-bar');
       if (this.rumbleHudBar) this.rumbleHudBar.style.display = 'none';
       if (this.killfeedContainer) {
@@ -933,12 +1076,12 @@ export class HUD {
         if (!isSpectating) {
           leftLabel = 'YOU';
           leftContent = this.generateCuteHeartsHtml(myRacer ? Math.max(0, myRacer.lives) : 0);
-          rightLabel = opponent ? opponent.name.toUpperCase() : 'OPPONENT';
+          rightLabel = opponent ? opponent.name : 'OPPONENT';
           rightContent = this.generateCuteHeartsHtml(opponent ? Math.max(0, opponent.lives) : 0);
         } else {
           leftLabel = 'YOU (OUT)';
           leftContent = this.generateCuteHeartsHtml(0);
-          rightLabel = opponent ? opponent.name.toUpperCase() : 'WINNER';
+          rightLabel = opponent ? opponent.name : 'WINNER';
           rightContent = this.generateCuteHeartsHtml(opponent ? Math.max(0, opponent.lives) : 0);
         }
         timerText = 'LAST PILOT STANDING';
@@ -954,7 +1097,7 @@ export class HUD {
           leftContent = this.generateCuteHeartsHtml(myRacer ? Math.max(0, myRacer.lives) : 0);
         } else {
           const target = spectatedRacer || aliveRacersList[0];
-          leftLabel = target ? `SPECTATING: ${target.name.toUpperCase()}` : 'SPECTATING';
+          leftLabel = target ? `SPECTATING: ${target.name}` : 'SPECTATING';
           leftContent = this.generateCuteHeartsHtml(target ? Math.max(0, target.lives) : 0);
         }
         rightLabel = 'SURVIVORS';
@@ -975,7 +1118,7 @@ export class HUD {
           leftContent = this.generateCuteHeartsHtml(myRacer ? Math.max(0, myRacer.lives) : 0);
         } else {
           const target = spectatedRacer || aliveRacersList[0];
-          leftLabel = target ? `SPECTATING: ${target.name.toUpperCase()}` : 'SPECTATING';
+          leftLabel = target ? `SPECTATING: ${target.name}` : 'SPECTATING';
           leftContent = this.generateCuteHeartsHtml(target ? Math.max(0, target.lives) : 0);
         }
         rightLabel = 'SQUADS ALIVE';
@@ -1005,11 +1148,11 @@ export class HUD {
       titleText = 'SOLO FREE FOR ALL';
 
       if (!isSpectating) {
-        leftLabel = (myRacer?.name || 'YOU').toUpperCase();
+        leftLabel = myRacer?.name || 'YOU';
         leftContent = `${myRacer ? myRacer.kills : 0}`;
       } else {
         const target = spectatedRacer || aliveRacersList[0];
-        leftLabel = target ? `SPECTATING: ${target.name.toUpperCase()}` : 'SPECTATING';
+        leftLabel = target ? `SPECTATING: ${target.name}` : 'SPECTATING';
         leftContent = `${target ? target.kills : 0}`;
       }
 
@@ -1017,17 +1160,17 @@ export class HUD {
       const otherRacers = Array.from(manager.racers.values()).filter((r) => r.id !== activeSubjectId);
       if (otherRacers.length === 1) {
         const opponent = otherRacers[0];
-        rightLabel = opponent.name.toUpperCase();
+        rightLabel = opponent.name;
         rightContent = `${opponent.kills}`;
       } else if (otherRacers.length > 1) {
         const allSorted = Array.from(manager.racers.values()).sort((a, b) => b.kills - a.kills);
         const leader = allSorted[0];
         const rival = allSorted[1];
         if (leader && leader.id === activeSubjectId) {
-          rightLabel = rival ? `${rival.name.toUpperCase()} (2ND)` : 'CONTENDER';
+          rightLabel = rival ? `${rival.name} (2ND)` : 'CONTENDER';
           rightContent = `${rival ? rival.kills : 0}`;
         } else {
-          rightLabel = leader ? `${leader.name.toUpperCase()} (1ST)` : 'LEADER';
+          rightLabel = leader ? `${leader.name} (1ST)` : 'LEADER';
           rightContent = `${leader ? leader.kills : 0}`;
         }
       } else {
@@ -1096,23 +1239,25 @@ export class HUD {
           .map((entry) => {
             const aTeamClass = (entry.attackerTeam === 'frost' || entry.attackerTeam === 'cyan') ? 'team-frost' : (entry.attackerTeam === 'blaze' || entry.attackerTeam === 'crimson') ? 'team-blaze' : 'team-solo';
             const vTeamClass = (entry.victimTeam === 'frost' || entry.victimTeam === 'cyan') ? 'team-frost' : (entry.victimTeam === 'blaze' || entry.victimTeam === 'crimson') ? 'team-blaze' : 'team-solo';
-            const selfClass = entry.isSelfAttacker ? 'self-kill' : (entry.isSelfVictim ? 'self-victim' : '');
-            const elimClass = entry.isElimination ? 'is-eliminated' : '';
+            
+            const attackerDisplay = entry.isSelfAttacker ? `${entry.attackerName} (YOU)` : entry.attackerName;
+            const victimDisplay = entry.isSelfVictim ? `${entry.victimName} (YOU)` : entry.victimName;
+
             let content = '';
             if (entry.attackerName) {
               if (entry.isElimination) {
-                content = `<span class="killfeed-name ${aTeamClass}">${entry.attackerName}</span><span class="killfeed-action eliminated">ELIMINATED</span><span class="killfeed-name victim ${vTeamClass}">${entry.victimName}</span>`;
+                content = `<span class="killfeed-name ${aTeamClass}">${attackerDisplay}</span><span class="killfeed-action eliminated">ELIMINATED</span><span class="killfeed-name victim ${vTeamClass}">${victimDisplay}</span>`;
               } else {
-                content = `<span class="killfeed-name ${aTeamClass}">${entry.attackerName}</span><span class="killfeed-action">SLAMMED</span><span class="killfeed-name victim ${vTeamClass}">${entry.victimName}</span>`;
+                content = `<span class="killfeed-name ${aTeamClass}">${attackerDisplay}</span><span class="killfeed-action">SLAMMED</span><span class="killfeed-name victim ${vTeamClass}">${victimDisplay}</span>`;
               }
             } else {
               if (entry.isElimination) {
-                content = `<span class="killfeed-name victim ${vTeamClass}">${entry.victimName}</span><span class="killfeed-tag-out eliminated">LOST ALL LIVES</span>`;
+                content = `<span class="killfeed-name victim ${vTeamClass}">${victimDisplay}</span><span class="killfeed-tag-out eliminated">LOST ALL LIVES</span>`;
               } else {
-                content = `<span class="killfeed-name victim ${vTeamClass}">${entry.victimName}</span><span class="killfeed-tag-out">FELL OFF</span>`;
+                content = `<span class="killfeed-name victim ${vTeamClass}">${victimDisplay}</span><span class="killfeed-tag-out">FELL OFF</span>`;
               }
             }
-            return `<div class="killfeed-entry ${selfClass} ${elimClass}">${content}</div>`;
+            return `<div class="killfeed-entry">${content}</div>`;
           })
           .join('');
       }
@@ -1282,6 +1427,15 @@ export class HUD {
     ctx.restore();
   }
 
+  private escapeHtml(str: string): string {
+    return str
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
   public showRumbleFinish(
     winningTeam: RumbleTeam | 'draw',
     winnerName: string,
@@ -1293,6 +1447,8 @@ export class HUD {
     const title = document.getElementById('finish-title')!;
     const subtext = document.getElementById('finish-subtext')!;
     const tbody = document.getElementById('results-body')!;
+    const resultsTable = document.getElementById('results-table') as HTMLElement | null;
+    const tdmResults = document.getElementById('rumble-tdm-results') as HTMLElement | null;
     const recordBanner = document.getElementById('finish-record-banner');
     if (recordBanner) {
       recordBanner.style.display = 'none';
@@ -1311,11 +1467,8 @@ export class HUD {
         finishBadge.style.borderColor = '#000000';
       }
       subtext.innerText = `${winnerName} DOMINATED THE SKY ARENA!`;
-      confetti({
-        particleCount: 150,
-        spread: 80,
-        origin: { y: 0.6 },
-      });
+      const victoryTheme = winningTeam === 'frost' ? 'frost' : winningTeam === 'blaze' ? 'blaze' : 'yellow';
+      CelebrationFX.celebrateVictory(victoryTheme);
     } else {
       title.innerText = 'MATCH COMPLETE';
       title.style.color = '#FFFFFF';
@@ -1326,34 +1479,100 @@ export class HUD {
       subtext.innerText = `${winnerName} WON THE ARENA CLASH.`;
     }
 
-    const thead = document.querySelector('#results-table thead');
-    if (thead) {
-      thead.innerHTML = `
-        <tr>
-          <th>POS</th>
-          <th>PILOT</th>
-          <th>KILLS</th>
-          <th>DEATHS</th>
-        </tr>
-      `;
+    const isTdm = racers.some(r => r.team === 'frost' || r.team === 'blaze' || r.team === 'cyan' || r.team === 'crimson');
+
+    if (isTdm && tdmResults) {
+      modal.classList.add('has-tdm');
+      if (resultsTable) resultsTable.style.display = 'none';
+      tdmResults.style.display = 'grid';
+
+      const frostRacers = racers.filter(r => r.team === 'frost' || r.team === 'cyan').sort((a, b) => b.kills - a.kills || a.deaths - b.deaths);
+      const blazeRacers = racers.filter(r => r.team === 'blaze' || r.team === 'crimson').sort((a, b) => b.kills - a.kills || a.deaths - b.deaths);
+
+      const frostScore = frostRacers.reduce((acc, r) => acc + r.kills, 0);
+      const blazeScore = blazeRacers.reduce((acc, r) => acc + r.kills, 0);
+
+      const frostPtsEl = document.getElementById('frost-squad-pts');
+      const blazePtsEl = document.getElementById('blaze-squad-pts');
+      if (frostPtsEl) frostPtsEl.innerText = frostScore.toString();
+      if (blazePtsEl) blazePtsEl.innerText = blazeScore.toString();
+
+      const frostPill = document.getElementById('frost-outcome-pill');
+      const blazePill = document.getElementById('blaze-outcome-pill');
+
+      if (winningTeam === 'frost') {
+        if (frostPill) { frostPill.innerText = 'VICTORY'; frostPill.className = 'rumble-squad-outcome-pill won'; }
+        if (blazePill) { blazePill.innerText = 'DEFEAT'; blazePill.className = 'rumble-squad-outcome-pill lost'; }
+      } else if (winningTeam === 'blaze') {
+        if (frostPill) { frostPill.innerText = 'DEFEAT'; frostPill.className = 'rumble-squad-outcome-pill lost'; }
+        if (blazePill) { blazePill.innerText = 'VICTORY'; blazePill.className = 'rumble-squad-outcome-pill won'; }
+      } else {
+        if (frostPill) { frostPill.innerText = 'TIED'; frostPill.className = 'rumble-squad-outcome-pill tied'; }
+        if (blazePill) { blazePill.innerText = 'TIED'; blazePill.className = 'rumble-squad-outcome-pill tied'; }
+      }
+
+      const renderRoster = (containerId: string, teamRacers: RumbleRacer[]) => {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+        container.innerHTML = '';
+
+        const maxKills = Math.max(...teamRacers.map(r => r.kills), 0);
+
+        teamRacers.forEach(r => {
+          const isMvp = r.kills > 0 && r.kills === maxKills;
+          const row = document.createElement('div');
+          row.className = `rumble-pilot-row ${r.isPlayer ? 'is-self' : ''}`;
+          row.innerHTML = `
+            <div class="pilot-left">
+              ${isMvp ? '<span class="pilot-mvp-pill">MVP</span>' : ''}
+              <span class="pilot-name" title="${this.escapeHtml(r.name)}">${this.escapeHtml(r.name)}</span>
+              ${r.isPlayer ? '<span class="pilot-you-tag">YOU</span>' : ''}
+            </div>
+            <div class="pilot-stat-cols">
+              <span class="col-val-k" title="${r.kills} Kills">${r.kills}</span>
+              <span class="col-val-d" title="${r.deaths} Deaths">${r.deaths}</span>
+            </div>
+          `;
+          container.appendChild(row);
+        });
+      };
+
+      renderRoster('frost-squad-roster', frostRacers);
+      renderRoster('blaze-squad-roster', blazeRacers);
+    } else {
+      modal.classList.remove('has-tdm');
+      if (tdmResults) tdmResults.style.display = 'none';
+      if (resultsTable) resultsTable.style.display = 'table';
+
+      const thead = document.querySelector('#results-table thead');
+      if (thead) {
+        thead.innerHTML = `
+          <tr>
+            <th>POS</th>
+            <th>PILOT</th>
+            <th>KILLS</th>
+            <th>DEATHS</th>
+          </tr>
+        `;
+      }
+
+      tbody.innerHTML = '';
+      const sorted = [...racers].sort((a, b) => b.kills - a.kills || a.deaths - b.deaths);
+      sorted.forEach((r, idx) => {
+        const row = document.createElement('tr');
+        if (r.isPlayer) row.className = 'highlight';
+
+        const tag = r.isPlayer ? '(YOU)' : '';
+
+        row.innerHTML = `
+          <td>#${idx + 1}</td>
+          <td>${this.escapeHtml(r.name)} ${tag}</td>
+          <td>${r.kills}</td>
+          <td>${r.deaths}</td>
+        `;
+        tbody.appendChild(row);
+      });
     }
-
-    tbody.innerHTML = '';
-    const sorted = [...racers].sort((a, b) => b.kills - a.kills || a.deaths - b.deaths);
-    sorted.forEach((r, idx) => {
-      const row = document.createElement('tr');
-      if (r.isPlayer) row.className = 'highlight';
-
-      const tag = r.isPlayer ? '(YOU)' : (r.team !== 'none' ? `[${r.team.toUpperCase()}]` : '');
-
-      row.innerHTML = `
-        <td>#${idx + 1}</td>
-        <td>${r.name} ${tag}</td>
-        <td>${r.kills}</td>
-        <td>${r.deaths}</td>
-      `;
-      tbody.appendChild(row);
-    });
 
     this.hideFinishCountdown();
     this.hideSpectatorOverlay();

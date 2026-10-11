@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import confetti from 'canvas-confetti';
+import { CelebrationFX } from './ui/CelebrationFX';
 import { Engine } from './core/Engine';
 import { PhysicsEngine } from './core/Physics';
 import { InputManager } from './core/Input';
@@ -31,9 +32,14 @@ import { initLeaderboardUI } from './ui/LeaderboardUI';
 import { getSkinDisplayName } from './ui/KartAvatars';
 import { speedlines } from './ui/SpeedlinesOverlay';
 import { UIScaleEngine } from './core/UIScaleEngine';
-import { matchLoadingScreen } from './ui/MatchLoadingScreen';
+import { matchLoadingScreen, LoadingMode } from './ui/MatchLoadingScreen';
+import { BOT_CONFIG, generateBotProfile, pickTeamBotNames } from './core/BotKartSettings';
+import { SecurityGuard } from './core/SecurityGuard';
 
-// ── INITIALIZE UNIVERSAL UI SCALE ENGINE (Smash Karts / WebGL Responsive Matrix) ──
+// ── INITIALIZE SECURITY SHIELD (Anti-Inspect & Asset Guard) ──
+SecurityGuard.init();
+
+// ── INITIALIZE UNIVERSAL UI SCALE ENGINE (WebGL Dynamic Scaling Matrix) ──
 UIScaleEngine.init();
 
 // High-performance reusable scratch vectors (eliminates 60fps GC allocations)
@@ -67,6 +73,7 @@ const _wrongWayFwdH = new THREE.Vector3();
 const _wrongWayGateH = new THREE.Vector3();
 const _minimapOtherKarts: Kart[] = [];
 const _lastShadowCenter = new THREE.Vector3(999999, 999999, 999999);
+const _scratchRumbleVel = new THREE.Vector3();
 
 enum GameState {
   MENU,
@@ -121,11 +128,13 @@ function drawSparkleStar(ctx: CanvasRenderingContext2D, cx: number, cy: number, 
   ctx.fill();
 }
 
-function createBrutalistNameTag(name: string, isHost: boolean, teamColor?: string, isVip?: boolean): THREE.Sprite {
+function createBrutalistNameTag(name: string, teamColor?: string, isVip?: boolean): THREE.Sprite {
   const canvas = document.createElement('canvas');
   canvas.width = 512;
   canvas.height = 128;
   const ctx = canvas.getContext('2d')!;
+
+  const cleanName = (name || 'RACER').trim().slice(0, 14);
 
   // 1. Neo-Brutalist Hard Black Drop Shadow
   ctx.fillStyle = '#000000';
@@ -133,7 +142,7 @@ function createBrutalistNameTag(name: string, isHost: boolean, teamColor?: strin
   ctx.fill();
 
   if (isVip) {
-    // ── LUXURY ROYAL VIP PLATE (BRAWL STARS / ASYMMETRICAL GOLD) ──
+    // ── LUXURY ROYAL VIP PLATE (GOLD GRADIENT + VIP BADGE + BOLD NAME) ──
     const goldGrad = ctx.createLinearGradient(8, 8, 8, 104);
     goldGrad.addColorStop(0.0, '#FFFEE6'); // Gleaming top reflection
     goldGrad.addColorStop(0.2, '#FFE554');
@@ -154,8 +163,27 @@ function createBrutalistNameTag(name: string, isHost: boolean, teamColor?: strin
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.75)';
     ctx.stroke();
 
-    // ── PROMINENT JET BLACK [ VIP ] PILL BADGE ──
-    roundRect(ctx, 28, 28, 100, 56, 14);
+    // ── MEASURE AND GROUP-CENTER [ VIP ] BADGE + RACER NAME ──
+    const vipPillWidth = 80;
+    const vipPillHeight = 52;
+    const gap = 16;
+    const maxNameWidth = 320;
+
+    let fontSize = 44;
+    ctx.font = `900 ${fontSize}px "Fredoka", sans-serif`;
+    while (ctx.measureText(cleanName).width > maxNameWidth && fontSize > 26) {
+      fontSize -= 2;
+      ctx.font = `900 ${fontSize}px "Fredoka", sans-serif`;
+    }
+    const nameWidth = ctx.measureText(cleanName).width;
+
+    const totalGroupWidth = vipPillWidth + gap + nameWidth;
+    const groupStartX = Math.round(248 - totalGroupWidth / 2);
+
+    // ── JET BLACK [ VIP ] PILL BADGE ──
+    const pillX = groupStartX;
+    const pillY = Math.round(56 - vipPillHeight / 2);
+    roundRect(ctx, pillX, pillY, vipPillWidth, vipPillHeight, 14);
     ctx.fillStyle = '#000000';
     ctx.fill();
     ctx.lineWidth = 3;
@@ -163,28 +191,30 @@ function createBrutalistNameTag(name: string, isHost: boolean, teamColor?: strin
     ctx.stroke();
 
     // Subtle diamond sparkles on VIP pill corners
-    drawSparkleStar(ctx, 38, 38, 3.5, '#FFFFFF');
-    drawSparkleStar(ctx, 118, 74, 3.5, '#FFE554');
+    drawSparkleStar(ctx, pillX + 10, pillY + 10, 3, '#FFFFFF');
+    drawSparkleStar(ctx, pillX + vipPillWidth - 10, pillY + vipPillHeight - 10, 3, '#FFE554');
 
-    ctx.font = '900 28px "Fredoka", sans-serif';
+    ctx.font = '900 26px "Fredoka", sans-serif';
     ctx.fillStyle = '#FFE554';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('VIP', 78, 57);
+    ctx.fillText('VIP', pillX + vipPillWidth / 2, 56);
 
-    // ── RACER NAME (Bold, Crisp & Centered Balance) ──
-    ctx.font = '900 42px "Fredoka", sans-serif';
+    // ── RACER NAME (Bold & Aligned within Centered Group) ──
+    const nameX = pillX + vipPillWidth + gap;
+    ctx.font = `900 ${fontSize}px "Fredoka", sans-serif`;
     ctx.fillStyle = '#000000';
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
-    ctx.fillText(name.slice(0, 11).toUpperCase(), 148, 57);
+    ctx.fillText(cleanName, nameX, 56);
 
-    // Sparkling 4-point stars on golden plate
-    drawSparkleStar(ctx, 452, 34, 12, '#FFFFFF');
-    drawSparkleStar(ctx, 436, 78, 8, '#FFDE59');
+    // Symmetrical decorative stars on gold plate corners
+    drawSparkleStar(ctx, 36, 36, 9, '#FFFFFF');
+    drawSparkleStar(ctx, 460, 36, 11, '#FFFFFF');
+    drawSparkleStar(ctx, 444, 76, 7, '#FFDE59');
   } else {
-    // ── CLEAN STANDARD BRUTOPIA RACER PLATE ──
-    const bgColor = teamColor ? teamColor : (isHost ? '#FFDE59' : '#00D2FF');
+    // ── CLEAN STANDARD RACER PLATE (PURE CENTERED NAME, ZERO "PILOT"/"HOST"/LEVEL) ──
+    const bgColor = teamColor ? teamColor : '#00D2FF';
     ctx.fillStyle = bgColor;
     roundRect(ctx, 8, 8, 480, 96, 20);
     ctx.fill();
@@ -199,32 +229,26 @@ function createBrutalistNameTag(name: string, isHost: boolean, teamColor?: strin
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.45)';
     ctx.stroke();
 
-    // Role pill (HOST or PILOT)
-    const roleText = isHost ? 'HOST' : (teamColor ? 'RACER' : 'PILOT');
-    roundRect(ctx, 24, 34, 88, 42, 10);
+    // ── BOLD CENTERED RACER NAME (Auto-Scaled for Perfect Fit) ──
+    const maxTextWidth = 440;
+    let fontSize = 48;
+    ctx.font = `900 ${fontSize}px "Fredoka", sans-serif`;
+    while (ctx.measureText(cleanName).width > maxTextWidth && fontSize > 28) {
+      fontSize -= 2;
+      ctx.font = `900 ${fontSize}px "Fredoka", sans-serif`;
+    }
     ctx.fillStyle = '#000000';
-    ctx.fill();
-
-    ctx.font = '900 20px "Fredoka", sans-serif';
-    ctx.fillStyle = '#FFFFFF';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText(roleText, 68, 55);
-
-    // Racer Name
-    ctx.font = '900 38px "Fredoka", sans-serif';
-    ctx.fillStyle = '#000000';
-    ctx.textAlign = 'left';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(name.slice(0, 11).toUpperCase(), 128, 56);
+    ctx.fillText(cleanName, 248, 56);
   }
 
   const texture = new THREE.CanvasTexture(canvas);
   texture.minFilter = THREE.LinearFilter;
   const mat = new THREE.SpriteMaterial({ map: texture, depthTest: false, depthWrite: false });
   const sprite = new THREE.Sprite(mat);
-  sprite.scale.set(3.6, 0.9, 1.0);
-  sprite.position.set(0, 2.2, 0);
+  sprite.scale.set(3.4, 0.85, 1.0);
+  sprite.position.set(0, 2.1, 0);
   return sprite;
 }
 
@@ -258,7 +282,7 @@ class Game {
   private isModeSelectOpen: boolean = false;
   private isStoreOpen: boolean = false;
 
-  // 3D Showroom Lobby Turntable (SmashKarts & Deadshot.io style)
+  // 3D Showroom Lobby Turntable (360° Rotating Showcase)
   private showroomGroup!: THREE.Group;
   private showroomTurntable!: THREE.Group;
   private showroomKart?: Kart;
@@ -288,7 +312,7 @@ class Game {
   private playerFinishRank: number = 0;
   private playerFinishTime: number = 0;
   private finishCountdownActive: boolean = false;
-  private finishCountdownTimer: number = 20.0;
+  private finishCountdownTimer: number = 15.0;
   private firstWinnerName: string = '';
   private isSpectating: boolean = false;
   private spectatedTargetIdx: number = 0;
@@ -334,12 +358,24 @@ class Game {
       });
     };
 
-    updateLoader(20, 'INITIALIZING RAPID PHYSICS ENGINE (WASM)...');
+    // Safety fallback timer: guarantee loading screen dismisses within 5.5 seconds even on slow mobile devices
+    const safetyDismissTimer = setTimeout(() => {
+      const loadingScreen = document.getElementById('loading-screen');
+      if (loadingScreen && loadingScreen.style.display !== 'none') {
+        console.warn('[Safety Loader] Forcing loading screen dismiss');
+        loadingScreen.classList.add('fade-out');
+        setTimeout(() => {
+          loadingScreen.style.display = 'none';
+        }, 500);
+      }
+    }, 5500);
+
+    updateLoader(20, 'POLISHING THE DRIFT WHEELS...');
     // 1. Initialize WASM Physics
     await PhysicsEngine.init();
     this.physics = new PhysicsEngine();
 
-    updateLoader(40, 'COMPILING SHADERS & THREE.JS ENGINE...');
+    updateLoader(40, 'TUNING TINY TURBO ENGINES...');
     // 2. Initialize Three.js Engine
     this.engine = new Engine();
 
@@ -353,12 +389,12 @@ class Game {
     if (fpsTracker) fpsTracker.style.display = initSettings.fpsCounter ? 'flex' : 'none';
     settingsModal.setEngine(this.engine);
 
-    updateLoader(60, 'CONFIGURING CONTROLS & HUD...');
+    updateLoader(60, 'BREWING FRESH NITRO JUICE...');
     // 3. Input & HUD
     this.input = new InputManager();
     this.hud = new HUD();
 
-    updateLoader(80, 'BUILDING PROCEDURAL SKY TRACK & MESHES...');
+    updateLoader(80, 'FLUFFING SKY CLOUDS & CURBS...');
     // 4. World
     this.skyWorld = new SkyWorld(this.engine.scene);
     this.track = new Track(this.engine.scene, this.physics);
@@ -366,7 +402,7 @@ class Game {
     this.sparks = new SparkParticles(this.engine.scene);
     this.skidmarks = new SkidmarkSystem(this.engine.scene);
 
-    // Dynamic Lap Feedback, Trackmania Best Lap Check, +1 Nitro Refill, and Race Finish hooks
+    // Dynamic Lap Feedback, Personal Best Lap Check, +1 Nitro Refill, and Race Finish hooks
     this.bindCheckpointCallbacks();
 
     // Multiplayer finish countdown sync
@@ -374,7 +410,7 @@ class Game {
       this.startFinishCountdown(winnerName, countdownSeconds);
     };
 
-    updateLoader(95, 'FINISHING HARDWARE ACCELERATION...');
+    updateLoader(95, 'WARMING UP THE PITLANE...');
     // 5. Setup Collision detection & recoil
     this.setupCollisionDetection();
 
@@ -388,12 +424,13 @@ class Game {
     this.engine.onUpdate((dt) => this.update(dt));
     this.engine.start();
 
-    // Start with 3D Showroom Lobby Turntable (SmashKarts / Deadshot.io style)
+    // Start with 3D Showroom Lobby Turntable
     this.setupShowroom();
     this.setupMenuCamera();
 
-    updateLoader(100, 'SYSTEM READY // WELCOME TO AIRSKID');
+    updateLoader(100, 'SYSTEM READY // WELCOME TO AIRSKIDO');
 
+    clearTimeout(safetyDismissTimer);
     // Fade out loading screen smoothly
     const loadingScreen = document.getElementById('loading-screen');
     if (loadingScreen) {
@@ -457,7 +494,7 @@ class Game {
     grassLip.position.y = 0.15;
     islandGroup.add(grassLip);
 
-    // 1b. Grand Prix Checkered Racing Curb (Mario Kart / F1 circuit style ring)
+    // 1b. Grand Prix Checkered Racing Curb (Pro Circuit Curbs)
     const curbCanvas = document.createElement('canvas');
     curbCanvas.width = 512;
     curbCanvas.height = 32;
@@ -827,7 +864,7 @@ class Game {
 
   private updateShowroomKart(kartIndex: number) {
     if (this.showroomKart) {
-      this.showroomTurntable.remove(this.showroomKart.group);
+      this.showroomKart.dispose(this.showroomTurntable);
       this.showroomKart = undefined;
     }
     this.selectedKartIndex = (kartIndex + KART_CONFIGS.length) % KART_CONFIGS.length;
@@ -881,17 +918,56 @@ class Game {
   }
 
   private setupMenuCamera() {
-    if (window.innerHeight < 520) {
-      this.engine.camera.position.set(0, this.STUDIO_Y + 1.85, 8.2);
-      this.engine.camera.lookAt(0, this.STUDIO_Y + 0.25, 0);
+    this.engine.camera.fov = 65;
+    this.engine.camera.updateProjectionMatrix();
+    const isMobile = window.innerHeight < 560 || window.innerWidth < 860;
+    if (isMobile) {
+      this.engine.camera.position.set(0, this.STUDIO_Y + 1.58, 6.85);
+      this.engine.camera.lookAt(0, this.STUDIO_Y + 0.48, 0);
     } else {
       this.engine.camera.position.set(0, this.STUDIO_Y + 1.75, 7.8);
       this.engine.camera.lookAt(0, this.STUDIO_Y + 0.55, 0);
     }
   }
 
+  public userHasExitedFullscreen: boolean = false;
+
+  public triggerFullscreen(force: boolean = false) {
+    if (this.userHasExitedFullscreen && !force) {
+      return;
+    }
+    if (force) {
+      this.userHasExitedFullscreen = false;
+    }
+    const doc = document.documentElement as any;
+    const isFs = !!(
+      document.fullscreenElement ||
+      (document as any).webkitFullscreenElement ||
+      (document as any).mozFullScreenElement ||
+      (document as any).msFullscreenElement
+    );
+    if (!isFs) {
+      try {
+        if (doc.requestFullscreen) {
+          const req = doc.requestFullscreen({ navigationUI: 'hide' } as any);
+          if (req && typeof req.catch === 'function') {
+            req.catch(() => {
+              if (doc.requestFullscreen) doc.requestFullscreen().catch(() => {});
+            });
+          }
+        } else if (doc.webkitRequestFullscreen) {
+          doc.webkitRequestFullscreen();
+        } else if (doc.mozRequestFullScreen) {
+          doc.mozRequestFullScreen();
+        } else if (doc.msRequestFullscreen) {
+          doc.msRequestFullscreen();
+        }
+      } catch (_) {}
+    }
+  }
+
   private setupUIEvents() {
-    // Interactive 3D Turntable Drag-to-Spin (SmashKarts / Garage style)
+    // Interactive 3D Turntable Drag-to-Spin (Garage Showcase)
     let isDragging = false;
     let lastPointerX = 0;
 
@@ -986,10 +1062,10 @@ class Game {
       net.playerName = prof.username;
       const nameEl = document.getElementById('lobby-pilot-name');
       const idEl = document.getElementById('lobby-pilot-id');
-      if (nameEl) nameEl.textContent = prof.username.toUpperCase();
+      if (nameEl) nameEl.textContent = prof.username;
       if (idEl) idEl.textContent = '#' + prof.playerId;
       const mpNameDisplay = document.getElementById('mp-pilot-name-display');
-      if (mpNameDisplay) mpNameDisplay.textContent = prof.username.toUpperCase();
+      if (mpNameDisplay) mpNameDisplay.textContent = prof.username;
     };
 
     nameSystem.addListener(updatePilotBadge);
@@ -1075,7 +1151,7 @@ class Game {
       });
     }
 
-    // ESC key closes modals smoothly
+    // ESC key closes modals smoothly OR opens Settings
     window.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
         if (settingsModal.isOpen()) {
@@ -1087,6 +1163,9 @@ class Game {
           modeSelectModal.style.display = 'none';
         } else if (mpModal && (mpModal.classList.contains('open') || mpModal.style.display !== 'none')) {
           closeMpHub();
+        } else {
+          // Open Settings!
+          settingsModal.open();
         }
       }
     });
@@ -1131,8 +1210,6 @@ class Game {
           if (mpLapsRow) mpLapsRow.style.display = 'flex';
           if (mpTrackRow) mpTrackRow.style.display = 'flex';
           if (mpRumbleRow) mpRumbleRow.style.display = 'none';
-          const lap1Btn = document.querySelector('#lap-select-group .lap-choice-btn[data-laps="1"]') as HTMLElement | null;
-          if (lap1Btn) lap1Btn.click();
         } else {
           if (mpLapsRow) mpLapsRow.style.display = 'flex';
           if (mpTrackRow) mpTrackRow.style.display = 'none';
@@ -1142,7 +1219,7 @@ class Game {
     });
 
     // Time Attack Circuit Selector (Classic vs Hardcore)
-    const mpTrackBtns = document.querySelectorAll('#mp-track-select-group .lap-choice-btn');
+    const mpTrackBtns = document.querySelectorAll('#mp-track-select-group .track-choice-btn, #mp-track-select-group .lap-choice-btn');
     mpTrackBtns.forEach((btn) => {
       btn.addEventListener('click', () => {
         sounds.playSelect();
@@ -1184,8 +1261,8 @@ class Game {
       });
     }
 
-    // Lap Selector Buttons (Host Lobby)
-    const lapButtons = document.querySelectorAll('.lap-choice-btn');
+    // Lap Selector Buttons (Host Lobby) - strictly scoped to #lap-select-group
+    const lapButtons = document.querySelectorAll('#lap-select-group .lap-choice-btn');
     lapButtons.forEach((btn) => {
       btn.addEventListener('click', () => {
         sounds.playSelect();
@@ -1195,45 +1272,87 @@ class Game {
       });
     });
 
-    // Automatic & Manual Fullscreen Management
-    const triggerFullscreen = () => {
-      const doc = document.documentElement as any;
-      if (!document.fullscreenElement && !(document as any).webkitFullscreenElement) {
-        if (doc.requestFullscreen) {
-          doc.requestFullscreen().catch(() => {});
-        } else if (doc.webkitRequestFullscreen) {
-          doc.webkitRequestFullscreen().catch(() => {});
+    // Fullscreen exit detection: When user exits (via ESC or browser UI), remember choice
+    const onFsChange = () => {
+      const isFs = !!(
+        document.fullscreenElement ||
+        (document as any).webkitFullscreenElement ||
+        (document as any).mozFullScreenElement ||
+        (document as any).msFullscreenElement
+      );
+      if (!isFs) {
+        this.userHasExitedFullscreen = true;
+        // If user was in race and exited fullscreen (e.g. by pressing ESC in browser), ensure Settings opens!
+        if (settingsModal.getIsInRace() && !settingsModal.isOpen()) {
+          settingsModal.open();
         }
       }
     };
+    document.addEventListener('fullscreenchange', onFsChange);
+    document.addEventListener('webkitfullscreenchange', onFsChange);
 
-    // Auto-enter fullscreen on user's first tap/click anywhere (compliant with browser security policy)
-    const onFirstInteraction = () => {
-      triggerFullscreen();
-      window.removeEventListener('pointerdown', onFirstInteraction);
-      window.removeEventListener('click', onFirstInteraction);
+    // Initial Fullscreen gesture: Only attempts once on initial user interaction, NEVER forces after user exits
+    let hasAttemptedInitialFullscreen = false;
+    const handleFullscreenGesture = (e: Event) => {
+      if (hasAttemptedInitialFullscreen || this.userHasExitedFullscreen) {
+        return;
+      }
+      const target = e.target as HTMLElement | null;
+      if (
+        target &&
+        (target.tagName === 'INPUT' ||
+          target.tagName === 'TEXTAREA' ||
+          target.tagName === 'SELECT' ||
+          target.isContentEditable ||
+          target.closest('.name-modal-card') ||
+          target.closest('#name-modal'))
+      ) {
+        return;
+      }
+
+      hasAttemptedInitialFullscreen = true;
+      this.triggerFullscreen(false);
     };
-    window.addEventListener('pointerdown', onFirstInteraction, { once: true });
-    window.addEventListener('click', onFirstInteraction, { once: true });
 
-    // In-Game Top Bar Fullscreen Toggle Button (Lobby button is handled with crisp SVG by LobbyUI)
+    window.addEventListener('touchend', handleFullscreenGesture, { passive: true });
+    window.addEventListener('click', handleFullscreenGesture);
+
+    // In-Game Top Bar Fullscreen Toggle Button (Dedicated button click -> force = true)
     const fsInGameBtn = document.getElementById('in-game-fullscreen-btn');
     if (fsInGameBtn) {
       fsInGameBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-        if (!document.fullscreenElement && !(document as any).webkitFullscreenElement) {
-          triggerFullscreen();
+        const isFs = !!(
+          document.fullscreenElement ||
+          (document as any).webkitFullscreenElement ||
+          (document as any).mozFullScreenElement ||
+          (document as any).msFullscreenElement
+        );
+        if (!isFs) {
+          this.triggerFullscreen(true);
         } else {
-          if (document.exitFullscreen) {
-            document.exitFullscreen().catch(() => {});
-          } else if ((document as any).webkitExitFullscreen) {
-            (document as any).webkitExitFullscreen().catch(() => {});
-          }
+          this.userHasExitedFullscreen = true;
+          try {
+            if (document.exitFullscreen) {
+              document.exitFullscreen().catch(() => {});
+            } else if ((document as any).webkitExitFullscreen) {
+              (document as any).webkitExitFullscreen().catch(() => {});
+            } else if ((document as any).mozCancelFullScreen) {
+              (document as any).mozCancelFullScreen().catch(() => {});
+            } else if ((document as any).msExitFullscreen) {
+              (document as any).msExitFullscreen().catch(() => {});
+            }
+          } catch (_) {}
         }
       });
 
       const updateFsBtnLabel = () => {
-        const isFs = !!(document.fullscreenElement || (document as any).webkitFullscreenElement);
+        const isFs = !!(
+          document.fullscreenElement ||
+          (document as any).webkitFullscreenElement ||
+          (document as any).mozFullScreenElement ||
+          (document as any).msFullscreenElement
+        );
         fsInGameBtn.innerText = isFs ? '⛶ EXIT FULL' : '⛶ FULLSCREEN';
       };
       document.addEventListener('fullscreenchange', updateFsBtnLabel);
@@ -1261,7 +1380,9 @@ class Game {
             actualMpMode,
             this.selectedMpRumbleRule,
             this.selectedMpRumbleFormat,
-            economy.getEquippedSkin()
+            economy.getEquippedSkin(),
+            economy.isVip(),
+            economy.getLevel()
           );
           btnHost.innerText = '★ CREATE MULTIPLAYER LOBBY ★';
           btnHost.disabled = false;
@@ -1325,7 +1446,14 @@ class Game {
         btnJoin.disabled = true;
         btnJoin.innerText = 'CONNECTING...';
         try {
-          await net.joinRoom(code, this.playerName, this.selectedKartIndex, economy.getEquippedSkin());
+          await net.joinRoom(
+            code,
+            this.playerName,
+            this.selectedKartIndex,
+            economy.getEquippedSkin(),
+            economy.isVip(),
+            economy.getLevel()
+          );
           btnJoin.innerText = '▶ JOIN LOBBY';
           btnJoin.disabled = false;
 
@@ -1472,7 +1600,7 @@ class Game {
         }
       }
 
-      // Feature 3: Mario Kart Mid-Race Join Spectator Queue
+      // Feature 3: Mid-Race Join Spectator Queue
       if (matchState === 'in_race' && this.state === GameState.MENU && !net.isHost) {
         this.handleMidRaceJoin(players, laps || 3, mode, rumbleRule, rumbleFormat);
         return;
@@ -1493,7 +1621,8 @@ class Game {
 
       // Display high-performance match loading screen with quotes while assets, geometry, and WASM colliders build
       const loadingTimeMs = Math.max(1200, startTime - Date.now() - 3200);
-      matchLoadingScreen.show(modeTitle, loadingTimeMs);
+      const modeKey: LoadingMode = targetMode === 'rumble' ? 'rumble' : (targetMode === 'hardcore' || targetMode === 'time_attack_hardcore' ? 'hardcore' : (targetMode === 'time_attack' ? 'time_sprint' : 'classic'));
+      matchLoadingScreen.show(modeTitle, loadingTimeMs, modeKey);
       closeMpHub();
 
       // Yield main thread to allow browser to paint loading screen immediately with 0ms freeze
@@ -1580,19 +1709,25 @@ class Game {
     const startBtn = document.getElementById('start-race-btn');
     if (startBtn) {
       startBtn.addEventListener('click', () => {
-        this.resetModeState('classic');
-        this.isMultiplayer = false;
-        this.switchTrackMode('classic');
-        this.checkpoints.setTotalLaps(this.hostLaps || 3);
-        if (this.showroomGroup) {
-          this.showroomGroup.visible = false;
-        }
+        if (mpModal) mpModal.classList.remove('open');
         this.isModeSelectOpen = false;
         document.getElementById('start-menu-modal')!.style.display = 'none';
         const modeSelectModal = document.getElementById('mode-select-modal');
         if (modeSelectModal) modeSelectModal.style.display = 'none';
-        if (mpModal) mpModal.classList.remove('open');
-        this.startRaceCountdown();
+
+        const startTime = Date.now() + 6000;
+        matchLoadingScreen.show('CLASSIC GRAND PRIX', 2800, 'classic');
+
+        requestAnimationFrame(() => {
+          this.resetModeState('classic');
+          this.isMultiplayer = false;
+          this.switchTrackMode('classic');
+          this.checkpoints.setTotalLaps(this.hostLaps || 3);
+          if (this.showroomGroup) {
+            this.showroomGroup.visible = false;
+          }
+          this.startRaceCountdown(startTime);
+        });
       });
     }
 
@@ -1600,20 +1735,26 @@ class Game {
     const hardcoreBtn = document.getElementById('start-hardcore-btn');
     if (hardcoreBtn) {
       hardcoreBtn.addEventListener('click', () => {
-        this.resetModeState('hardcore');
-        this.isMultiplayer = false;
-        this.switchTrackMode('hardcore');
-        this.checkpoints.setTotalLaps(this.hostLaps || 3);
-        if (this.showroomGroup) {
-          this.showroomGroup.visible = false;
-        }
+        if (mpModal) mpModal.classList.remove('open');
         this.isModeSelectOpen = false;
         document.getElementById('start-menu-modal')!.style.display = 'none';
         const modeSelectModal = document.getElementById('mode-select-modal');
         if (modeSelectModal) modeSelectModal.style.display = 'none';
-        if (mpModal) mpModal.classList.remove('open');
-        this.startRaceCountdown();
-        this.hud.showAlert('💀 HARDCORE GAUNTLET // 3X HAZARDS ACTIVE!', 'boost');
+
+        const startTime = Date.now() + 6000;
+        matchLoadingScreen.show('HARDCORE GAUNTLET', 2800, 'hardcore');
+
+        requestAnimationFrame(() => {
+          this.resetModeState('hardcore');
+          this.isMultiplayer = false;
+          this.switchTrackMode('hardcore');
+          this.checkpoints.setTotalLaps(this.hostLaps || 3);
+          if (this.showroomGroup) {
+            this.showroomGroup.visible = false;
+          }
+          this.startRaceCountdown(startTime);
+          this.hud.showAlert('💀 HARDCORE GAUNTLET // 3X HAZARDS ACTIVE!', 'boost');
+        });
       });
     }
 
@@ -1643,21 +1784,27 @@ class Game {
     const timeClassicBtn = document.getElementById('start-time-classic-btn');
     if (timeClassicBtn) {
       timeClassicBtn.addEventListener('click', () => {
-        this.resetModeState('time_sprint');
-        this.isMultiplayer = false;
-        this.switchTrackMode('classic');
-        this.checkpoints.setTotalLaps(1);
-        if (this.showroomGroup) {
-          this.showroomGroup.visible = false;
-        }
+        if (mpModal) mpModal.classList.remove('open');
         this.isModeSelectOpen = false;
         document.getElementById('start-menu-modal')!.style.display = 'none';
         const modeSelectModal = document.getElementById('mode-select-modal');
         if (modeSelectModal) modeSelectModal.style.display = 'none';
-        if (mpModal) mpModal.classList.remove('open');
-        this.startRaceCountdown();
-        const modeTitle = this.isTimeAttackSolo ? 'SOLO SPRINT' : 'TIME SPRINT WITH PLAYERS';
-        this.hud.showAlert(`⏱️ ${modeTitle} // ZERO COLLISIONS // 1-LAP PB!`, 'boost');
+
+        const startTime = Date.now() + 6000;
+        const modeTitle = this.isTimeAttackSolo ? 'SOLO SPRINT' : 'TIME SPRINT';
+        matchLoadingScreen.show(`TIME SPRINT // ${modeTitle}`, 2800, 'time_sprint');
+
+        requestAnimationFrame(() => {
+          this.resetModeState('time_sprint');
+          this.isMultiplayer = false;
+          this.switchTrackMode('classic');
+          this.checkpoints.setTotalLaps(1);
+          if (this.showroomGroup) {
+            this.showroomGroup.visible = false;
+          }
+          this.startRaceCountdown(startTime);
+          this.hud.showAlert(`⏱️ ${modeTitle} // ZERO COLLISIONS // 1-LAP PB!`, 'boost');
+        });
       });
     }
 
@@ -1665,21 +1812,27 @@ class Game {
     const timeHardcoreBtn = document.getElementById('start-time-hardcore-btn');
     if (timeHardcoreBtn) {
       timeHardcoreBtn.addEventListener('click', () => {
-        this.resetModeState('time_sprint_hardcore');
-        this.isMultiplayer = false;
-        this.switchTrackMode('hardcore');
-        this.checkpoints.setTotalLaps(1);
-        if (this.showroomGroup) {
-          this.showroomGroup.visible = false;
-        }
+        if (mpModal) mpModal.classList.remove('open');
         this.isModeSelectOpen = false;
         document.getElementById('start-menu-modal')!.style.display = 'none';
         const modeSelectModal = document.getElementById('mode-select-modal');
         if (modeSelectModal) modeSelectModal.style.display = 'none';
-        if (mpModal) mpModal.classList.remove('open');
-        this.startRaceCountdown();
+
+        const startTime = Date.now() + 6000;
         const modeTitle = this.isTimeAttackSolo ? 'HARDCORE SOLO SPRINT' : 'HARDCORE TIME SPRINT';
-        this.hud.showAlert(`⏱️ ${modeTitle} // ZERO COLLISIONS // 1-LAP PB!`, 'boost');
+        matchLoadingScreen.show(`HARDCORE // ${modeTitle}`, 2800, 'time_sprint');
+
+        requestAnimationFrame(() => {
+          this.resetModeState('time_sprint_hardcore');
+          this.isMultiplayer = false;
+          this.switchTrackMode('hardcore');
+          this.checkpoints.setTotalLaps(1);
+          if (this.showroomGroup) {
+            this.showroomGroup.visible = false;
+          }
+          this.startRaceCountdown(startTime);
+          this.hud.showAlert(`⏱️ ${modeTitle} // ZERO COLLISIONS // 1-LAP PB!`, 'boost');
+        });
       });
     }
 
@@ -1764,7 +1917,17 @@ class Game {
     if (btnStartRumble) {
       btnStartRumble.addEventListener('click', () => {
         sounds.playSelect();
-        this.startRumbleMatch();
+        const rumbleModal = document.getElementById('rumble-modal');
+        if (rumbleModal) rumbleModal.style.display = 'none';
+        const startMenuModal = document.getElementById('start-menu-modal');
+        if (startMenuModal) startMenuModal.style.display = 'none';
+
+        const startTime = Date.now() + 6000;
+        matchLoadingScreen.show('SKY RUMBLE // ARENA CLASH', 2800, 'rumble');
+
+        requestAnimationFrame(() => {
+          this.startRumbleMatch(startTime);
+        });
       });
     }
 
@@ -1791,12 +1954,21 @@ class Game {
         if (this.showroomGroup) {
           this.showroomGroup.visible = false;
         }
-        if (this.isRumbleMode) {
-          this.startRumbleMatch();
-        } else {
-          this.resetRace();
-          this.startRaceCountdown();
-        }
+
+        const startTime = Date.now() + 6000;
+        const modeKey: LoadingMode = this.isRumbleMode ? 'rumble' : (this.isHardcoreMode ? 'hardcore' : (this.isNoCollisionMode ? 'time_sprint' : 'classic'));
+        const modeTitle = this.isRumbleMode ? 'SKY RUMBLE // REMATCH' : (this.isHardcoreMode ? 'HARDCORE GAUNTLET' : (this.isNoCollisionMode ? 'TIME SPRINT' : 'CLASSIC GRAND PRIX'));
+
+        matchLoadingScreen.show(modeTitle, 2800, modeKey);
+
+        requestAnimationFrame(() => {
+          if (this.isRumbleMode) {
+            this.startRumbleMatch(startTime);
+          } else {
+            this.resetRace();
+            this.startRaceCountdown(startTime);
+          }
+        });
       });
     }
 
@@ -1873,6 +2045,9 @@ class Game {
 
     storeModal.onOpen = () => {
       this.isStoreOpen = true;
+      this.isModeSelectOpen = false;
+      const modeSelectModal = document.getElementById('mode-select-modal');
+      if (modeSelectModal) modeSelectModal.style.display = 'none';
       document.body.classList.add('showroom-store-open');
       storeModal.setMachineIndex(this.selectedKartIndex);
     };
@@ -1910,39 +2085,43 @@ class Game {
 
     this.checkpoints.onPlayerLapComplete = (lap: number) => {
       const total = this.checkpoints.totalLaps;
-      const prevCharges = this.player?.kart ? this.player.kart.nitroCharges : 3;
-      if (this.player?.kart) {
-        this.player.kart.refillNitro(1);
-      }
-      const refilledMsg = (this.player?.kart && this.player.kart.nitroCharges > prevCharges) ? ' // +1 NITRO REFILLED!' : '';
-
-      // Trackmania Lap Record System - Strictly for Time Sprint mode
       const currentLapTime = Math.max(0.1, this.raceTimer - this.lastLapCompletedTime);
       this.lastLapCompletedTime = this.raceTimer;
       const trackKey = this.track && this.track.isHardcore ? 'hardcore' : 'classic';
 
+      // TIMERS & PB: STRICTLY for Time Sprint mode (this.isNoCollisionMode) ONLY!
       if (this.isNoCollisionMode) {
+        let lapRecordShown = false;
         const lapRecordRes = recordManager.checkLapTime(trackKey, currentLapTime);
         if (lapRecordRes.isNewPB && lapRecordRes.prevPB !== null) {
-          this.hud.showAlert(`⚡ NEW BEST LAP! ${RecordManager.formatTime(currentLapTime)} (${RecordManager.formatDelta(lapRecordRes.delta)})`, 'boost');
+          lapRecordShown = true;
+          const lapSuffix = lap === total ? ' // FINAL LAP!' : '';
+          this.hud.showAlert(`⚡ NEW BEST LAP! ${RecordManager.formatTime(currentLapTime)} (${RecordManager.formatDelta(lapRecordRes.delta)})${lapSuffix}`, 'boost', 3500);
           sounds.playVictory();
         }
-      }
 
-      if (lap === total) {
-        this.hud.showAlert(`FINAL LAP${refilledMsg} // GO FOR GLORY!`, 'smash');
-      } else if (lap <= total) {
-        this.hud.showAlert(`LAP ${lap}${refilledMsg} // KEEP PUSHING!`, 'smash');
-      }
+        if (!lapRecordShown) {
+          if (lap === total) {
+            this.hud.showAlert('FINAL LAP // GO FOR GLORY!', 'smash', 2500);
+          } else if (lap <= total) {
+            this.hud.showAlert(`LAP ${lap} // KEEP PUSHING!`, 'smash', 2500);
+          }
+        }
 
-      // Submit 1-Lap Time Sprint Global Leaderboard Record (Time Sprint only)
-      if (this.isNoCollisionMode) {
+        // Submit 1-Lap Time Sprint Global Leaderboard Record
         leaderboard.submitSprintRecord(trackKey, currentLapTime).then((res) => {
           if (res.isNewPB) {
-            this.hud.showAlert(`🏆 NEW SPRINT PB! #${res.rank} GLOBAL • ${res.formattedTime}`, 'boost');
+            this.hud.showAlert(`🏆 NEW SPRINT PB! #${res.rank} GLOBAL • ${res.formattedTime}`, 'boost', 3500);
             sounds.playVictory();
           }
         });
+      } else {
+        // Classic & Normal Modes: Clean standard race notifications, ZERO PB / timers!
+        if (lap === total) {
+          this.hud.showAlert('FINAL LAP // GO FOR GLORY!', 'smash', 2500);
+        } else if (lap <= total) {
+          this.hud.showAlert(`LAP ${lap} // KEEP PUSHING!`, 'smash', 2500);
+        }
       }
 
       economy.addCoins(20);
@@ -1951,7 +2130,6 @@ class Game {
     };
 
     this.checkpoints.onPlayerFall = () => {
-      this.hud.showAlert('OUT OF BOUNDS // RECOVERING', 'respawn');
       if (this.player?.kart?.rigidBody) {
         this.player.kart.rigidBody.setLinvel({ x: 0, y: -2, z: 0 }, true);
         this.player.kart.rigidBody.setAngvel({ x: 0, y: 0, z: 0 }, true);
@@ -1959,7 +2137,7 @@ class Game {
     };
 
     this.checkpoints.onPlayerRespawn = () => {
-      this.hud.showAlert('RESPAWN // SHIELD ACTIVE', 'respawn');
+      // Clean respawn - audio and ghost shimmer feedback handle everything without text clutter
     };
 
     this.checkpoints.onRacerFinish = (racer) => {
@@ -1975,6 +2153,9 @@ class Game {
     this.isNoCollisionMode = isTimeSprint;
     this.isRumbleMode = isRumble;
     this.isHardcoreMode = isHardcore;
+    if (this.player) {
+      this.player.isRumbleMode = isRumble;
+    }
 
     this.hud.setRumbleMode(isRumble);
     this.hud.setTimeSprintMode(isTimeSprint);
@@ -1988,7 +2169,7 @@ class Game {
     this.racerFinishTimes.clear();
     this.lastLapCompletedTime = 0;
     this.finishCountdownActive = false;
-    this.finishCountdownTimer = 20.0;
+    this.finishCountdownTimer = 15.0;
     this.isPlayerFinished = false;
     this.playerFinishRank = 0;
     this.isSpectating = false;
@@ -2002,6 +2183,8 @@ class Game {
       clearInterval(this.countdownInterval);
       this.countdownInterval = null;
     }
+    this.hud.hideCountdown();
+    this.lastAnnouncedCountdown = '';
 
     if (this.rumbleVictoryTimeout) {
       clearTimeout(this.rumbleVictoryTimeout);
@@ -2011,13 +2194,18 @@ class Game {
 
     // Flush active remote sprites and all karts from physics world
     for (const remote of this.remoteRacers.values()) {
-      if (remote.nameSprite) this.engine.scene.remove(remote.nameSprite);
+      if (remote.nameSprite) {
+        if (remote.nameSprite.material) {
+          if (remote.nameSprite.material.map) remote.nameSprite.material.map.dispose();
+          remote.nameSprite.material.dispose();
+        }
+        this.engine.scene.remove(remote.nameSprite);
+      }
     }
     this.remoteRacers.clear();
 
     for (const kart of this.allKarts) {
-      if (kart.group) this.engine.scene.remove(kart.group);
-      if (kart.rigidBody) this.physics.world.removeRigidBody(kart.rigidBody);
+      kart.dispose(this.engine.scene, this.physics);
     }
     this.allKarts = [];
     this.bots = [];
@@ -2113,10 +2301,10 @@ class Game {
     };
 
     this.rumbleManager.onPlayerKnockedOut = (attackerName?: string) => {
-      sounds.playCrash(1.4);
+      sounds.stopDrift();
       this.player.triggerImpactShake(1.6);
       if (attackerName) {
-        const cleanAttacker = attackerName.replace(/_/g, ' ').toUpperCase();
+        const cleanAttacker = attackerName.replace(/_/g, ' ');
         this.hud.showSmashCombat(`SLAMMED BY ${cleanAttacker}!`, 1, true);
       } else {
         this.hud.showSmashCombat('FELL INTO THE CLOUDS!', 1, true);
@@ -2124,6 +2312,7 @@ class Game {
     };
 
     this.rumbleManager.onPlayerEliminated = () => {
+      sounds.stopDrift();
       if (!this.rumbleManager?.isMatchOver) {
         this.hud.showAlert('ELIMINATED // SPECTATING ARENA BATTLE', 'smash');
         this.startSpectating();
@@ -2172,6 +2361,7 @@ class Game {
 
     const arenaCfg = this.track.config as RumbleArenaConfig;
     const isTDM = this.selectedRumbleFormat === 'tdm';
+    BotKart.clearActiveTargets();
 
     if (!this.isMultiplayer) {
       if (isTDM) {
@@ -2189,18 +2379,22 @@ class Game {
         this.rumbleManager!.registerRacer(pKart.id, this.playerName || 'YOU', playerTeam, true, pKart);
 
         // 2. Player's 2 Bot Teammates
-        const allyNames = playerTeam === 'frost' ? ['FrostSurge', 'GlacierFang'] : ['BlazeFire', 'SolarStrike'];
+        const usedNames: string[] = [this.playerName || 'YOU'];
+        const allyNames = pickTeamBotNames(playerTeam, 2, usedNames);
+        usedNames.push(...allyNames);
         const allyKartTypes = [1, 2];
         for (let i = 0; i < 2; i++) {
           const sp = arenaCfg.getSpawn(playerTeam, i + 1);
           const bKart = new Kart(`kart-ally-${i}`, allyKartTypes[i], this.engine.scene, this.physics, sp.pos, sp.rot);
           bKart.applySkin(playerTeam === 'frost' ? 'paint_frost' : 'paint_blaze');
+          bKart.applyHat(BOT_CONFIG.COSMETICS.HATS[i % BOT_CONFIG.COSMETICS.HATS.length]);
+          bKart.applyGlasses(BOT_CONFIG.COSMETICS.GLASSES[(i + 1) % BOT_CONFIG.COSMETICS.GLASSES.length]);
           bKart.team = playerTeam;
           bKart.track = this.track;
           this.allKarts.push(bKart);
 
           const badgeColor = playerTeam === 'frost' ? '#00f0ff' : '#ff3344';
-          const tag = createBrutalistNameTag(allyNames[i], false, badgeColor);
+          const tag = createBrutalistNameTag(allyNames[i], badgeColor, false);
           bKart.group.add(tag);
 
           const bot = new BotKart(bKart, this.track, 0, 0);
@@ -2208,19 +2402,22 @@ class Game {
           this.rumbleManager!.registerRacer(bKart.id, allyNames[i], playerTeam, false, bKart);
         }
 
-        // 3. 3 Bot Rivals on opposing side
-        const enemyNames = enemyTeam === 'blaze' ? ['BlazeTitan', 'InfernoViper', 'DoomBlaze'] : ['FrostBite', 'BlizzardBot', 'ArcticChill'];
+        // 3. 3 Bot Rivals on opposing side (Authentic gamertags, no 'Bot' / 'AI')
+        const enemyNames = pickTeamBotNames(enemyTeam, 3, usedNames);
+        usedNames.push(...enemyNames);
         const enemyKartTypes = [3, 0, 1];
         for (let i = 0; i < 3; i++) {
           const sp = arenaCfg.getSpawn(enemyTeam, i);
           const bKart = new Kart(`kart-enemy-${i}`, enemyKartTypes[i], this.engine.scene, this.physics, sp.pos, sp.rot);
           bKart.applySkin(enemyTeam === 'frost' ? 'paint_frost' : 'paint_blaze');
+          bKart.applyHat(BOT_CONFIG.COSMETICS.HATS[(i + 2) % BOT_CONFIG.COSMETICS.HATS.length]);
+          bKart.applyGlasses(BOT_CONFIG.COSMETICS.GLASSES[(i + 3) % BOT_CONFIG.COSMETICS.GLASSES.length]);
           bKart.team = enemyTeam;
           bKart.track = this.track;
           this.allKarts.push(bKart);
 
           const badgeColor = enemyTeam === 'frost' ? '#00f0ff' : '#ff3344';
-          const tag = createBrutalistNameTag(enemyNames[i], false, badgeColor);
+          const tag = createBrutalistNameTag(enemyNames[i], badgeColor, false);
           bKart.group.add(tag);
 
           const bot = new BotKart(bKart, this.track, 0, 0);
@@ -2228,7 +2425,7 @@ class Game {
           this.rumbleManager!.registerRacer(bKart.id, enemyNames[i], enemyTeam, false, bKart);
         }
       } else {
-        // Solo Free For All
+        // Solo Free For All: Each bot receives a completely distinct skin, hat, glasses, and authentic gamertag!
         const totalFfa = 6;
         const pSpawn = arenaCfg.getSoloSpawn(0, totalFfa);
         const pKart = new Kart('kart-player', this.selectedKartIndex, this.engine.scene, this.physics, pSpawn.pos, pSpawn.rot);
@@ -2238,20 +2435,28 @@ class Game {
         this.player = new PlayerKart(pKart, this.input);
         this.rumbleManager!.registerRacer(pKart.id, this.playerName || 'YOU', 'none', true, pKart);
 
-        const botNames = ['Goliath', 'Kitsune', 'Volt', 'ApexAI', 'Shadow'];
+        const usedNames: string[] = [this.playerName || 'YOU'];
+        const playerEquippedSkin = economy.getEquippedSkin();
+
         for (let i = 1; i < totalFfa; i++) {
           const sp = arenaCfg.getSoloSpawn(i, totalFfa);
-          const bKart = new Kart(`kart-bot-${i}`, i % KART_CONFIGS.length, this.engine.scene, this.physics, sp.pos, sp.rot);
+          const profile = generateBotProfile(i - 1, playerEquippedSkin, usedNames);
+          usedNames.push(profile.name);
+
+          const bKart = new Kart(`kart-bot-${i}`, profile.kartType, this.engine.scene, this.physics, sp.pos, sp.rot);
+          bKart.applySkin(profile.skinId);
+          bKart.applyHat(profile.hatId);
+          bKart.applyGlasses(profile.glassesId);
           bKart.team = undefined;
           bKart.track = this.track;
           this.allKarts.push(bKart);
 
-          const tag = createBrutalistNameTag(botNames[i - 1] || `Bot${i}`, false, '#ffe600');
+          const tag = createBrutalistNameTag(profile.name, '#ffe600', false);
           bKart.group.add(tag);
 
           const bot = new BotKart(bKart, this.track, 0, 0);
           this.bots.push(bot);
-          this.rumbleManager!.registerRacer(bKart.id, botNames[i - 1] || `Bot${i}`, 'none', false, bKart);
+          this.rumbleManager!.registerRacer(bKart.id, profile.name, 'none', false, bKart);
         }
       }
     } else {
@@ -2278,7 +2483,7 @@ class Game {
             this.selectedRumbleSide = team;
             this.rumbleManager!.registerRacer(pKart.id, this.playerName, team, true, pKart);
             if (economy.isVip()) {
-              const pTag = createBrutalistNameTag(this.playerName, net.isHost, team === 'frost' ? '#00f0ff' : '#ff3344', true);
+              const pTag = createBrutalistNameTag(this.playerName, team === 'frost' ? '#00f0ff' : '#ff3344', true);
               pKart.group.add(pTag);
             }
           } else {
@@ -2289,7 +2494,7 @@ class Game {
             this.allKarts.push(rKart);
 
             const badgeColor = team === 'frost' ? '#00f0ff' : '#ff3344';
-            const nameTag = createBrutalistNameTag(peer.name, peer.isHost, badgeColor);
+            const nameTag = createBrutalistNameTag(peer.name, badgeColor, peer.isVip);
             rKart.group.add(nameTag);
 
             const interpolator = new NetworkInterpolator();
@@ -2330,7 +2535,7 @@ class Game {
             this.player = new PlayerKart(pKart, this.input);
             this.rumbleManager!.registerRacer(pKart.id, this.playerName, 'none', true, pKart);
             if (economy.isVip()) {
-              const pTag = createBrutalistNameTag(this.playerName, net.isHost, '#ffe600', true);
+              const pTag = createBrutalistNameTag(this.playerName, '#ffe600', true);
               pKart.group.add(pTag);
             }
           } else {
@@ -2340,7 +2545,7 @@ class Game {
             rKart.track = this.track;
             this.allKarts.push(rKart);
 
-            const nameTag = createBrutalistNameTag(peer.name, peer.isHost, '#ffe600');
+            const nameTag = createBrutalistNameTag(peer.name, '#ffe600', peer.isVip);
             rKart.group.add(nameTag);
 
             const interpolator = new NetworkInterpolator();
@@ -2407,7 +2612,7 @@ class Game {
       sub = 'MUTUAL ANNIHILATION // STALEMATE';
       theme = 'draw';
     } else {
-      title = `${winnerName.toUpperCase()} WINS!`;
+      title = `${winnerName} WINS!`;
       sub = 'LAST KART STANDING // ARENA CHAMPION';
       theme = 'solo';
     }
@@ -2431,13 +2636,8 @@ class Game {
       // Play triumphant victory audio fanfare
       sounds.playVictory();
 
-      // Burst celebration confetti
-      confetti({
-        particleCount: 160,
-        spread: 85,
-        origin: { y: 0.55 },
-        colors: ['#00F0FF', '#FF385C', '#FFE600', '#FFFFFF'],
-      });
+      // Burst premium multi-stage fireworks celebration
+      CelebrationFX.celebrateVictory(theme === 'frost' ? 'frost' : theme === 'blaze' ? 'blaze' : 'yellow');
 
       // Display Neo-Brutalist victory banner over arena
       this.hud.showRumbleVictoryBanner(title, sub, theme);
@@ -2485,8 +2685,8 @@ class Game {
       Array.from(this.rumbleManager.racers.values())
     );
 
-    const coinsEarned = isPlayerWinner ? 120 : 60;
-    const xpEarned = isPlayerWinner ? 70 : 35;
+    const coinsEarned = isPlayerWinner ? 200 : 90;
+    const xpEarned = isPlayerWinner ? 80 : 45;
     this.animateFinishRewards(coinsEarned, xpEarned);
 
     const restartBtn = document.getElementById('restart-btn') as HTMLButtonElement | null;
@@ -2590,7 +2790,9 @@ class Game {
           <div class="mp-card-left">
             <div class="mp-card-badges">
               <span class="mp-card-num">#0${squadIdx + 1}</span>
-              <span class="mp-card-role ${p.isHost ? 'role-host' : 'role-guest'}">${p.isHost ? 'HOST' : 'PILOT'}</span>
+              <span class="mp-card-role ${p.isHost ? 'role-host' : 'role-guest'}">${p.isHost ? 'HOST' : 'RACER'}</span>
+              ${p.isVip ? '<span class="mp-card-vip-tag"><svg viewBox="0 0 24 24" width="10" height="10" style="fill: #000; vertical-align: -1px; margin-right: 2px;"><path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5zm14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z"/></svg>VIP</span>' : ''}
+              <span class="mp-card-lvl-tag">LV.${p.level || 1}</span>
               ${isSelf ? '<span class="mp-card-you-tag">YOU</span>' : ''}
             </div>
             <h4 class="mp-card-name" title="${p.name}">${p.name}</h4>
@@ -2638,7 +2840,9 @@ class Game {
           <div class="mp-card-left">
             <div class="mp-card-badges">
               <span class="mp-card-num">#0${idx + 1}</span>
-              <span class="mp-card-role ${p.isHost ? 'role-host' : 'role-guest'}">${p.isHost ? 'HOST' : 'PILOT'}</span>
+              <span class="mp-card-role ${p.isHost ? 'role-host' : 'role-guest'}">${p.isHost ? 'HOST' : 'RACER'}</span>
+              ${p.isVip ? '<span class="mp-card-vip-tag"><svg viewBox="0 0 24 24" width="10" height="10" style="fill: #000; vertical-align: -1px; margin-right: 2px;"><path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5zm14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z"/></svg>VIP</span>' : ''}
+              <span class="mp-card-lvl-tag">LV.${p.level || 1}</span>
               ${isSelf ? '<span class="mp-card-you-tag">YOU</span>' : ''}
             </div>
             <h4 class="mp-card-name" title="${p.name}">${p.name}</h4>
@@ -2690,7 +2894,7 @@ class Game {
         kart.track = this.track;
         this.allKarts.push(kart);
 
-        const nameTag = createBrutalistNameTag(peer.name, peer.isHost);
+        const nameTag = createBrutalistNameTag(peer.name, undefined, peer.isVip);
         kart.group.add(nameTag);
 
         const interpolator = new NetworkInterpolator();
@@ -2714,7 +2918,7 @@ class Game {
           tumbleAngularVel: new THREE.Vector3(),
         };
         this.remoteRacers.set(peer.peerId, remote);
-        this.checkpoints.registerRacer(kart.id, peer.name, false, pos, rot);
+        this.checkpoints.registerRacer(kart.id, peer.name, false, pos, rot, peer.isVip);
       } else {
         return;
       }
@@ -2797,12 +3001,7 @@ class Game {
 
     // Clean up kart 3D mesh & physics body
     if (remote && remote.kart) {
-      this.engine.scene.remove(remote.kart.group);
-      if (remote.kart.rigidBody) {
-        try {
-          this.physics.world.removeRigidBody(remote.kart.rigidBody);
-        } catch (e) {}
-      }
+      remote.kart.dispose(this.engine.scene, this.physics);
       const kartIdx = this.allKarts.indexOf(remote.kart);
       if (kartIdx >= 0) this.allKarts.splice(kartIdx, 1);
 
@@ -2828,6 +3027,7 @@ class Game {
   }
 
   public quitToLobby(forceClose: boolean = false) {
+    clearRumbleCombatCooldowns();
     sounds.stopEngine();
     sounds.isScoreboardActive = false;
     sounds.isFadingOut = false;
@@ -2840,6 +3040,8 @@ class Game {
     this.pendingRumbleFinish = null;
     this.hud.hideSmashCombat();
     this.hud.hideRumbleVictoryBanner();
+    this.hud.hideCountdown();
+    this.lastAnnouncedCountdown = '';
     matchLoadingScreen.hide();
     this.isMidRaceSpectator = false;
     this.isSpectating = false;
@@ -2859,6 +3061,11 @@ class Game {
     const finishModal = document.getElementById('finish-modal');
     if (finishModal) finishModal.style.display = 'none';
 
+    this.isModeSelectOpen = false;
+    const modeSelectModal = document.getElementById('mode-select-modal');
+    if (modeSelectModal) modeSelectModal.style.display = 'none';
+
+    this.hud.resetForNewRace(3);
     this.hud.hideHUD();
     document.getElementById('start-menu-modal')!.style.display = 'flex';
     this.state = GameState.MENU;
@@ -2884,6 +3091,8 @@ class Game {
     this.pendingRumbleFinish = null;
     this.hud.hideSmashCombat();
     this.hud.hideRumbleVictoryBanner();
+    this.hud.hideCountdown();
+    this.lastAnnouncedCountdown = '';
     matchLoadingScreen.hide();
     this.isMidRaceSpectator = false;
     this.isSpectating = false;
@@ -2944,6 +3153,7 @@ class Game {
   }
 
   private startRaceCountdown(targetStartTime?: number) {
+    this.triggerFullscreen();
     settingsModal.setIsInRace(true);
     if (this.showroomGroup) {
       this.showroomGroup.visible = false;
@@ -2951,7 +3161,32 @@ class Game {
     if (!this.isRumbleMode) {
       this.spawnRacers();
     }
+    const totalLaps = this.checkpoints?.totalLaps || this.hostLaps || 3;
+    this.hud.resetForNewRace(totalLaps);
     this.hud.showHUD();
+    this.hud.setRumbleMode(this.isRumbleMode);
+    this.hud.setTimeSprintMode(this.isNoCollisionMode);
+    if (this.isNoCollisionMode) {
+      const trackKey = this.track && this.track.isHardcore ? 'hardcore' : 'classic';
+      this.hud.setTrackPB(recordManager.getRecord(trackKey).bestRaceTime);
+    }
+    this.hud.updateSpeed(0);
+
+    if (!this.isRumbleMode && this.player?.kart && this.checkpoints) {
+      const playerRank = this.checkpoints.getPlayerRank();
+      const standings = this.checkpoints.getStandings();
+      this.hud.updateStatus(
+        playerRank,
+        1,
+        totalLaps,
+        0,
+        0,
+        0,
+        this.player.kart.nitroCharges
+      );
+      this.hud.updateLiveStandings(standings, totalLaps, undefined, true);
+    }
+
     this.state = GameState.COUNTDOWN;
     this.raceTimer = 0;
     this.netBroadcastTimer = 0;
@@ -2965,7 +3200,7 @@ class Game {
     this.racerFinishTimes.clear();
     this.playerFinishRank = 0;
     this.finishCountdownActive = false;
-    this.finishCountdownTimer = 20.0;
+    this.finishCountdownTimer = 15.0;
     this.firstWinnerName = '';
     this.isSpectating = false;
     this.spectatedTargetIdx = 0;
@@ -2981,7 +3216,10 @@ class Game {
   }
 
   private syncCountdownTick() {
-    if (this.state !== GameState.COUNTDOWN) return;
+    if (this.state !== GameState.COUNTDOWN) {
+      this.hud.hideCountdown();
+      return;
+    }
 
     const msLeft = this.raceStartTime - Date.now();
 
@@ -3082,10 +3320,10 @@ class Game {
       const pKart = new Kart('kart-player', this.selectedKartIndex, this.engine.scene, this.physics, pPos, startRot);
       this.allKarts.push(pKart);
       this.player = new PlayerKart(pKart, this.input);
-      this.checkpoints.registerRacer(pKart.id, this.playerName || 'YOU', true, pPos, startRot);
+      this.checkpoints.registerRacer(pKart.id, this.playerName || 'YOU', true, pPos, startRot, economy.isVip());
 
       if (economy.isVip()) {
-        const pTag = createBrutalistNameTag(this.playerName || 'YOU', false, undefined, true);
+        const pTag = createBrutalistNameTag(this.playerName || 'YOU', undefined, true);
         pKart.group.add(pTag);
       }
 
@@ -3094,29 +3332,37 @@ class Game {
       const shouldSpawnBots = !(this.isNoCollisionMode && this.isTimeAttackSolo);
 
       if (shouldSpawnBots) {
-        // 3 Rival Bots on the starting line (Slots 0, 2, 3)
-        const botConfigs = [
-          { slot: slotOffsets[0], kartType: 0, name: 'ViperX', offsetLat: -4.0 },
-          { slot: slotOffsets[2], kartType: 0, name: 'CyberDrifter', offsetLat: 2.0 },
-          { slot: slotOffsets[3], kartType: 0, name: 'NeonBolt', offsetLat: 5.0 },
+        // 3 Rival Bots on the starting line (Slots 0, 2, 3) - Each with distinct kart model, skin, hat, glasses & authentic gamertag
+        const usedNames: string[] = [this.playerName || 'YOU'];
+        const playerEquippedSkin = economy.getEquippedSkin();
+
+        const botSlots = [
+          { slot: slotOffsets[0], offsetLat: -4.0 },
+          { slot: slotOffsets[2], offsetLat: 2.0 },
+          { slot: slotOffsets[3], offsetLat: 5.0 },
         ];
 
-        botConfigs.forEach((cfg, i) => {
+        botSlots.forEach((cfg, i) => {
+          const profile = generateBotProfile(i, playerEquippedSkin, usedNames);
+          usedNames.push(profile.name);
+
           const bPos = startPt.clone()
             .addScaledVector(binormal, cfg.slot.offsetLat)
             .addScaledVector(tangent, cfg.slot.offsetLong)
             .add(new THREE.Vector3(0, 0.15, 0));
 
-          const bKart = new Kart(`kart-bot-${i}`, cfg.kartType, this.engine.scene, this.physics, bPos, startRot);
-          bKart.applySkin('skin_default');
+          const bKart = new Kart(`kart-bot-${i}`, profile.kartType, this.engine.scene, this.physics, bPos, startRot);
+          bKart.applySkin(profile.skinId);
+          bKart.applyHat(profile.hatId);
+          bKart.applyGlasses(profile.glassesId);
           this.allKarts.push(bKart);
 
-          const tag = createBrutalistNameTag(cfg.name, false);
+          const tag = createBrutalistNameTag(profile.name, undefined, false);
           bKart.group.add(tag);
 
           const bot = new BotKart(bKart, this.track, cfg.offsetLat, t0);
           this.bots.push(bot);
-          this.checkpoints.registerRacer(bKart.id, cfg.name, false, bPos, startRot);
+          this.checkpoints.registerRacer(bKart.id, profile.name, false, bPos, startRot, false);
         });
       }
     } else {
@@ -3135,9 +3381,9 @@ class Game {
           const kart = new Kart(`kart-${idx}`, this.selectedKartIndex, this.engine.scene, this.physics, pos, startRot);
           this.allKarts.push(kart);
           this.player = new PlayerKart(kart, this.input);
-          this.checkpoints.registerRacer(kart.id, this.playerName, true, pos, startRot);
+          this.checkpoints.registerRacer(kart.id, this.playerName, true, pos, startRot, economy.isVip());
           if (economy.isVip()) {
-            const pTag = createBrutalistNameTag(this.playerName, net.isHost, undefined, true);
+            const pTag = createBrutalistNameTag(this.playerName, undefined, true);
             kart.group.add(pTag);
           }
         } else {
@@ -3147,7 +3393,7 @@ class Game {
           this.allKarts.push(kart);
 
           // Add floating Brutopia name tag billboard
-          const nameTag = createBrutalistNameTag(peer.name, peer.isHost);
+          const nameTag = createBrutalistNameTag(peer.name, undefined, peer.isVip);
           kart.group.add(nameTag);
 
           const interpolator = new NetworkInterpolator();
@@ -3171,7 +3417,7 @@ class Game {
             tumbleAngularVel: new THREE.Vector3(),
           });
 
-          this.checkpoints.registerRacer(kart.id, peer.name, false, pos, startRot);
+          this.checkpoints.registerRacer(kart.id, peer.name, false, pos, startRot, peer.isVip);
         }
       });
     }
@@ -3229,7 +3475,7 @@ class Game {
       kart.applySkin(peer.skinId || 'skin_default');
       this.allKarts.push(kart);
 
-      const nameTag = createBrutalistNameTag(peer.name, peer.isHost);
+      const nameTag = createBrutalistNameTag(peer.name, undefined, peer.isVip);
       kart.group.add(nameTag);
 
       const interpolator = new NetworkInterpolator();
@@ -3253,7 +3499,7 @@ class Game {
         tumbleAngularVel: new THREE.Vector3(),
       });
 
-      this.checkpoints.registerRacer(kart.id, peer.name, false, pos, startRot);
+      this.checkpoints.registerRacer(kart.id, peer.name, false, pos, startRot, peer.isVip);
     });
 
     for (const k of this.allKarts) {
@@ -3334,23 +3580,24 @@ class Game {
 
     // 1. If this is the FIRST racer to finish across the entire race
     if (!this.finishCountdownActive) {
-      this.startFinishCountdown(racer.isPlayer ? (this.playerName || 'YOU') : racer.name, 20.0);
+      this.startFinishCountdown(racer.isPlayer ? (this.playerName || 'YOU') : racer.name, 15.0);
       if (this.isMultiplayer && (this.player && this.player.kart.id === racer.id || net.isHost)) {
-        net.broadcastFirstFinish(racer.id, racer.name, 20.0);
+        net.broadcastFirstFinish(racer.id, racer.name, 15.0);
       }
     }
 
     // 2. If the local player just finished
     if (racer.isPlayer && !this.isPlayerFinished) {
-      this.isPlayerFinished = true;
       this.playerFinishRank = rank;
+      this.isPlayerFinished = true;
+      sounds.stopDrift();
 
       const suffixes = ['th', 'st', 'nd', 'rd', 'th'];
       const rankSuffix = `${rank}${suffixes[rank] || 'th'}`;
 
       if (rank === 1) {
         this.hud.showAlert('VICTORY // 1ST PLACE!', 'smash');
-        confetti({ particleCount: 140, spread: 80, origin: { y: 0.6 } });
+        CelebrationFX.celebrateVictory('yellow');
       } else {
         this.hud.showAlert(`FINISHED // ${rankSuffix} PLACE!`, 'smash');
       }
@@ -3363,7 +3610,7 @@ class Game {
     }
   }
 
-  private startFinishCountdown(winnerName: string, seconds: number = 20.0) {
+  private startFinishCountdown(winnerName: string, seconds: number = 15.0) {
     if (this.finishCountdownActive) return;
     this.finishCountdownActive = true;
     this.finishCountdownTimer = seconds;
@@ -3411,7 +3658,23 @@ class Game {
 
   private startSpectating() {
     this.isSpectating = true;
-    this.spectatedTargetIdx = 0;
+    sounds.stopDrift();
+
+    const spectatables = this.getSpectatableKarts();
+    if (spectatables.length > 0) {
+      // Prioritize active racers who haven't finished yet
+      const activeIdx = spectatables.findIndex((k) => {
+        const p = this.checkpoints.racers.get(k.id);
+        return p && p.finishTime === null;
+      });
+      this.spectatedTargetIdx = activeIdx !== -1 ? activeIdx : 0;
+      const target = spectatables[this.spectatedTargetIdx];
+      if (this.player && this.engine?.camera && target?.kart) {
+        this.player.updateCamera(0.016, this.engine.camera, target.kart);
+      }
+    } else {
+      this.spectatedTargetIdx = 0;
+    }
     this.updateSpectatorUI();
   }
 
@@ -3419,6 +3682,7 @@ class Game {
     const spectatables = this.getSpectatableKarts();
     if (spectatables.length === 0) return;
     this.spectatedTargetIdx = (this.spectatedTargetIdx + direction + spectatables.length) % spectatables.length;
+    sounds.stopDrift();
     this.updateSpectatorUI();
   }
 
@@ -3452,10 +3716,30 @@ class Game {
   private animateFinishRewards(baseCoins: number, baseXp: number) {
     const isVip = economy.isVip();
     const vipMultiplier = isVip ? 1.5 : 1.0;
-    const finalCoins = Math.round(baseCoins * vipMultiplier);
+    const finalRaceCoins = Math.round(baseCoins * vipMultiplier);
     const finalXp = Math.round(baseXp * vipMultiplier);
 
-    // 1. VIP Badges UI
+    // 1. Daily First Race Bonus check & claim
+    let dailyCoins = 0;
+    const dailyBadge = document.getElementById('finish-daily-badge');
+    const dailyText = document.getElementById('finish-daily-text');
+    if (economy.canClaimDailyFirstRace()) {
+      dailyCoins = economy.claimDailyFirstRace();
+      if (dailyBadge) {
+        dailyBadge.style.display = 'flex';
+      }
+      if (dailyText) {
+        dailyText.innerText = `DAILY 1ST RACE: +${dailyCoins} COINS!`;
+      }
+    } else {
+      if (dailyBadge) {
+        dailyBadge.style.display = 'none';
+      }
+    }
+
+    const totalCoinsEarned = finalRaceCoins + dailyCoins;
+
+    // 2. VIP Badges UI
     const vipBadge = document.getElementById('finish-vip-badge');
     const coinVipTag = document.getElementById('finish-coin-vip-tag');
     const xpVipTag = document.getElementById('finish-xp-vip-tag');
@@ -3463,7 +3747,7 @@ class Game {
     if (coinVipTag) coinVipTag.style.display = isVip ? 'inline-block' : 'none';
     if (xpVipTag) xpVipTag.style.display = isVip ? 'inline-block' : 'none';
 
-    // 2. Initial state before adding rewards
+    // 3. Initial state before adding rewards
     const oldLevel = economy.getLevel();
     const oldXp = economy.getXp();
     const oldNeeded = economy.getXpNeeded();
@@ -3488,11 +3772,11 @@ class Game {
     if (finishCoinsEl) finishCoinsEl.innerText = '+0 COINS';
     if (finishXpEl) finishXpEl.innerText = '+0 XP';
 
-    // 3. Process Economy Addition
+    // 4. Process Economy Addition (baseCoins with VIP multiplier; dailyCoins is added by claimDailyFirstRace)
     economy.addCoins(baseCoins, false);
     const xpResult = economy.addXp(baseXp);
 
-    // 4. Smooth 60/120Hz rAF Number Ticker (0 to 800ms)
+    // 5. Smooth 60/120Hz rAF Number Ticker (0 to 800ms)
     const startTime = performance.now();
     const duration = 850; // ms
 
@@ -3502,7 +3786,7 @@ class Game {
       // Easing: cubic ease-out
       const ease = 1 - Math.pow(1 - progress, 3);
 
-      const curCoins = Math.round(finalCoins * ease);
+      const curCoins = Math.round(totalCoinsEarned * ease);
       const curXp = Math.round(finalXp * ease);
 
       if (finishCoinsEl) finishCoinsEl.innerText = `+${curCoins} COINS`;
@@ -3533,14 +3817,9 @@ class Game {
         finishXpBarFill.classList.add('level-glow');
 
         setTimeout(() => {
-          // Step B: Pop celebration banner, victory sound & confetti
+          // Step B: Pop celebration banner, victory sound & premium star shower
           sounds.playVictory();
-          confetti({
-            particleCount: 130,
-            spread: 80,
-            origin: { y: 0.55 },
-            colors: ['#FFDE59', '#10B981', '#00D2FF', '#FF385C', '#FFFFFF']
-          });
+          CelebrationFX.celebrateLevelUp(xpResult.newLevel, xpResult.bonusCoins);
 
           if (levelupBanner) {
             levelupBanner.style.display = 'flex';
@@ -3549,7 +3828,11 @@ class Game {
             newLevelNumEl.innerText = xpResult.newLevel.toString();
           }
           if (levelupRewardText) {
-            levelupRewardText.innerText = `🎁 +${xpResult.bonusCoins} BONUS COINS UNLOCKED!`;
+            levelupRewardText.innerText = `+${xpResult.bonusCoins} BONUS COINS UNLOCKED!`;
+          }
+          const levelupChip = document.getElementById('finish-levelup-chip');
+          if (levelupChip) {
+            levelupChip.innerHTML = `<span>+${xpResult.bonusCoins}</span><span>🪙</span>`;
           }
           if (finishLevelTag) {
             finishLevelTag.innerText = `LVL ${xpResult.newLevel}`;
@@ -3581,6 +3864,7 @@ class Game {
     this.hud.hideFinishCountdown();
     this.hud.hideSpectatorOverlay();
     this.hud.showWrongWay(false);
+    this.hud.updateSpeed(0);
     speedlines.reset();
     sounds.fadeEngineOut(1.0);
 
@@ -3594,9 +3878,8 @@ class Game {
 
     const trackKey: 'classic' | 'hardcore' = (this.track && this.track.isHardcore) ? 'hardcore' : 'classic';
 
-    // Trackmania-style record evaluation: ONLY for Time Sprint mode (isNoCollisionMode)
-    let recordInfo: { isNewPB: boolean; currentTime: number; prevPB: number | null; delta: number } | undefined = undefined;
-
+    // Record evaluation STRICTLY for Time Sprint mode (this.isNoCollisionMode)
+    let recordInfo: { isNewPB: boolean; currentTime: number; prevPB: number | null; delta: number } | null = null;
     if (this.isNoCollisionMode) {
       const recordRes = recordManager.checkRaceTime(trackKey, playerTime);
       recordInfo = {
@@ -3605,53 +3888,56 @@ class Game {
         prevPB: recordRes.prevPB,
         delta: recordRes.delta,
       };
-
-      // Auto-submit to global sprint leaderboard
       leaderboard.submitSprintRecord(trackKey, playerTime);
     }
 
-    this.hud.showFinishLeaderboard(
-      standings,
-      playerRank === 1,
-      recordInfo,
-      this.racerFinishTimes
-    );
+    const showFinalLeaderboard = () => {
+      this.hud.showFinishLeaderboard(
+        standings,
+        playerRank === 1,
+        recordInfo,
+        this.racerFinishTimes
+      );
 
-    const restartBtn = document.getElementById('restart-btn') as HTMLButtonElement | null;
-    if (restartBtn) {
-      if (this.isMultiplayer) {
-        if (net.isHost) {
-          restartBtn.innerText = 'REMATCH (START ALL)';
-          restartBtn.disabled = false;
+      const restartBtn = document.getElementById('restart-btn') as HTMLButtonElement | null;
+      if (restartBtn) {
+        if (this.isMultiplayer) {
+          if (net.isHost) {
+            restartBtn.innerText = 'REMATCH (START ALL)';
+            restartBtn.disabled = false;
+          } else {
+            restartBtn.innerText = 'WAITING FOR HOST...';
+            restartBtn.disabled = true;
+          }
         } else {
-          restartBtn.innerText = 'WAITING FOR HOST...';
-          restartBtn.disabled = true;
+          restartBtn.innerText = 'PLAY AGAIN';
+          restartBtn.disabled = false;
         }
-      } else {
-        restartBtn.innerText = 'PLAY AGAIN';
-        restartBtn.disabled = false;
       }
-    }
 
-    // Coins & XP rewards based on placement
-    let coinsEarned = 60;
-    let xpEarned = 30;
-    if (playerRank === 1) {
-      coinsEarned = 150;
-      xpEarned = 80;
-    } else if (playerRank === 2) {
-      coinsEarned = 100;
-      xpEarned = 50;
-    }
-    this.animateFinishRewards(coinsEarned, xpEarned);
+      // Coins & XP rewards based on placement
+      let coinsEarned = 80;
+      let xpEarned = 40;
+      if (playerRank === 1) {
+        coinsEarned = 220;
+        xpEarned = 90;
+      } else if (playerRank === 2) {
+        coinsEarned = 140;
+        xpEarned = 60;
+      }
+      this.animateFinishRewards(coinsEarned, xpEarned);
+    };
+
+    // ALWAYS go straight to the Final Standings Podium in all modes!
+    showFinalLeaderboard();
   }
 
   private getRumbleKartVelocity = (kart: Kart): THREE.Vector3 => {
     for (const remote of this.remoteRacers.values()) {
       if (remote.kart === kart) {
-        _scratchForward.set(0, 0, 1).applyQuaternion(kart.group.quaternion);
+        const fwd = new THREE.Vector3(0, 0, 1).applyQuaternion(kart.group.quaternion);
         const spd = remote.interpolator.currentSpeed || remote.targetSpeed;
-        return _scratchForward.multiplyScalar(spd);
+        return fwd.multiplyScalar(spd);
       }
     }
     const lv = kart.rigidBody ? kart.rigidBody.linvel() : { x: 0, y: 0, z: 0 };
@@ -3687,7 +3973,7 @@ class Game {
     // Collision handling is authoritatively executed in update() (lines 4060+) with distance & ghosting checks
   }
 
-  // Pure circuit racing solid collision (Forza / NFS style):
+  // Pure circuit racing solid collision:
   private handleKartSmash(kartA: Kart, kartB: Kart) {
     if (kartA.isGhost || kartB.isGhost) return;
 
@@ -3716,7 +4002,7 @@ class Game {
     }
 
     const now = performance.now();
-    if (now - kartA.lastImpactTime < 250 || now - kartB.lastImpactTime < 250) return;
+    if (now - kartA.lastImpactTime < 450 || now - kartB.lastImpactTime < 450) return;
     kartA.lastImpactTime = now;
     kartB.lastImpactTime = now;
 
@@ -3740,7 +4026,9 @@ class Game {
 
     const relVelX = vA.x - vB.x;
     const relVelZ = vA.z - vB.z;
-    const impactSpeed = Math.max(6.0, Math.hypot(relVelX, relVelZ));
+    const impactSpeed = Math.hypot(relVelX, relVelZ);
+    // Direct closing speed along contact normal (how fast they are rushing into each other)
+    const closingSpeed = Math.abs(relVelX * normal.x + relVelZ * normal.z);
 
     // Determine who rammed whom
     const dotA = vA.x * normal.x + vA.z * normal.z;
@@ -3751,7 +4039,7 @@ class Game {
     const target = isARammer ? kartB : kartA;
     const ramDirSign = isARammer ? 1 : -1;
 
-    // ── REALISTIC SOLID CIRCUIT RACING (Forza / Need For Speed Style) ──
+    // ── REALISTIC SOLID CIRCUIT RACING RIGID-BODY SIMULATION ──
     // Cars are solid rigid-bodies: zero flying into clouds, realistic bump, push, speed loss, and mild yaw spin!
 
     // B. Speed Penalty / Momentum Loss (15% to 35% speed drop depending on impact speed)
@@ -3795,19 +4083,21 @@ class Game {
       }
     }
 
-    // Camera shake, spatial audio crash, and HUD alerts
+    // Camera shake & car-thokne crash sound (ONLY for actual hard direct collision, NEVER on side-by-side!)
     const isPlayerInvolved = rammer === this.player.kart || target === this.player.kart;
-    let crashVol = Math.min(1.8, impactSpeed / 16.0);
-    if (!isPlayerInvolved && this.player?.kart) {
-      const distToPlayer = Math.min(posA.distanceTo(this.player.kart.group.position), posB.distanceTo(this.player.kart.group.position));
-      crashVol = distToPlayer < 40.0 ? (1.0 - distToPlayer / 40.0) * crashVol * 0.7 : 0;
-    }
-    if (crashVol > 0.05) {
-      sounds.playCrash(crashVol);
+    if (closingSpeed >= 6.5) {
+      let crashVol = Math.min(1.4, Math.max(0.5, closingSpeed / 16.0));
+      if (!isPlayerInvolved && this.player?.kart) {
+        const distToPlayer = Math.min(posA.distanceTo(this.player.kart.group.position), posB.distanceTo(this.player.kart.group.position));
+        crashVol = distToPlayer < 35.0 ? (1.0 - distToPlayer / 35.0) * crashVol * 0.7 : 0;
+      }
+      if (crashVol > 0.05) {
+        sounds.playCrash(crashVol);
+      }
     }
 
-    if (isPlayerInvolved) {
-      this.player.triggerImpactShake(crashVol * 1.3);
+    if (isPlayerInvolved && closingSpeed >= 5.0) {
+      this.player.triggerImpactShake(Math.min(1.6, closingSpeed / 14.0));
     }
   }
 
@@ -3869,6 +4159,12 @@ class Game {
         const baseAngle = i === 0 ? Math.PI * 0.15 : -Math.PI * 0.15;
         f.rotation.y = baseAngle + Math.sin(this.showroomCloudTime * 4.0 + i * 2.0) * 0.08;
       }
+      // Reset FOV strictly back to 65 in MENU state to prevent race FOV leak (nitro/boost/air zoom-out)
+      if (Math.abs(this.engine.camera.fov - 65) > 0.05) {
+        this.engine.camera.fov = THREE.MathUtils.lerp(this.engine.camera.fov, 65, Math.min(1.0, dt * 10));
+        this.engine.camera.updateProjectionMatrix();
+      }
+
       if (this.isModeSelectOpen) {
         // High-end cinematic camera angle when choosing modes: elevated wide perspective of 3D island
         const driftX = Math.sin(this.showroomCloudTime * 0.22) * 0.85;
@@ -3876,11 +4172,16 @@ class Game {
         this.engine.camera.lookAt(0, this.STUDIO_Y + 0.65, 0);
       } else if (this.isStoreOpen) {
         // High-end tuning showroom angle: closer, focused on the kart on the turntable
-        this.engine.camera.position.set(0, this.STUDIO_Y + 1.45, 6.8);
-        this.engine.camera.lookAt(0, this.STUDIO_Y + 0.45, 0);
-      } else if (window.innerHeight < 520) {
-        this.engine.camera.position.set(0, this.STUDIO_Y + 1.85, 8.2);
-        this.engine.camera.lookAt(0, this.STUDIO_Y + 0.25, 0);
+        if (window.innerHeight < 560 || window.innerWidth < 860) {
+          this.engine.camera.position.set(0, this.STUDIO_Y + 1.48, 6.7);
+          this.engine.camera.lookAt(0, this.STUDIO_Y + 0.38, 0);
+        } else {
+          this.engine.camera.position.set(0, this.STUDIO_Y + 1.45, 6.8);
+          this.engine.camera.lookAt(0, this.STUDIO_Y + 0.45, 0);
+        }
+      } else if (window.innerHeight < 560 || window.innerWidth < 860) {
+        this.engine.camera.position.set(0, this.STUDIO_Y + 1.58, 6.85);
+        this.engine.camera.lookAt(0, this.STUDIO_Y + 0.48, 0);
       } else {
         this.engine.camera.position.set(0, this.STUDIO_Y + 1.75, 7.8);
         this.engine.camera.lookAt(0, this.STUDIO_Y + 0.55, 0);
@@ -3928,6 +4229,32 @@ class Game {
       }
 
       this.player.updateCamera(dt, this.engine.camera);
+      this.hud.updateSpeed(0);
+
+      if (!this.isRumbleMode && this.checkpoints && this.player?.kart) {
+        const playerRank = this.checkpoints.getPlayerRank();
+        const standings = this.checkpoints.getStandings();
+        this.hud.updateStatus(
+          playerRank,
+          1,
+          this.checkpoints.totalLaps,
+          0,
+          0,
+          0,
+          this.player.kart.nitroCharges
+        );
+        this.hud.updateLiveStandings(standings, this.checkpoints.totalLaps);
+      }
+
+      // Keep radar minimap updated on start grid
+      _minimapOtherKarts.length = 0;
+      for (let i = 0; i < this.allKarts.length; i++) {
+        if (this.allKarts[i] !== this.player.kart) {
+          _minimapOtherKarts.push(this.allKarts[i]);
+        }
+      }
+      this.hud.drawMinimap(this.track, this.player.kart, _minimapOtherKarts);
+
       if (this.isRumbleMode && this.rumbleManager && this.player?.kart) {
         this.hud.updateRumbleHud(this.rumbleManager, this.player.kart);
       }
@@ -3953,9 +4280,9 @@ class Game {
         // Coast gently while falling, spectating, or finished; ignore drive inputs until respawned on deck
         this.player.input.update(dt);
         this.player.kart.applyInput(0, 0, false, dt, this.physics);
-        const coastSpeed = Math.min(1.0, Math.abs(this.player.kart.currentSpeed) / this.player.kart.stats.topSpeed);
-        sounds.updateEnginePitch(coastSpeed, false);
         if (!this.isSpectating) {
+          const coastSpeed = Math.min(1.0, Math.abs(this.player.kart.currentSpeed) / this.player.kart.stats.topSpeed);
+          sounds.updateEnginePitch(coastSpeed, false);
           this.player.updateCamera(dt, this.engine.camera);
         }
       } else {
@@ -3978,6 +4305,12 @@ class Game {
       if (inTube && !this.playerWasInTube) {
         sounds.playBoost();
         this.playerWasInTube = true;
+        this.player.kart.onTubeBarrierHit = () => {
+          this.player.triggerImpactShake(2.0);
+        };
+        this.player.kart.onTubeBarrierCleared = () => {
+          this.player.triggerImpactShake(0.8);
+        };
       } else if (!inTube && this.playerWasInTube) {
         this.playerWasInTube = false;
       }
@@ -4002,10 +4335,15 @@ class Game {
           const target = spectatables[this.spectatedTargetIdx % spectatables.length];
           this.player.updateCamera(dt, this.engine.camera, target.kart);
           this.updateSpectatorUI();
-          const targetSpeed = target.kart.currentSpeed || (this.remoteRacers.get(target.id)?.targetSpeed || 0);
-          sounds.updateEnginePitch(Math.min(1.0, Math.abs(targetSpeed) / 40.0), false);
+          const targetSpeed = Math.abs(target.kart.currentSpeed) || (this.remoteRacers.get(target.id)?.targetSpeed || 0);
+          const targetTopSpeed = target.kart.stats?.topSpeed || 40.0;
+          const speedFraction = Math.min(1.0, targetSpeed / targetTopSpeed);
+          sounds.updateEnginePitch(speedFraction, targetSpeed > 2.0);
+          sounds.updateDrift(!!target.kart.isDrifting, target.kart.isDrifting ? Math.min(1.0, 0.4 + target.kart.driftTime * 1.2) : 0);
         } else {
           this.player.updateCamera(dt, this.engine.camera);
+          sounds.updateEnginePitch(0, false);
+          sounds.stopDrift();
         }
       } else if (this.isPlayerFinished) {
         this.player.updateCamera(dt, this.engine.camera);
@@ -4112,7 +4450,7 @@ class Game {
                 );
               }
             } else {
-              // Classic Circuit / Hardcore Racing Mode (Forza/NFS Solid Rigid-Body Bump)
+              // Classic Circuit / Hardcore Racing Mode (Solid Rigid-Body Bump)
               if (kA.isGhost || kB.isGhost) continue;
               const distSq = kA.group.position.distanceToSquared(kB.group.position);
               if (distSq < 7.2) {
@@ -4261,6 +4599,9 @@ class Game {
       // 4c. Check Road Hazard Blocks (Unbreakable Solid Rigid Barriers)
       for (const block of this.track.hazardBlocks) {
         for (const kart of this.allKarts) {
+          // PRODUCTION FIX: AI Bots ignore hazard block collisions so they never get stuck on track barriers!
+          if (kart.isBot || this.bots.some((b) => b.kart === kart)) continue;
+
           _scratchToBlock.subVectors(kart.group.position, block.position);
 
           // Fast vertical height check
@@ -4332,14 +4673,7 @@ class Game {
               // Solid horizontal rebound
               kart.launchIntoAir(_hazardLaunchVel, false);
 
-              // Multi-color explosive sparks
-              const sparkCount = Math.min(50, Math.floor(25 + impactPower * 0.8));
-              this.sparks.emitImpactSparks(kart.group.position, sparkCount, 0xff2200);
-              this.sparks.emitImpactSparks(block.position, 20, 0xffaa00);
-
               if (kart === this.player.kart) {
-                const crashVol = Math.min(2.0, 0.9 + impactPower * 0.03);
-                sounds.playCrash(crashVol);
                 this.player.triggerImpactShake(2.5);
               }
             }
@@ -4380,21 +4714,12 @@ class Game {
                 }, true);
               }
 
-              // Impact audio, sparks & shake with cooldown
+              // Visual sparks & camera shake with cooldown (ZERO crash audio on rocks/barriers)
               const now = performance.now();
               const lastHit = boulder.lastHitTimes.get(kart.id) || 0;
               if (now - lastHit > 280) {
                 boulder.lastHitTimes.set(kart.id, now);
-                const impactSpeed = Math.hypot(curLv.x, curLv.z);
                 const isPlayer = kart === this.player.kart;
-                let crashVol = Math.min(1.8, 0.6 + impactSpeed * 0.04);
-                if (!isPlayer && this.player?.kart) {
-                  const d = kPos.distanceTo(this.player.kart.group.position);
-                  crashVol = d < 35.0 ? (1.0 - d / 35.0) * crashVol * 0.65 : 0;
-                }
-                if (crashVol > 0.05) {
-                  sounds.playCrash(crashVol);
-                }
                 if (isPlayer) {
                   this.player.triggerImpactShake(1.5);
                 }
@@ -4409,8 +4734,7 @@ class Game {
         this.track.kineticHazards.update(
           dt,
           this.allKarts,
-          this.sparks,
-          (msg, type) => this.hud.showAlert(msg, type as any)
+          this.sparks
         );
       }
 
@@ -4430,7 +4754,7 @@ class Game {
             if (radialDist < (ring.radius - 0.9)) {
               // Smooth pass through the center - no vibration, no camera shaking!
             } else if (Math.abs(radialDist - ring.radius) <= (ring.rimThickness + 0.8)) {
-              // 2. Solid Rim Collision (CLANG!)
+              // 2. Solid Rim Collision
               const now = performance.now();
               const lastHit = ring.lastHitTimes.get(kart.id) || 0;
               if (now - lastHit > 600) {
@@ -4445,8 +4769,6 @@ class Game {
                 _crLaunchVel.y += 6.0;
 
                 kart.launchIntoAir(_crLaunchVel, false);
-                this.sparks.emitImpactSparks(kart.group.position, 35, 0x00f0ff);
-                sounds.playCrash(1.5);
 
                 if (kart === this.player.kart) {
                   this.player.triggerImpactShake(1.2);
@@ -4478,61 +4800,92 @@ class Game {
       }
 
       // 5. Update HUD Status
+      let displaySpeedKmh = this.player.getSpeedKmh();
+      let displayNitroFraction = Math.min(1.0, this.player.kart.boostTime / 1.5);
+      let displayNitroCharges = this.player.kart.nitroCharges;
+      let displayRank = 1;
+      let displayLap = 1;
+
       if (!this.isRumbleMode) {
-        const playerRank = this.checkpoints.getPlayerRank();
+        displayRank = this.checkpoints.getPlayerRank();
         const playerProgress = this.checkpoints.racers.get(this.player.kart.id)!;
-        const speedKmh = this.player.getSpeedKmh();
-        const nitroFraction = Math.min(1.0, this.player.kart.boostTime / 1.5);
+        displayLap = playerProgress.lap;
 
-        this.hud.updateStatus(
-          playerRank,
-          playerProgress.lap,
-          this.checkpoints.totalLaps,
-          this.raceTimer,
-          speedKmh,
-          nitroFraction,
-          this.player.kart.nitroCharges
-        );
-
-        // 5b. Update Live Standings & Laps Card
-        const standings = this.checkpoints.getStandings();
         let spectatedId: string | undefined;
         if (this.isSpectating) {
           const spectatables = this.getSpectatableKarts();
           if (spectatables.length > 0) {
-            spectatedId = spectatables[this.spectatedTargetIdx % spectatables.length].id;
+            const target = spectatables[this.spectatedTargetIdx % spectatables.length];
+            spectatedId = target?.id;
+            if (target?.kart) {
+              displaySpeedKmh = target.kart.getSpeedKmh();
+              displayNitroFraction = Math.min(1.0, target.kart.boostTime / 1.5);
+              displayNitroCharges = target.kart.nitroCharges;
+            }
+            if (target?.id) {
+              const spectatedProg = this.checkpoints.racers.get(target.id);
+              if (spectatedProg) {
+                displayRank = this.checkpoints.getRacerRank(target.id);
+                displayLap = spectatedProg.lap;
+              }
+            }
           }
         }
+
+        this.hud.updateStatus(
+          displayRank,
+          displayLap,
+          this.checkpoints.totalLaps,
+          this.raceTimer,
+          displaySpeedKmh,
+          displayNitroFraction,
+          displayNitroCharges
+        );
+
+        // 5b. Update Live Standings & Laps Card
+        const standings = this.checkpoints.getStandings();
         this.hud.updateLiveStandings(standings, this.checkpoints.totalLaps, spectatedId);
 
         // 5c. Real-Time Wrong-Way Reverse Driving Alert
-        const currentGate = this.checkpoints.gates[playerProgress.currentCheckpoint];
-        if (currentGate && !this.isPlayerFinished) {
-          const forward = _wrongWayFwd.set(0, 0, 1).applyQuaternion(this.player.kart.group.quaternion);
-          // Project onto XZ plane to prevent false positives when pitching up slopes
-          const forwardH = _wrongWayFwdH.set(forward.x, 0, forward.z).normalize();
-          const gateForwardH = _wrongWayGateH.set(currentGate.forward.x, 0, currentGate.forward.z).normalize();
-          const alignment = forwardH.dot(gateForwardH);
+        if (this.isSpectating || this.isPlayerFinished) {
+          this.hud.showWrongWay(false);
+        } else {
+          const currentGate = this.checkpoints.gates[playerProgress.currentCheckpoint];
+          if (currentGate) {
+            const forward = _wrongWayFwd.set(0, 0, 1).applyQuaternion(this.player.kart.group.quaternion);
+            // Project onto XZ plane to prevent false positives when pitching up slopes
+            const forwardH = _wrongWayFwdH.set(forward.x, 0, forward.z).normalize();
+            const gateForwardH = _wrongWayGateH.set(currentGate.forward.x, 0, currentGate.forward.z).normalize();
+            const alignment = forwardH.dot(gateForwardH);
 
-          if (alignment < -0.45 && Math.abs(speedKmh) > 6) {
-            this.wrongWayTimer += dt;
-            if (this.wrongWayTimer > 0.55) {
-              this.hud.showWrongWay(true);
+            if (alignment < -0.45 && Math.abs(displaySpeedKmh) > 6) {
+              this.wrongWayTimer += dt;
+              if (this.wrongWayTimer > 0.55) {
+                this.hud.showWrongWay(true);
+              }
+            } else {
+              this.wrongWayTimer = Math.max(0, this.wrongWayTimer - dt * 3.0);
+              if (this.wrongWayTimer === 0) {
+                this.hud.showWrongWay(false);
+              }
             }
           } else {
-            this.wrongWayTimer = Math.max(0, this.wrongWayTimer - dt * 3.0);
-            if (this.wrongWayTimer === 0) {
-              this.hud.showWrongWay(false);
-            }
+            this.hud.showWrongWay(false);
           }
-        } else {
-          this.hud.showWrongWay(false);
         }
       } else {
         // Sky Rumble Mode: Arena score and match timer are updated by rumbleManager.
-        // Speedometer updated smoothly without affecting arena match HUD
-        const speedKmh = this.player.getSpeedKmh();
-        this.hud.updateSpeed(speedKmh);
+        // Speedometer updated smoothly with spectated or player speed
+        if (this.isSpectating) {
+          const spectatables = this.getSpectatableKarts();
+          if (spectatables.length > 0) {
+            const target = spectatables[this.spectatedTargetIdx % spectatables.length];
+            if (target?.kart) {
+              displaySpeedKmh = target.kart.getSpeedKmh();
+            }
+          }
+        }
+        this.hud.updateSpeed(displaySpeedKmh);
         this.hud.showWrongWay(false);
       }
 
@@ -4571,7 +4924,7 @@ class Game {
       }
     }
 
-    // Update Deadshot-style Tactical Nitro Speedlines (STRICTLY active when player kart has active boostTime > 0)
+    // Update Tactical Nitro Speedlines (STRICTLY active when player kart has active boostTime > 0)
     const isNitroActive = this.state === GameState.RACING && !!this.player && !!this.player.kart && this.player.kart.boostTime > 0;
     speedlines.update(dt, isNitroActive);
   }
@@ -4580,5 +4933,14 @@ class Game {
 // Bootstrap game when DOM is loaded
 window.addEventListener('DOMContentLoaded', () => {
   const game = new Game();
-  game.init().catch(console.error);
+  game.init().catch((err) => {
+    console.error('[Game Init Failure]', err);
+    const loadingScreen = document.getElementById('loading-screen');
+    if (loadingScreen) {
+      loadingScreen.classList.add('fade-out');
+      setTimeout(() => {
+        loadingScreen.style.display = 'none';
+      }, 500);
+    }
+  });
 });

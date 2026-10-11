@@ -1,5 +1,5 @@
 /* ================================================================
-   AIRSKID RACING // TIME SPRINT LEADERBOARD STYLING
+   AIRSKIDO RACING // TIME SPRINT LEADERBOARD STYLING
    ================================================================ */
 
 /* ── Lobby Left Dock Leaderboard Card ─────────────────────────── */
@@ -124,23 +124,32 @@
 }
 
 .rank-gold {
-  background: #FFE600;
+  background: linear-gradient(135deg, #FFF566 0%, #FFE600 50%, #EAB308 100%);
   color: #000000;
+  border-color: #000000;
+  box-shadow: 1px 1px 0px #000000;
 }
 
 .rank-silver {
-  background: #E2E8F0;
-  color: #000000;
+  background: linear-gradient(135deg, #FFFFFF 0%, #E2E8F0 25%, #94A3B8 60%, #CBD5E1 85%, #F1F5F9 100%);
+  color: #0F172A;
+  border: 1.5px solid #000000;
+  box-shadow: 1px 1px 0px #000000, inset 0 1px 1px rgba(255, 255, 255, 0.9);
+  font-weight: 900;
+  text-shadow: 0 0.5px 0 rgba(255, 255, 255, 0.8);
 }
 
 .rank-bronze {
-  background: #FED7AA;
+  background: linear-gradient(135deg, #FFEDD5 0%, #FDBA74 50%, #EA580C 100%);
   color: #000000;
+  border-color: #000000;
+  box-shadow: 1px 1px 0px #000000;
 }
 
 .rank-other {
-  background: #F1F5F9;
-  color: #475569;
+  background: #FFFFFF;
+  color: #64748B;
+  border-color: #CBD5E1;
 }
 
 .lb-pilot-name {
@@ -237,6 +246,95 @@
   border-radius: 20px !important;
 }
 
+.lb-modal-card .mp-modal-header,
+.lb-modal-card .mp-modal-top {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  width: 100% !important;
+  margin-bottom: 12px !important;
+  flex-shrink: 0 !important;
+}
+
+.lb-modal-card .mp-header-left {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+}
+
+.lb-modal-card .mp-brand-badge {
+  width: 38px !important;
+  height: 38px !important;
+  min-width: 38px !important;
+  border-radius: 9px !important;
+  border: 2px solid #000000 !important;
+  background: #FFE600 !important;
+  box-shadow: 2px 2px 0px #000000 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-shrink: 0 !important;
+}
+
+.lb-modal-card .mp-brand-badge svg {
+  width: 20px !important;
+  height: 20px !important;
+}
+
+.lb-modal-card .mp-header-titles {
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+}
+
+.lb-modal-card .mp-subheading {
+  font-family: var(--font-telemetry, 'Space Grotesk', sans-serif) !important;
+  font-size: 9.5px !important;
+  font-weight: 900 !important;
+  letter-spacing: 1px !important;
+  color: #64748B !important;
+  text-transform: uppercase !important;
+  margin-bottom: 1px !important;
+  line-height: 1.2 !important;
+}
+
+.lb-modal-card .mp-main-heading {
+  font-family: var(--font-display, 'Rajdhani', sans-serif) !important;
+  font-size: 19px !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.5px !important;
+  color: #000000 !important;
+  margin: 0 !important;
+  line-height: 1.1 !important;
+}
+
+.lb-modal-card .mp-close-btn {
+  width: 34px !important;
+  height: 34px !important;
+  min-width: 34px !important;
+  background: #FFFFFF !important;
+  border: 2px solid #000000 !important;
+  box-shadow: 2px 2px 0px #000000 !important;
+  border-radius: 9px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  flex-shrink: 0 !important;
+  transition: transform 0.1s ease, box-shadow 0.1s ease !important;
+}
+
+.lb-modal-card .mp-close-btn:hover {
+  transform: translate(-1px, -1px) !important;
+  box-shadow: 3px 3px 0px #000000 !important;
+  background: #FFF066 !important;
+}
+
+.lb-modal-card .mp-close-btn:active {
+  transform: translate(1px, 1px) !important;
+  box-shadow: 1px 1px 0px #000000 !important;
+}
+
 .lb-search-bar {
   display: flex;
   align-items: center;
@@ -303,6 +401,19 @@
 .lb-full-table tbody tr.row-player {
   background: #FEF08A;
   font-weight: bold;
+}
+
+.lb-full-table tbody tr.row-rank-1:not(.row-player) {
+  background: rgba(254, 240, 138, 0.28);
+}
+
+.lb-full-table tbody tr.row-rank-2:not(.row-player) {
+  background: linear-gradient(90deg, rgba(203, 213, 225, 0.45) 0%, rgba(241, 245, 249, 0.25) 100%);
+  border-left: 3.5px solid #64748B;
+}
+
+.lb-full-table tbody tr.row-rank-3:not(.row-player) {
+  background: rgba(254, 215, 170, 0.25);
 }
 
 .lb-full-table td {
@@ -422,5 +533,198 @@
   border-color: #000000 !important;
   box-shadow: 3px 3px 0px #000000 !important;
   transform: translate(-1px, -1px);
+}
+
+/* ── Mobile Compact Responsive Rules for Lobby Hall of Fame Dock ── */
+@media (max-width: 860px), (max-height: 560px) {
+  .leaderboard-compact-card {
+    gap: 4px !important;
+  }
+  .leaderboard-header-row {
+    padding-bottom: 4px !important;
+  }
+  .leaderboard-subhead {
+    font-size: 7px !important;
+    letter-spacing: 0.8px !important;
+  }
+  .leaderboard-main-title {
+    font-size: 11.5px !important;
+  }
+  .leaderboard-main-title svg {
+    width: 12px !important;
+    height: 12px !important;
+  }
+  .leaderboard-live-pill {
+    font-size: 7.5px !important;
+    padding: 0 4px !important;
+  }
+  /* Interactive Normal vs Hardcore Track Tabs */
+  .lb-track-tabs {
+    display: flex !important;
+    gap: 3px !important;
+    margin-bottom: 2px !important;
+  }
+  .lb-tab-btn {
+    padding: 2px 6px !important;
+    font-size: 8px !important;
+    font-weight: 800 !important;
+    border-radius: 6px !important;
+  }
+  .leaderboard-rows-compact {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 2.5px !important;
+  }
+  /* Show all Top 3 racers (#1, #2, #3) clearly on mobile */
+  .leaderboard-rows-compact .lb-compact-row {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: 2.5px 6px !important;
+    border-radius: 6px !important;
+  }
+  .lb-pilot-group {
+    display: flex !important;
+    align-items: center !important;
+    gap: 5px !important;
+    min-width: 0 !important;
+  }
+  .lb-pilot-name {
+    font-size: 10.5px !important;
+    font-weight: 700 !important;
+    max-width: 95px !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+  .lb-time-text {
+    font-size: 10px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.2px !important;
+    flex-shrink: 0 !important;
+  }
+  .lb-rank-badge {
+    width: 16px !important;
+    height: 16px !important;
+    font-size: 9px !important;
+    border-radius: 4px !important;
+    flex-shrink: 0 !important;
+  }
+  .lb-player-footer-row {
+    display: none !important;
+  }
+  .btn-expand-leaderboard {
+    font-size: 9px !important;
+    padding: 3px 0 !important;
+    border-radius: 6px !important;
+    letter-spacing: 0.4px !important;
+    margin-top: 2px !important;
+  }
+
+  /* ── Full Top 100 Leaderboard Modal Compact Styling ── */
+  .lb-modal-card {
+    max-width: min(540px, 94vw) !important;
+    width: 94% !important;
+    max-height: 94vh !important;
+    max-height: 94dvh !important;
+    padding: 10px 14px !important;
+    border-radius: 14px !important;
+    box-shadow: 4px 4px 0 #000 !important;
+  }
+  .lb-modal-card .mp-modal-header,
+  .lb-modal-card .mp-modal-top {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    width: 100% !important;
+    margin-bottom: 6px !important;
+  }
+  .lb-modal-card .mp-header-left {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+  }
+  .lb-modal-card .mp-header-titles .mp-main-heading {
+    font-size: 13px !important;
+  }
+  .lb-modal-card .mp-header-titles .mp-subheading {
+    font-size: 7.5px !important;
+  }
+  .lb-modal-card .mp-brand-badge {
+    width: 24px !important;
+    height: 24px !important;
+    border-radius: 6px !important;
+  }
+  .lb-modal-card .mp-brand-badge svg {
+    width: 13px !important;
+    height: 13px !important;
+  }
+  .lb-modal-track-tabs {
+    gap: 4px !important;
+    margin-top: 2px !important;
+    margin-bottom: 4px !important;
+  }
+  .lb-modal-tab-btn {
+    padding: 3px 8px !important;
+    font-size: 9px !important;
+    border-radius: 6px !important;
+    border-width: 1.5px !important;
+  }
+  .lb-search-bar {
+    padding: 3px 8px !important;
+    margin: 4px 0 !important;
+    border-radius: 8px !important;
+    border-width: 1.5px !important;
+  }
+  .lb-search-bar svg {
+    width: 13px !important;
+    height: 13px !important;
+  }
+  .lb-search-input {
+    font-size: 11px !important;
+  }
+  .lb-table-wrapper {
+    flex: 1 1 auto !important;
+    min-height: 120px !important;
+    max-height: 52vh !important;
+    margin-bottom: 6px !important;
+    border-radius: 8px !important;
+    border-width: 1.5px !important;
+  }
+  .lb-full-table th {
+    padding: 4px 6px !important;
+    font-size: 8px !important;
+  }
+  .lb-full-table td {
+    padding: 4px 6px !important;
+    font-size: 10.5px !important;
+  }
+  .td-rank {
+    font-size: 11px !important;
+    width: 34px !important;
+  }
+  .td-time {
+    font-size: 10.5px !important;
+    width: 80px !important;
+  }
+  .td-gap {
+    font-size: 9.5px !important;
+    width: 65px !important;
+  }
+  .pilot-id-sub {
+    font-size: 8px !important;
+  }
+  .lb-modal-footer {
+    padding-top: 4px !important;
+    border-top-width: 1.5px !important;
+  }
+  .lb-modal-footer .lb-subhead {
+    font-size: 8px !important;
+  }
+  .lb-modal-footer button {
+    padding: 4px 12px !important;
+    font-size: 11px !important;
+    border-radius: 6px !important;
+  }
 }
 

@@ -1,5 +1,5 @@
 /* ================================================================
-   AIRSKID RACING // IN-GAME HUD & TELEMETRY SYSTEMS
+   AIRSKIDO RACING // IN-GAME HUD & TELEMETRY SYSTEMS
    ================================================================ */
     /* ── IN-GAME BRUTOPIA HUD ── */
     #hud-container {
@@ -162,6 +162,15 @@
       text-overflow: ellipsis;
       max-width: 82px;
     }
+    .standing-vip-crown {
+      width: 12px;
+      height: 12px;
+      fill: #000;
+      flex-shrink: 0;
+      display: inline-block;
+      vertical-align: -1px;
+      margin-right: 3px;
+    }
     .standing-lap-tag {
       font-family: var(--font-display);
       font-size: 10.5px;
@@ -180,31 +189,56 @@
       color: #fff;
     }
 
-    /* ── FINISH COUNTDOWN BANNER ── */
+    /* ── FINISH COUNTDOWN BANNER (TOP CENTER) ── */
     #finish-countdown-banner {
       position: absolute;
       top: 20px;
       left: 50%;
       transform: translateX(-50%);
-      background: #FF385C;
+      background: rgba(13, 18, 28, 0.94);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
       color: #fff;
-      border: 3px solid #000;
+      border: 2.5px solid #000;
+      border-left: 5px solid #FF385C;
       box-shadow: 4px 4px 0px #000;
-      border-radius: 24px;
+      border-radius: 14px;
       padding: 6px 18px;
       font-family: var(--font-display);
-      font-size: 17px;
-      font-weight: 900;
-      letter-spacing: 1px;
       display: none;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
       z-index: 35;
       animation: finishPulse 1.0s infinite alternate ease-in-out;
     }
+    .finish-countdown-icon {
+      color: #FF385C;
+      display: flex;
+      align-items: center;
+    }
+    .finish-countdown-icon svg {
+      width: 17px;
+      height: 17px;
+      fill: currentColor;
+    }
+    .finish-countdown-label {
+      font-size: 14px;
+      font-weight: 900;
+      letter-spacing: 1.5px;
+      color: #F1F5F9;
+      text-transform: uppercase;
+    }
+    .finish-countdown-digits {
+      font-family: var(--font-telemetry);
+      font-size: 18px;
+      font-weight: 900;
+      color: #FFE600;
+      letter-spacing: 0.5px;
+      text-shadow: 0 0 8px rgba(255, 230, 0, 0.35);
+    }
     @keyframes finishPulse {
-      0% { transform: translateX(-50%) scale(0.97); }
-      100% { transform: translateX(-50%) scale(1.03); }
+      0% { transform: translateX(-50%) scale(0.98); }
+      100% { transform: translateX(-50%) scale(1.02); }
     }
 
     /* ── SPECTATOR MODE OVERLAY ── */
@@ -470,7 +504,7 @@
 /* ================================================================
    MOBILE TOUCH CONTROLS & HUD CLUSTER
    ================================================================ */
-    /* ── MOBILE TOUCH CONTROLS (NFS / Asphalt Mobile Arcade Style) ── */
+    /* ── MOBILE TOUCH CONTROLS (Pro Mobile Arcade Style) ── */
     #touch-controls {
       position: absolute;
       top: 0;
@@ -691,6 +725,20 @@
 /* ================================================================
    RUMBLE ARENA SCOREBOARD & COMBAT KILLFEED
    ================================================================ */
+    /* In Sky Rumble Coliseum: Strictly eliminate all classic race clusters across all screens */
+    body.is-rumble-mode .top-left-hud,
+    body.is-rumble-mode .live-standings-card,
+    body.is-rumble-mode #live-standings-card,
+    body.is-rumble-mode #hud-pb-box,
+    body.is-rumble-mode #hud-time-box,
+    #hud-container.is-rumble-mode .top-left-hud,
+    #hud-container.is-rumble-mode .live-standings-card,
+    #hud-container.is-rumble-mode #live-standings-card,
+    #hud-container.is-rumble-mode #hud-pb-box,
+    #hud-container.is-rumble-mode #hud-time-box {
+      display: none !important;
+    }
+
     /* ── RUMBLE ARENA SCOREBOARD (NEO-BRUTALIST ARCADE THEME) ── */
     .rumble-hud-bar {
       position: absolute;
@@ -861,18 +909,18 @@
       max-width: 360px;
     }
     .killfeed-entry {
-      background: rgba(14, 18, 26, 0.78);
-      backdrop-filter: blur(6px);
-      -webkit-backdrop-filter: blur(6px);
+      background: rgba(14, 18, 26, 0.85);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
       color: #fff;
-      border: 1px solid rgba(255, 255, 255, 0.14);
-      border-radius: 3px;
-      padding: 3px 9px;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: 6px;
+      padding: 4px 10px;
       font-family: var(--font-display);
       font-size: 13px;
       font-weight: 800;
       letter-spacing: 0.4px;
-      box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.5);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
       animation: killfeedSlideLeft 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
       white-space: nowrap;
       display: inline-flex;
@@ -892,16 +940,6 @@
       left: auto !important;
       top: 14px;
     }
-    .killfeed-entry.self-kill {
-      background: rgba(22, 30, 42, 0.90) !important;
-      border-color: #FFE600 !important;
-      box-shadow: 0 0 10px rgba(255, 230, 0, 0.4), 2px 2px 0px #000 !important;
-    }
-    .killfeed-entry.self-victim {
-      background: rgba(36, 18, 24, 0.90) !important;
-      border-color: #ff3344 !important;
-      box-shadow: 0 0 10px rgba(255, 51, 68, 0.4), 2px 2px 0px #000 !important;
-    }
     .killfeed-weapon {
       display: inline-block;
       vertical-align: middle;
@@ -914,13 +952,13 @@
       opacity: 0.9;
     }
     .killfeed-action {
-      font-size: 9px;
+      font-size: 10px;
       font-weight: 900;
       letter-spacing: 0.6px;
-      color: #ffffff;
-      opacity: 0.9;
+      color: #94A3B8;
+      opacity: 0.95;
       text-transform: uppercase;
-      padding: 0 1px;
+      padding: 0 2px;
     }
     .killfeed-name {
       font-weight: 800;
@@ -943,42 +981,38 @@
       opacity: 0.95;
     }
     .killfeed-tag-out {
-      font-size: 9px;
+      font-size: 9.5px;
       font-weight: 900;
       letter-spacing: 0.5px;
       color: #ff4455;
-      background: rgba(255, 68, 85, 0.15);
-      border: 1px solid #ff4455;
-      border-radius: 2px;
-      padding: 1px 4px;
+      background: rgba(255, 68, 85, 0.18);
+      border: none;
+      border-radius: 3px;
+      padding: 2px 6px;
       line-height: 1;
-    }
-    .killfeed-entry.is-eliminated {
-      background: rgba(45, 12, 20, 0.94) !important;
-      border-color: #ff2255 !important;
-      box-shadow: 0 0 12px rgba(255, 34, 85, 0.45), 2px 2px 0px #000 !important;
+      box-shadow: none;
     }
     .killfeed-action.eliminated {
       color: #ffffff;
       background: #e11d48;
-      border: 1px solid #000;
-      border-radius: 2px;
-      padding: 1px 5px;
-      font-size: 9px;
+      border: none;
+      border-radius: 3px;
+      padding: 2px 6px;
+      font-size: 9.5px;
       font-weight: 900;
-      letter-spacing: 0.8px;
-      box-shadow: 1px 1px 0px #000;
+      letter-spacing: 0.6px;
+      box-shadow: none;
     }
     .killfeed-tag-out.eliminated {
       color: #ffffff;
       background: #e11d48;
-      border: 1px solid #000;
-      border-radius: 2px;
-      padding: 1px 5px;
-      font-size: 9px;
+      border: none;
+      border-radius: 3px;
+      padding: 2px 6px;
+      font-size: 9.5px;
       font-weight: 900;
-      letter-spacing: 0.8px;
-      box-shadow: 1px 1px 0px #000;
+      letter-spacing: 0.6px;
+      box-shadow: none;
     }
 
     /* ── SKY RUMBLE OUTRO VICTORY BANNER (NEO-BRUTALIST) ── */
@@ -1023,7 +1057,6 @@
       font-size: 76px;
       font-weight: 900;
       line-height: 0.95;
-      text-transform: uppercase;
       letter-spacing: 2px;
       -webkit-text-stroke: 4px #000;
       text-shadow: 7px 7px 0px #000;
@@ -1055,7 +1088,6 @@
       border-radius: 12px;
       padding: 6px 22px;
       margin-top: 10px;
-      text-transform: uppercase;
       white-space: nowrap;
     }
 
@@ -1080,21 +1112,581 @@
       100% { opacity: 1.0; transform: scale(1.02); }
     }
 
-    @media (max-width: 768px) {
-      .rumble-banner-title {
-        font-size: 44px;
-        -webkit-text-stroke: 2.5px #000;
-        text-shadow: 4px 4px 0 #000;
-      }
-      .rumble-banner-subtext {
-        font-size: 12px;
-        padding: 4px 14px;
-        border-width: 2px;
-      }
-      .rumble-banner-subtag {
-        font-size: 11px;
-        padding: 3px 10px;
-      }
-    }
+/* ================================================================
+   RESPONSIVE MULTI-TIER PRODUCTION HUD SYSTEM
+   (Mobile Landscape, Tablet, and Desktop Optimized)
+   ================================================================ */
+
+/* ── TIER 1: MOBILE PHONES (Landscape & Portrait Touchscreens) ── */
+@media (max-height: 520px), (max-width: 950px) and (orientation: landscape), (max-width: 600px), (hover: none) and (pointer: coarse) and (max-height: 560px) {
+
+  /* Top-Left: Position, Lap, and Time Badges */
+  .top-left-hud {
+    top: 8px !important;
+    left: 10px !important;
+    gap: 5px !important;
+  }
+  .pos-badge {
+    font-size: 18px !important;
+    padding: 2px 8px !important;
+    border-radius: 8px !important;
+    border: 2px solid #000 !important;
+    box-shadow: 2px 2px 0px #000 !important;
+    transform: rotate(-1deg) !important;
+  }
+  .lap-box {
+    padding: 2px 7px !important;
+    border-radius: 8px !important;
+    border: 2px solid #000 !important;
+    box-shadow: 1.5px 1.5px 0px #000 !important;
+  }
+  .lap-title {
+    font-size: 7.5px !important;
+    letter-spacing: 0.8px !important;
+  }
+  .lap-num {
+    font-size: 14px !important;
+    line-height: 1.1 !important;
+  }
+  #hud-pb-box,
+  #hud-time-box {
+    padding: 2px 7px !important;
+    border-radius: 8px !important;
+    border: 2px solid #000 !important;
+    box-shadow: 1.5px 1.5px 0px #000 !important;
+  }
+  #hud-pb-time {
+    font-size: 12px !important;
+  }
+
+  /* Live Standings & Laps Card (Compact, Low-Profile, Never Clashes with Controls) */
+  .live-standings-card {
+    display: flex;
+    position: absolute !important;
+    top: 46px !important;
+    left: 10px !important;
+    min-width: 110px !important;
+    max-width: 128px !important;
+    padding: 3px 6px !important;
+    border-radius: 8px !important;
+    border: 1.5px solid #000 !important;
+    box-shadow: 2px 2px 0px #000 !important;
+    background: rgba(255, 255, 255, 0.92) !important;
+    backdrop-filter: blur(4px) !important;
+    -webkit-backdrop-filter: blur(4px) !important;
+    gap: 2px !important;
+    z-index: 12 !important;
+    pointer-events: none !important;
+  }
+  .standings-title {
+    font-size: 7.5px !important;
+    letter-spacing: 0.8px !important;
+    padding-bottom: 1.5px !important;
+    border-bottom: 1px solid #ddd !important;
+  }
+  .standings-list {
+    gap: 2px !important;
+    max-height: 74px !important;
+    overflow: hidden !important;
+  }
+  .standing-row {
+    font-size: 9px !important;
+    padding: 1.5px 4px !important;
+    border-radius: 4px !important;
+    gap: 4px !important;
+  }
+  .standing-rank-badge {
+    font-size: 8.5px !important;
+    min-width: 13px !important;
+  }
+  .standing-name-text {
+    max-width: 52px !important;
+    font-size: 8.5px !important;
+  }
+  .standing-vip-crown {
+    width: 9px !important;
+    height: 9px !important;
+    margin-right: 2px !important;
+  }
+  .standing-lap-tag {
+    font-size: 7.5px !important;
+    padding: 1px 3px !important;
+    border-radius: 3px !important;
+  }
+
+  /* Top-Right Radar / Minimap */
+  .top-right-hud {
+    top: 8px !important;
+    right: 10px !important;
+  }
+  .minimap-card {
+    padding: 2.5px !important;
+    border-radius: 10px !important;
+    border: 1.5px solid #000 !important;
+    box-shadow: 2px 2px 0px #000 !important;
+    gap: 2px !important;
+  }
+  .minimap-title {
+    font-size: 6.5px !important;
+    letter-spacing: 0.8px !important;
+  }
+  #minimap-canvas {
+    width: 72px !important;
+    height: 72px !important;
+    border-radius: 6px !important;
+    border: 1.5px solid #000 !important;
+  }
+
+  /* In-Game Top Bar: Settings & Diagnostics */
+  #top-bar {
+    top: 8px !important;
+    right: 94px !important; /* Subtle, clean gap from mobile minimap */
+    gap: 4px !important;
+    z-index: 26 !important;
+    align-items: center !important;
+  }
+  #top-bar.rumble-top-bar {
+    top: 8px !important;
+    right: 94px !important;
+  }
+  #btn-in-game-settings {
+    font-size: 8.5px !important;
+    padding: 0 7px !important;
+    height: 22px !important;
+    border-radius: 7px !important;
+    border: 1.5px solid #000 !important;
+    box-shadow: 1.5px 1.5px 0px #000 !important;
+    gap: 3px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+  }
+  #btn-in-game-settings svg {
+    width: 10px !important;
+    height: 10px !important;
+  }
+  #room-badge {
+    display: none !important;
+  }
+  .hud-telemetry-cluster {
+    position: static !important;
+    height: 22px !important;
+    gap: 3px !important;
+  }
+  #mp-ping-badge.mp-ping-pill,
+  #perf-fps-tracker.mp-fps-pill {
+    font-size: 8.5px !important;
+    height: 20px !important;
+    padding: 0 6px !important;
+    border-radius: 6px !important;
+    border-width: 1px !important;
+    gap: 3px !important;
+  }
+  #perf-fps-tracker .fps-val {
+    font-size: 9.5px !important;
+  }
+  #perf-fps-tracker .fps-unit {
+    font-size: 6.5px !important;
+  }
+  #mp-ping-badge .ping-val {
+    font-size: 8.5px !important;
+  }
+  #mp-ping-badge .ping-dot {
+    font-size: 7px !important;
+  }
+
+  /* Rumble Arena Scoreboard Bar (Compact Sleek Footprint) */
+  .rumble-hud-bar {
+    top: 6px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    gap: 4px !important;
+    z-index: 25 !important;
+  }
+  .rumble-team-box {
+    padding: 2px 6px !important;
+    border-radius: 7px !important;
+    border: 1.5px solid #000 !important;
+    box-shadow: 1.5px 1.5px 0px #000 !important;
+    gap: 3px !important;
+  }
+  .rumble-team-name {
+    font-size: 8.5px !important;
+    letter-spacing: 0.4px !important;
+  }
+  .rumble-team-score {
+    font-size: 16px !important;
+    padding: 0 1px !important;
+    line-height: 1 !important;
+  }
+  .rumble-center-badge {
+    padding: 2px 5px !important;
+    border-radius: 7px !important;
+    border: 1.5px solid #000 !important;
+    box-shadow: 1.5px 1.5px 0px #000 !important;
+  }
+  .rumble-match-title {
+    font-size: 6.5px !important;
+    letter-spacing: 0.4px !important;
+  }
+  .rumble-timer-display {
+    font-size: 9.5px !important;
+    letter-spacing: 0.4px !important;
+  }
+  .hud-hearts-row {
+    gap: 2px !important;
+    padding: 0 !important;
+  }
+  .cute-heart-svg {
+    width: 11px !important;
+    height: 11px !important;
+  }
+
+  /* Hero Combat Smash Feedback Overlay */
+  #smash-combat-overlay {
+    top: 24% !important;
+    font-size: 18px !important;
+    -webkit-text-stroke: 1.5px #000 !important;
+    text-shadow: 2px 2px 0px #000 !important;
+    z-index: 28 !important;
+  }
+  #smash-combat-overlay.knockout {
+    font-size: 18px !important;
+    -webkit-text-stroke: 1.5px #000 !important;
+    text-shadow: 2px 2px 0px #000 !important;
+  }
+  #smash-combat-overlay.double {
+    font-size: 21px !important;
+    -webkit-text-stroke: 1.8px #000 !important;
+    text-shadow: 2.5px 2.5px 0px #000 !important;
+  }
+  #smash-combat-overlay.triple {
+    font-size: 24px !important;
+    -webkit-text-stroke: 2px #000 !important;
+    text-shadow: 3px 3px 0px #000 !important;
+  }
+  #smash-combat-overlay.mega {
+    font-size: 27px !important;
+    -webkit-text-stroke: 2.2px #000 !important;
+    text-shadow: 3.5px 3.5px 0px #000 !important;
+  }
+
+  /* Tactical Esports Killfeed */
+  .killfeed-container {
+    top: 40px !important;
+    left: 10px !important;
+    max-width: 185px !important;
+    gap: 2px !important;
+    z-index: 24 !important;
+  }
+  .killfeed-entry {
+    font-size: 9px !important;
+    padding: 2px 6px !important;
+    border-radius: 4px !important;
+    gap: 4px !important;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4) !important;
+  }
+  .killfeed-weapon {
+    width: 14px !important;
+    height: 8px !important;
+  }
+  .killfeed-crosshair {
+    width: 8px !important;
+    height: 8px !important;
+  }
+  .killfeed-action {
+    font-size: 7.5px !important;
+    padding: 0 !important;
+  }
+
+  /* Screen Alerts & Overlays */
+  #alert-banner {
+    top: 42px !important;
+    font-size: 11.5px !important;
+    padding: 3px 12px !important;
+    border: 2px solid #000 !important;
+    box-shadow: 2px 2px 0px #000 !important;
+    border-radius: 8px !important;
+    max-width: 80vw !important;
+    white-space: nowrap !important;
+  }
+  #countdown-overlay {
+    top: 38% !important;
+    font-size: 64px !important;
+    -webkit-text-stroke: 2px #000 !important;
+    text-shadow: 4px 4px 0px #000 !important;
+  }
+  #wrong-way-banner {
+    top: 42px !important;
+    font-size: 12px !important;
+    padding: 3px 12px !important;
+    border-width: 2px !important;
+    border-radius: 8px !important;
+  }
+  #finish-countdown-banner {
+    top: 8px !important;
+    padding: 3px 12px !important;
+    border-width: 2px !important;
+    border-left-width: 4px !important;
+    border-radius: 10px !important;
+    gap: 6px !important;
+  }
+  #finish-countdown-banner .finish-countdown-icon svg {
+    width: 13px !important;
+    height: 13px !important;
+  }
+  #finish-countdown-banner .finish-countdown-label {
+    font-size: 10px !important;
+    letter-spacing: 1px !important;
+  }
+  #finish-countdown-banner .finish-countdown-digits {
+    font-size: 13px !important;
+  }
+
+  /* Spectator Mode Overlay */
+  #spectator-overlay {
+    bottom: 50px !important;
+    padding: 4px 10px !important;
+    border-radius: 12px !important;
+    border-width: 2px !important;
+    gap: 4px !important;
+  }
+  .spectator-badge {
+    font-size: 10.5px !important;
+    gap: 5px !important;
+  }
+  .spectator-btn {
+    font-size: 9px !important;
+    padding: 2px 8px !important;
+    border-radius: 6px !important;
+  }
+
+  /* Rumble Outro Victory Banner */
+  .rumble-banner-title {
+    font-size: 38px !important;
+    -webkit-text-stroke: 2px #000 !important;
+    text-shadow: 3px 3px 0px #000 !important;
+  }
+  .rumble-banner-subtag {
+    font-size: 9.5px !important;
+    padding: 2px 8px !important;
+    margin-bottom: 3px !important;
+  }
+  .rumble-banner-subtext {
+    font-size: 11px !important;
+    padding: 3px 12px !important;
+    border-width: 2px !important;
+    margin-top: 5px !important;
+  }
+
+  /* Touch Controls Ergonomics (Docked neatly in bottom corners) */
+  .touch-pedal-cluster {
+    bottom: 12px !important;
+    right: 14px !important;
+    gap: 8px !important;
+  }
+  .touch-steer-container {
+    bottom: 12px !important;
+    left: 14px !important;
+    gap: 8px !important;
+    width: 144px !important;
+  }
+  .btn-gas-square {
+    width: 68px !important;
+    height: 74px !important;
+    border-radius: 14px !important;
+  }
+  .btn-brake-square {
+    width: 58px !important;
+    height: 62px !important;
+    border-radius: 13px !important;
+  }
+  .btn-steer {
+    width: 64px !important;
+    height: 64px !important;
+    border-radius: 15px !important;
+  }
+  .btn-nitro {
+    height: 36px !important;
+    font-size: 11px !important;
+    border-radius: 12px !important;
+  }
+}
+
+/* ── TIER 2: TABLETS (iPads, Android Tabs, Mid-Screen Touch Devices) ── */
+@media (min-width: 601px) and (max-width: 1024px) and (min-height: 521px) {
+
+  /* Top-Left Cluster */
+  .top-left-hud {
+    top: 12px !important;
+    left: 16px !important;
+    gap: 8px !important;
+  }
+  .pos-badge {
+    font-size: 26px !important;
+    padding: 4px 12px !important;
+    border-radius: 11px !important;
+  }
+  .lap-box {
+    padding: 4px 10px !important;
+    border-radius: 10px !important;
+  }
+  .lap-title {
+    font-size: 9px !important;
+  }
+  .lap-num {
+    font-size: 18px !important;
+  }
+
+  /* Live Standings Card */
+  .live-standings-card {
+    top: 68px !important;
+    left: 16px !important;
+    min-width: 145px !important;
+    padding: 5px 8px !important;
+    border-radius: 11px !important;
+  }
+  .standings-title {
+    font-size: 8.5px !important;
+  }
+  .standing-row {
+    font-size: 10.5px !important;
+    padding: 2px 5px !important;
+  }
+  .standing-name-text {
+    max-width: 68px !important;
+  }
+  .standing-vip-crown {
+    width: 10px !important;
+    height: 10px !important;
+    margin-right: 2px !important;
+  }
+
+  /* Top-Right Radar */
+  .top-right-hud {
+    top: 12px !important;
+    right: 16px !important;
+  }
+  .minimap-card {
+    padding: 4px !important;
+    border-radius: 14px !important;
+  }
+  #minimap-canvas {
+    width: 96px !important;
+    height: 96px !important;
+    border-radius: 8px !important;
+  }
+
+  /* In-Game Top Bar */
+  #top-bar {
+    top: 12px !important;
+    right: 134px !important;
+    gap: 5px !important;
+    align-items: center !important;
+  }
+  #btn-in-game-settings {
+    font-size: 11px !important;
+    padding: 0 10px !important;
+    height: 26px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+  }
+  .hud-telemetry-cluster {
+    height: 26px !important;
+    gap: 4px !important;
+  }
+  #mp-ping-badge.mp-ping-pill,
+  #perf-fps-tracker.mp-fps-pill {
+    height: 24px !important;
+    padding: 0 8px !important;
+    border-radius: 8px !important;
+  }
+  #perf-fps-tracker .fps-val {
+    font-size: 11px !important;
+  }
+  #perf-fps-tracker .fps-unit {
+    font-size: 8px !important;
+  }
+  #mp-ping-badge .ping-val {
+    font-size: 10px !important;
+  }
+
+  /* Rumble Scoreboard (Compact Sleek Length on Mobile Landscape) */
+  .rumble-hud-bar {
+    top: 6px !important;
+    gap: 5px !important;
+  }
+  .rumble-team-box {
+    padding: 2.5px 8px !important;
+    border-radius: 8px !important;
+    border: 1.5px solid #000 !important;
+    box-shadow: 2px 2px 0px #000 !important;
+    gap: 4px !important;
+  }
+  .rumble-team-score {
+    font-size: 18px !important;
+    padding: 0 1px !important;
+    line-height: 1 !important;
+  }
+  .rumble-team-name {
+    font-size: 10px !important;
+    letter-spacing: 0.5px !important;
+  }
+  .rumble-center-badge {
+    padding: 2px 7px !important;
+    border-radius: 8px !important;
+    border: 1.5px solid #000 !important;
+    box-shadow: 2px 2px 0px #000 !important;
+  }
+  .rumble-match-title {
+    font-size: 7px !important;
+    letter-spacing: 0.4px !important;
+  }
+  .rumble-timer-display {
+    font-size: 11px !important;
+    letter-spacing: 0.4px !important;
+  }
+  .cute-heart-svg {
+    width: 13px !important;
+    height: 13px !important;
+  }
+
+  /* Combat Smash Overlay */
+  #smash-combat-overlay {
+    top: 28% !important;
+    font-size: 26px !important;
+    -webkit-text-stroke: 2px !important;
+  }
+  #smash-combat-overlay.double {
+    font-size: 30px !important;
+  }
+  #smash-combat-overlay.triple {
+    font-size: 35px !important;
+  }
+  #smash-combat-overlay.mega {
+    font-size: 40px !important;
+  }
+
+  /* Killfeed & Alerts */
+  .killfeed-container {
+    top: 48px !important;
+    left: 14px !important;
+    max-width: 250px !important;
+    font-size: 11px !important;
+  }
+  #alert-banner {
+    top: 48px !important;
+    font-size: 14px !important;
+    padding: 4px 14px !important;
+  }
+  #countdown-overlay {
+    font-size: 96px !important;
+  }
+  .rumble-banner-title {
+    font-size: 52px !important;
+  }
+}
+
+
+
 
 

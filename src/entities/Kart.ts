@@ -104,6 +104,7 @@ export class Kart {
   public collider!: RAPIER.Collider;
   public track?: Track;
   public team?: 'frost' | 'blaze' | 'cyan' | 'crimson';
+  public isPlayer: boolean = false;
 
   // Visual sub-meshes
   public wheels: (THREE.Mesh | THREE.Group)[] = [];
@@ -136,12 +137,17 @@ export class Kart {
   public isGrounded: boolean = true;
   public isGhost: boolean = false;
   public ghostTimer: number = 0;
+  public isBot: boolean = false;
 
   // 360° Anti-Gravity Vortex Parkour Tube State
   public isInAntiGravTube: boolean = false;
   public tubeAngle: number = 0; // 0 = floor, PI/2 = right wall, PI = ceiling, -PI/2 = left wall
   public splineT: number = 0;
   private wasInAntiGravTube: boolean = false;
+  public onTubeBarrierHit?: () => void;
+  public onTubeBarrierCleared?: () => void;
+  public lastTubeBarrierHit: number = 0;
+  public hasClearedTubeBarrier: boolean = false;
 
   // Protection Shield ("Kawach") Visual Effect - Sleek Semi-Transparent Energy Bubble
   public shieldGroup!: THREE.Group;
@@ -1196,6 +1202,34 @@ export class Kart {
         const dT = (this.currentSpeed * dt) / trackLength;
         this.splineT += dT;
 
+        // 3b. Anti-Gravity Tube Floor Barrier Collision (Slice 174)
+        // Requires driver to rotate onto the wall / ceiling (|tubeAngle| >= 1.10 rad ~ 63°) to clear the obstacle!
+        const barrierT = 174 / Track.SAMPLES;
+        const distToBarrier = this.splineT - barrierT;
+        if (!this.isBot && distToBarrier >= -0.0035 && distToBarrier <= 0.0025) {
+          if (Math.abs(this.tubeAngle) < 1.10) {
+            // Block forward progression: clamp splineT before barrier
+            this.splineT = Math.min(this.splineT, barrierT - 0.0035);
+            // Rebound bounce back slightly
+            this.currentSpeed = Math.min(this.currentSpeed, -4.0);
+            const now = performance.now();
+            if (!this.lastTubeBarrierHit || now - this.lastTubeBarrierHit > 500) {
+              this.lastTubeBarrierHit = now;
+              sounds.playRecoil();
+              if (this.onTubeBarrierHit) this.onTubeBarrierHit();
+            }
+          }
+        }
+
+        // Reward clearance when crossing barrierT on ceiling/wall
+        if (!this.hasClearedTubeBarrier && this.splineT > barrierT && this.splineT < barrierT + 0.015) {
+          if (Math.abs(this.tubeAngle) >= 1.10) {
+            this.hasClearedTubeBarrier = true;
+            sounds.playBoost();
+            if (this.onTubeBarrierCleared) this.onTubeBarrierCleared();
+          }
+        }
+
         // Check for Tube Exit
         if (this.splineT >= tEnd) {
           this.isInAntiGravTube = false;
@@ -1334,17 +1368,33 @@ export class Kart {
           normalY = 1.0;
         }
       } else {
-        const posVec = this._kPosVec.set(pos.x, pos.y, pos.z);
-        const t = this.track.getClosestT(posVec);
-        const slice = this.track.getTrackSlice(t);
-        if (!slice.isGap) {
-          const distToSlice = Math.hypot(pos.x - slice.position.x, pos.z - slice.position.z);
-          // Strict vertical clearance: Only match track slice if kart is near actual road elevation!
-          // Prevents falling karts under the sky track from falsely locking onto road height at pillars.
-          const vertDelta = pos.y - slice.position.y;
-          if (distToSlice <= slice.halfWidth + 1.4 && vertDelta >= -1.8 && vertDelta <= 3.5) {
-            roadY = slice.position.y;
-            normalY = slice.normal.y;
+        // Prevent false road snap if kart is actively traversing an aerial stunt jump gap
+        const trk = this.track;
+        const inJumpGap = !!(trk && trk.config.jumpZones && trk.config.jumpZones.some(j => {
+          const normLaunch = (j.launchSlice % Track.SAMPLES) / Track.SAMPLES;
+          const sLaunch = trk.getTrackSlice(normLaunch);
+          const fwdLaunch = (pos.x - sLaunch.position.x) * sLaunch.tangent.x + (pos.z - sLaunch.position.z) * sLaunch.tangent.z;
+
+          const normLand = (j.landingSlice % Track.SAMPLES) / Track.SAMPLES;
+          const sLand = trk.getTrackSlice(normLand);
+          const fwdLand = (pos.x - sLand.position.x) * sLand.tangent.x + (pos.z - sLand.position.z) * sLand.tangent.z;
+
+          return fwdLaunch > 0.05 && fwdLand < -0.05;
+        }));
+
+        if (!inJumpGap) {
+          const posVec = this._kPosVec.set(pos.x, pos.y, pos.z);
+          const t = this.track.getClosestT(posVec);
+          const slice = this.track.getTrackSlice(t);
+          if (!slice.isGap) {
+            const distToSlice = Math.hypot(pos.x - slice.position.x, pos.z - slice.position.z);
+            // Strict vertical clearance: Only match track slice if kart is near actual road elevation!
+            // Prevents falling karts under the sky track from falsely locking onto road height at pillars.
+            const vertDelta = pos.y - slice.position.y;
+            if (distToSlice <= slice.halfWidth + 1.4 && vertDelta >= -1.8 && vertDelta <= 3.5) {
+              roadY = slice.position.y;
+              normalY = slice.normal.y;
+            }
           }
         }
       }
@@ -1442,17 +1492,8 @@ export class Kart {
     if (shouldDrift) {
       this.isDrifting = true;
       this.driftTime += dt;
-      // Drift accumulates charge for tactical Nitro canister (Skill Reward)!
-      this.driftChargeMeter += dt;
-      if (this.driftChargeMeter >= 1.5) {
-        this.driftChargeMeter = 0;
-        if (this.nitroCharges < this.maxNitroCharges) {
-          this.refillNitro(1);
-          sounds.playCoin();
-        }
-      }
     } else {
-      // Natural Mario Kart Mini-Turbo release upon ending a solid corner drift!
+      // Natural Mini-Turbo boost release upon ending a solid corner drift!
       if (this.isDrifting && this.driftTime >= 0.7) {
         this.applyBoost(0.65, 1.25);
         sounds.playBoost();
@@ -1648,6 +1689,8 @@ export class Kart {
    * Tactical manual Nitro boost (Consumes 1 of 3 nitro charges)
    */
   public useNitro(): boolean {
+    // Manual Nitro is strictly disabled in Sky Rumble Arena (boost ONLY from ground boost chevrons/pads)
+    if (this.track && this.track.isArena) return false;
     if (this.nitroCharges <= 0 || this.boostTime > 0.8) return false;
     this.nitroCharges--;
     this.applyBoost(1.8, 1.65);
@@ -1807,6 +1850,10 @@ export class Kart {
     this.visualTumble.set(0, 0, 0);
     this.tumbleAngularVel.set(0, 0, 0);
     this.tumbleQuat.identity();
+    this.hasClearedTubeBarrier = false;
+    this.isInAntiGravTube = false;
+    this.wasInAntiGravTube = false;
+    this.tubeAngle = 0;
     this.group.rotation.set(0, 0, 0);
     if (this.driverGroup) this.driverGroup.rotation.set(0, 0, 0);
     if (this.steeringWheel) this.steeringWheel.rotation.set(-Math.PI / 6, 0, 0);
@@ -1841,5 +1888,37 @@ export class Kart {
     this.currentSpeed = 0;
     this.isGrounded = true;
     this.setGhost(true, 3.5);
+  }
+
+  public getSpeedKmh(): number {
+    return Math.max(0, Math.round(Math.abs(this.currentSpeed) * 3.6));
+  }
+
+  public dispose(parentGroupOrScene?: THREE.Object3D, physics?: PhysicsEngine) {
+    if (this.group) {
+      if (parentGroupOrScene) {
+        parentGroupOrScene.remove(this.group);
+      }
+      this.group.traverse((child) => {
+        if (child instanceof THREE.Mesh) {
+          child.geometry?.dispose();
+          const mats = Array.isArray(child.material) ? child.material : [child.material];
+          for (const m of mats) {
+            if (!m) continue;
+            // Dispose non-cached textures (tire textures are shared in tireTextureCache so keep them)
+            if (m.map && !Array.from(tireTextureCache.values()).includes(m.map)) {
+              m.map.dispose();
+            }
+            m.dispose();
+          }
+        }
+      });
+    }
+
+    if (this.rigidBody && physics) {
+      try {
+        physics.world.removeRigidBody(this.rigidBody);
+      } catch {}
+    }
   }
 }

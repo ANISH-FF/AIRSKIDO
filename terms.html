@@ -2,32 +2,56 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AirSkid — Terms of Service // Brutopia Arcade</title>
-  <meta name="description" content="Official Terms of Service for AirSkid Arcade Racing. Rules on fair play, peer-to-peer multiplayer etiquette, virtual licenses, and leaderboard integrity." />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>Terms of Service — AIRSKIDO | Proprietary Rights, IP & Fair Play</title>
+  <meta name="description" content="Official Terms of Service for AIRSKIDO. Intellectual property rights, AIRSKIDO™ trademark ownership by Anish Srivastava, anti-cheat enforcement, and user conduct." />
+  <meta name="author" content="Anish Srivastava" />
+  <link rel="canonical" href="https://airskido.io/terms.html" />
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/x-icon" href="./favicon.ico?v=3" />
+  <link rel="shortcut icon" type="image/x-icon" href="./favicon.ico?v=3" />
+  <link rel="apple-touch-icon" href="./favicon.png?v=3" />
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="Terms of Service — AIRSKIDO | Proprietary Rights, IP & Fair Play" />
+  <meta property="og:description" content="Official Terms of Service for AIRSKIDO. Strict anti-cloning, trademark protection, anti-cheat enforcement, and fair-play standards." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://airskido.io/terms.html" />
+  <meta property="og:image" content="/src/logo/airskido_logo.webp" />
+
+  <!-- Twitter Cards -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Terms of Service — AIRSKIDO" />
+  <meta name="twitter:description" content="Official Terms of Service for AIRSKIDO. Trademark rights, anti-cheat rules, and user agreement." />
+  <meta name="twitter:image" content="/src/logo/airskido_logo.webp" />
+
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700;800&family=Rajdhani:wght@700;800;900&family=Space+Grotesk:wght@600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700;800&family=Rajdhani:wght@700;800;900&family=Space+Grotesk:wght@500;600;700;800&display=swap" rel="stylesheet" />
+
   <style>
     :root {
-      --bg-canvas: #FAF6EE;
+      --canvas: #FAF7F0;
       --card-bg: #FFFFFF;
-      --ink: #000000;
+      --ink: #0A0A0C;
+      --ink-secondary: #334155;
+      --ink-muted: #64748B;
       --yellow: #FFE600;
+      --yellow-hover: #FFF066;
       --cyan: #00D2FF;
       --coral: #FF385C;
-      --green: #10B981;
-      --purple: #8B5CF6;
-      --muted: #64748B;
-      --border-thick: 3.5px solid #000000;
-      --shadow-base: 5px 5px 0px #000000;
-      --shadow-lg: 8px 8px 0px #000000;
-      --shadow-btn: 3.5px 3.5px 0px #000000;
-      --radius-card: 20px;
+      --emerald: #10B981;
+      --border-main: 2.5px solid #000000;
+      --shadow-sm: 2.5px 2.5px 0px #000000;
+      --shadow-md: 4px 4px 0px #000000;
+      --shadow-btn: 3px 3px 0px #000000;
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
       --radius-pill: 999px;
       --font-display: 'Rajdhani', sans-serif;
-      --font-telemetry: 'Space Grotesk', sans-serif;
-      --font-fun: 'Fredoka', sans-serif;
+      --font-body: 'Space Grotesk', sans-serif;
     }
 
     * {
@@ -38,360 +62,396 @@
 
     html {
       scroll-behavior: smooth;
-      background-color: var(--bg-canvas);
+      background-color: var(--canvas);
       color: var(--ink);
-      font-family: var(--font-telemetry);
+      font-family: var(--font-body);
     }
 
     body {
       min-height: 100vh;
-      background-color: var(--bg-canvas);
-      background-image: radial-gradient(rgba(0, 0, 0, 0.15) 1.5px, transparent 1.5px);
-      background-size: 24px 24px;
-      line-height: 1.65;
-      font-size: 15px;
-      padding-bottom: 70px;
+      background-color: var(--canvas);
+      background-image: radial-gradient(rgba(0, 0, 0, 0.09) 1.2px, transparent 1.2px);
+      background-size: 20px 20px;
+      line-height: 1.55;
+      font-size: 14.5px;
+      padding-bottom: 50px;
+      -webkit-font-smoothing: antialiased;
     }
 
-    /* ── TOP STICKY BRUTOPIA NAV ── */
-    .brut-nav {
+    /* ── COMPACT TOP NAV ── */
+    .compact-nav {
       position: sticky;
       top: 0;
       z-index: 100;
-      background: #FFFFFF;
-      border-bottom: var(--border-thick);
-      padding: 14px 24px;
-      box-shadow: 0 4px 0 rgba(0, 0, 0, 0.05);
+      background: var(--card-bg);
+      border-bottom: var(--border-main);
+      padding: 10px 18px;
+      box-shadow: 0 3px 0 rgba(0, 0, 0, 0.03);
     }
 
-    .brut-nav-inner {
-      max-width: 1100px;
+    .compact-nav-inner {
+      max-width: 820px;
       margin: 0 auto;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 16px;
+      gap: 12px;
     }
 
-    .brand-group {
+    .brand-link {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
       text-decoration: none;
     }
 
     .brand-logo-img {
-      height: 34px;
+      height: 44px;
       width: auto;
       object-fit: contain;
+      display: block;
+      transition: transform 0.12s ease;
     }
 
-    .brand-pill {
-      background: var(--yellow);
-      color: #000;
-      font-family: var(--font-display);
-      font-size: 12px;
-      font-weight: 900;
-      padding: 4px 10px;
-      border: 2px solid #000;
-      border-radius: var(--radius-pill);
-      box-shadow: 2px 2px 0 #000;
-      letter-spacing: 0.5px;
+    .brand-link:hover .brand-logo-img {
+      transform: scale(1.03);
     }
 
-    .nav-actions {
+    .nav-actions-row {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
     }
 
-    .nav-link {
+    .nav-item-link {
       font-family: var(--font-display);
       font-size: 14px;
       font-weight: 800;
-      color: #000;
+      color: var(--ink);
       text-decoration: none;
-      padding: 6px 14px;
-      border: 2px solid transparent;
-      border-radius: 10px;
-      transition: all 0.12s ease;
+      padding: 4px 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
     }
 
-    .nav-link:hover {
-      background: #F1F5F9;
-      border-color: #000;
+    .nav-item-link:hover {
+      color: var(--coral);
     }
 
-    .btn-play-game {
+    .btn-quick-play {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
       background: var(--yellow);
       color: #000;
       text-decoration: none;
       font-family: var(--font-display);
-      font-size: 15px;
+      font-size: 14px;
       font-weight: 900;
-      letter-spacing: 0.5px;
-      padding: 8px 18px;
-      border: 2.5px solid #000;
-      border-radius: 12px;
+      padding: 6px 14px;
+      border: 2px solid #000;
+      border-radius: 10px;
       box-shadow: var(--shadow-btn);
       transition: all 0.1s ease;
       cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
     }
 
-    .btn-play-game:hover {
-      transform: translate(-1.5px, -1.5px);
-      box-shadow: 5px 5px 0 #000;
-      background: #FFF066;
+    .btn-quick-play:hover {
+      background: var(--yellow-hover);
+      transform: translate(-1px, -1px);
+      box-shadow: 4px 4px 0 #000;
     }
 
-    .btn-play-game:active {
-      transform: translate(2px, 2px);
-      box-shadow: 1.5px 1.5px 0 #000;
-    }
-
-    /* ── CONTAINER ── */
-    .page-container {
-      max-width: 1020px;
-      margin: 36px auto 0;
-      padding: 0 20px;
+    /* ── PAGE CONTAINER ── */
+    .container {
+      max-width: 820px;
+      margin: 22px auto 0;
+      padding: 0 16px;
     }
 
     /* ── HERO BANNER CARD ── */
-    .hero-card {
-      background: #FFFFFF;
-      border: var(--border-thick);
-      border-radius: var(--radius-card);
-      box-shadow: var(--shadow-lg);
-      padding: 36px 36px 30px;
-      margin-bottom: 28px;
-      position: relative;
-      overflow: hidden;
+    .hero-box {
+      background: var(--card-bg);
+      border: var(--border-main);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      padding: 24px 24px 20px;
+      margin-bottom: 18px;
     }
 
-    .hero-strip {
+    .hero-badge-strip {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+
+    .badge-chip {
+      font-size: 11px;
+      font-weight: 800;
+      padding: 3px 9px;
+      border: 1.5px solid #000;
+      border-radius: var(--radius-pill);
+      box-shadow: 1.5px 1.5px 0 #000;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .chip-yellow { background: var(--yellow); color: #000; }
+    .chip-cyan { background: var(--cyan); color: #000; }
+    .chip-coral { background: #FFE4E6; color: #9F1239; }
+
+    .hero-title {
+      font-family: var(--font-display);
+      font-size: 32px;
+      font-weight: 900;
+      line-height: 1.1;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    .meta-date {
+      font-size: 12.5px;
+      font-weight: 800;
+      color: var(--ink-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 12px;
+    }
+
+    .hero-subtext {
+      font-size: 14.5px;
+      color: var(--ink-secondary);
+      font-weight: 500;
+      line-height: 1.6;
+    }
+
+    .hero-subtext strong {
+      color: #000;
+      font-weight: 800;
+    }
+
+    /* ── LEGAL SECTION CARDS ── */
+    .legal-card {
+      background: var(--card-bg);
+      border: var(--border-main);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      padding: 22px 24px;
+      margin-bottom: 18px;
+    }
+
+    .card-header-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+      padding-bottom: 10px;
+      border-bottom: 1.5px solid #000;
+    }
+
+    .card-icon {
+      width: 32px;
+      height: 32px;
+      border: 1.5px solid #000;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      box-shadow: 1.5px 1.5px 0 #000;
+      background: var(--yellow);
+    }
+
+    .card-title {
+      font-family: var(--font-display);
+      font-size: 20px;
+      font-weight: 900;
+      color: #000;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .card-body p {
+      font-size: 14px;
+      color: var(--ink-secondary);
+      font-weight: 500;
+      line-height: 1.65;
+      margin-bottom: 12px;
+    }
+
+    .card-body p:last-child {
+      margin-bottom: 0;
+    }
+
+    .card-body ul {
+      margin: 8px 0 14px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .card-body li {
+      font-size: 13.5px;
+      color: var(--ink-secondary);
+      font-weight: 600;
+      line-height: 1.5;
+    }
+
+    .card-body strong {
+      color: #000;
+      font-weight: 800;
+    }
+
+    /* ── NOTICE & WARNING BOXES ── */
+    .notice-box {
+      border: 1.5px solid #000;
+      border-radius: var(--radius-md);
+      padding: 14px 16px;
+      margin: 14px 0;
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+    }
+
+    .notice-box.box-red { background: #FFF1F2; }
+    .notice-box.box-yellow { background: #FEF9C3; }
+    .notice-box.box-blue { background: #EFF6FF; }
+
+    .notice-icon {
+      width: 28px;
+      height: 28px;
+      border: 1.5px solid #000;
+      border-radius: 6px;
+      background: #FFFFFF;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      box-shadow: 1px 1px 0 #000;
+    }
+
+    .notice-text h4 {
+      font-family: var(--font-display);
+      font-size: 15.5px;
+      font-weight: 900;
+      color: #000;
+      margin-bottom: 3px;
+      text-transform: uppercase;
+    }
+
+    .notice-text p {
+      font-size: 13px;
+      color: var(--ink-secondary);
+      font-weight: 600;
+      line-height: 1.5;
+      margin-bottom: 0;
+    }
+
+    /* ── CONTACT & LEGAL INQUIRIES BOX ── */
+    .contact-card {
+      background: linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%);
+      border: var(--border-main);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      padding: 22px 24px;
+      margin-bottom: 18px;
+    }
+
+    .contact-title {
+      font-family: var(--font-display);
+      font-size: 24px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      margin-bottom: 6px;
+    }
+
+    .contact-desc {
+      font-size: 14px;
+      color: var(--ink-secondary);
+      font-weight: 600;
+      line-height: 1.55;
+      margin-bottom: 14px;
+    }
+
+    .contact-actions {
       display: flex;
       align-items: center;
       gap: 10px;
       flex-wrap: wrap;
-      margin-bottom: 14px;
     }
 
-    .badge-pill {
-      font-family: var(--font-display);
-      font-size: 13px;
-      font-weight: 900;
-      padding: 4px 12px;
-      border: 2px solid #000;
-      border-radius: var(--radius-pill);
-      box-shadow: 2px 2px 0 #000;
-    }
-
-    .badge-yellow { background: var(--yellow); color: #000; }
-    .badge-cyan { background: var(--cyan); color: #000; }
-    .badge-green { background: #DCFCE7; color: #166534; }
-
-    .hero-title {
-      font-family: var(--font-display);
-      font-size: 40px;
-      font-weight: 900;
-      line-height: 1.1;
-      letter-spacing: 0.5px;
-      color: #000;
-      margin-bottom: 12px;
-    }
-
-    .hero-desc {
-      font-size: 16px;
-      color: #334155;
-      font-weight: 600;
-      max-width: 820px;
-    }
-
-    /* ── QUICK NAV BAR ── */
-    .quick-jump-bar {
-      display: flex;
+    .btn-mail-action {
+      display: inline-flex;
+      align-items: center;
       gap: 8px;
-      flex-wrap: wrap;
-      margin-bottom: 28px;
-      padding: 12px 16px;
-      background: #FFFFFF;
-      border: 2.5px solid #000;
-      border-radius: 14px;
-      box-shadow: var(--shadow-base);
-    }
-
-    .jump-chip {
-      font-family: var(--font-display);
-      font-size: 13px;
-      font-weight: 800;
+      background: #000;
+      color: #FFF;
       text-decoration: none;
-      color: #000;
-      background: #F8FAFC;
-      border: 1.5px solid #000;
-      padding: 4px 10px;
-      border-radius: 8px;
-      transition: all 0.1s ease;
-    }
-
-    .jump-chip:hover {
-      background: var(--yellow);
-      transform: translate(-1px, -1px);
-      box-shadow: 2px 2px 0 #000;
-    }
-
-    /* ── LEGAL CONTENT SECTIONS ── */
-    .legal-card {
-      background: #FFFFFF;
-      border: var(--border-thick);
-      border-radius: var(--radius-card);
-      box-shadow: var(--shadow-base);
-      padding: 30px 32px;
-      margin-bottom: 24px;
-    }
-
-    .section-header {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      border-bottom: 2.5px solid #000;
-      padding-bottom: 12px;
-      margin-bottom: 18px;
-    }
-
-    .section-icon-box {
-      width: 40px;
-      height: 40px;
-      border: 2.5px solid #000;
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 20px;
-      flex-shrink: 0;
-      box-shadow: 2px 2px 0 #000;
-    }
-
-    .section-title {
       font-family: var(--font-display);
-      font-size: 22px;
-      font-weight: 900;
-      color: #000;
-      letter-spacing: 0.5px;
-    }
-
-    .prose p {
       font-size: 15px;
-      color: #1E293B;
-      font-weight: 500;
-      margin-bottom: 14px;
-    }
-
-    .prose ul {
-      margin: 12px 0 16px 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .prose li {
-      color: #334155;
-      font-size: 14.5px;
-      font-weight: 600;
-    }
-
-    .prose strong {
-      color: #000;
-      font-weight: 800;
-    }
-
-    /* ── HIGHLIGHT CALLOUT BOXES ── */
-    .callout-box {
-      border: 2.5px solid #000;
-      border-radius: 12px;
-      padding: 16px 18px;
-      margin: 16px 0;
-      display: flex;
-      gap: 14px;
-      align-items: flex-start;
-      box-shadow: 3px 3px 0 #000;
-    }
-
-    .callout-box.callout-green { background: #F0FDF4; border-color: #000; }
-    .callout-box.callout-yellow { background: #FEF9C3; border-color: #000; }
-    .callout-box.callout-blue { background: #F0F9FF; border-color: #000; }
-    .callout-box.callout-coral { background: #FFF1F2; border-color: #000; }
-
-    .callout-icon {
-      font-size: 24px;
-      line-height: 1;
-    }
-
-    .callout-text h4 {
-      font-family: var(--font-display);
-      font-size: 17px;
       font-weight: 900;
-      color: #000;
-      margin-bottom: 4px;
+      padding: 9px 18px;
+      border: 2px solid #000;
+      border-radius: 10px;
+      box-shadow: var(--shadow-btn);
+      transition: all 0.1s ease;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
     }
 
-    .callout-text p {
-      font-size: 13.5px;
-      color: #334155;
-      margin-bottom: 0;
-      font-weight: 600;
+    .btn-mail-action:hover {
+      background: #18181B;
+      transform: translate(-1px, -1px);
+      box-shadow: 4px 4px 0 #000;
     }
 
     /* ── FOOTER ── */
-    .brut-footer {
-      max-width: 1020px;
-      margin: 40px auto 0;
-      padding: 24px;
-      background: #FFFFFF;
-      border: var(--border-thick);
-      border-radius: var(--radius-card);
-      box-shadow: var(--shadow-base);
+    .page-footer {
+      max-width: 820px;
+      margin: 24px auto 0;
+      padding: 16px 20px;
+      background: var(--card-bg);
+      border: var(--border-main);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-sm);
       display: flex;
       align-items: center;
       justify-content: space-between;
       flex-wrap: wrap;
-      gap: 16px;
+      gap: 12px;
     }
 
-    .footer-left {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-
-    .footer-brand {
-      font-family: var(--font-display);
-      font-size: 18px;
-      font-weight: 900;
-      color: #000;
-    }
-
-    .footer-copy {
+    .footer-left-txt {
       font-size: 12px;
       font-weight: 700;
-      color: var(--muted);
+      color: var(--ink-muted);
     }
 
-    .footer-links {
+    .footer-links-row {
       display: flex;
       align-items: center;
-      gap: 14px;
+      gap: 12px;
     }
 
     .footer-link {
       font-family: var(--font-display);
-      font-size: 14px;
+      font-size: 13.5px;
       font-weight: 800;
-      color: #000;
+      color: var(--ink);
       text-decoration: none;
-      transition: color 0.1s ease;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
     }
 
     .footer-link:hover {
@@ -399,203 +459,264 @@
       text-decoration: underline;
     }
 
-    @media (max-width: 768px) {
-      .hero-title { font-size: 30px; }
-      .hero-card { padding: 24px 20px; }
-      .legal-card { padding: 22px 18px; }
-      .brut-footer { flex-direction: column; text-align: center; }
-      .footer-links { justify-content: center; }
+    /* ── MOBILE OPTIMIZATIONS ── */
+    @media (max-width: 680px) {
+      body {
+        padding-bottom: 30px;
+        font-size: 13.5px;
+      }
+      .brand-logo-img {
+        height: 36px;
+      }
+      .nav-item-link {
+        display: none;
+      }
+      .container {
+        padding: 0 12px;
+        margin-top: 14px;
+      }
+      .hero-box {
+        padding: 18px 16px;
+      }
+      .hero-title {
+        font-size: 24px;
+      }
+      .legal-card {
+        padding: 16px;
+      }
+      .card-title {
+        font-size: 18px;
+      }
+      .contact-card {
+        padding: 16px;
+      }
+      .btn-mail-action {
+        width: 100%;
+        justify-content: center;
+      }
+      .page-footer {
+        flex-direction: column;
+        text-align: center;
+        padding: 14px;
+      }
+      .footer-links-row {
+        justify-content: center;
+      }
     }
   </style>
 </head>
 <body>
 
-  <!-- ── 1. BRUTOPIA ARCADE NAVBAR ── -->
-  <header class="brut-nav">
-    <div class="brut-nav-inner">
-      <a href="index.html" class="brand-group" title="Back to AirSkid Game">
-        <img src="/src/logo/airskid_logo.webp" alt="AIRSKID" class="brand-logo-img" />
-        <span class="brand-pill">LEGAL & TERMS</span>
+  <!-- ── 1. COMPACT TOP NAV ── -->
+  <header class="compact-nav">
+    <div class="compact-nav-inner">
+      <a href="index.html" class="brand-link" title="Return to AIRSKIDO">
+        <img src="/src/logo/airskido_logo.webp" alt="AIRSKIDO" class="brand-logo-img" onerror="this.onerror=null;this.src='./logo/airskido_logo.webp';" />
       </a>
 
-      <div class="nav-actions">
-        <a href="privacy.html" class="nav-link">Privacy Policy</a>
-        <a href="about.html" class="nav-link">About Developer</a>
-        <a href="index.html" class="btn-play-game">
-          <span>🏎️</span>
-          <span>PLAY NOW</span>
+      <div class="nav-actions-row">
+        <a href="about.html" class="nav-item-link">About</a>
+        <a href="privacy.html" class="nav-item-link">Privacy</a>
+        <a href="index.html" class="btn-quick-play">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+          </svg>
+          <span>RACE NOW</span>
         </a>
       </div>
     </div>
   </header>
 
-  <!-- ── 2. MAIN CONTAINER ── -->
-  <main class="page-container">
+  <!-- ── 2. PAGE CONTAINER ── -->
+  <main class="container">
 
     <!-- Hero Card -->
-    <div class="hero-card">
-      <div class="hero-strip">
-        <span class="badge-pill badge-yellow">TERMS OF SERVICE</span>
-        <span class="badge-pill badge-cyan">FAIR PLAY FIRST</span>
-        <span class="badge-pill badge-green">PRO EDITION</span>
+    <section class="hero-box">
+      <div class="hero-badge-strip">
+        <span class="badge-chip chip-yellow">PROPRIETARY TRADEMARK &amp; IP</span>
+        <span class="badge-chip chip-coral">STRICT ANTI-CHEAT</span>
+        <span class="badge-chip chip-cyan">FAIR-PLAY STANDARDS</span>
       </div>
-      <h1 class="hero-title">AIRSKID RACING // TERMS OF SERVICE</h1>
-      <p class="hero-desc">
-        Welcome to AirSkid! By playing our web arcade game, participating in multiplayer rooms, or submitting records to the global sprint leaderboards, you agree to these fair-play terms.
+
+      <h1 class="hero-title">AIRSKIDO TERMS OF SERVICE</h1>
+      <div class="meta-date">LAST UPDATED: OCTOBER 2026 // EFFECTIVE IMMEDIATELY</div>
+
+      <p class="hero-subtext">
+        These Terms of Service ("Terms") constitute a legally binding agreement between you ("Player", "User", or "Pilot") and 
+        <strong>Anish Srivastava</strong> ("Sole Developer &amp; Proprietor", "we", "us"), governing your access to and gameplay on the 
+        <strong>AIRSKIDO</strong> web platform, multiplayer systems, and associated services.
       </p>
-    </div>
-
-    <!-- Quick Jump Links -->
-    <nav class="quick-jump-bar">
-      <a href="#acceptance" class="jump-chip">1. Acceptance</a>
-      <a href="#fairplay" class="jump-chip">2. Fair Play & Anti-Cheat</a>
-      <a href="#multiplayer" class="jump-chip">3. Multiplayer Conduct</a>
-      <a href="#economy" class="jump-chip">4. Virtual Economy</a>
-      <a href="#leaderboard" class="jump-chip">5. Leaderboard Integrity</a>
-      <a href="#ip" class="jump-chip">6. Intellectual Property</a>
-      <a href="#contact" class="jump-chip">7. Contact & Support</a>
-    </nav>
-
-    <!-- Section 1 -->
-    <section class="legal-card" id="acceptance">
-      <div class="section-header">
-        <div class="section-icon-box" style="background: var(--yellow);">📜</div>
-        <h2 class="section-title">1. ACCEPTANCE OF TERMS</h2>
-      </div>
-      <div class="prose">
-        <p>
-          These Terms of Service constitute a legal agreement between you ("Pilot" or "Player") and Anish ("Developer", "we", "us").
-          By launching AirSkid in any web browser, creating rooms, or participating in matches, you agree to comply with all rules set forth herein.
-        </p>
-      </div>
     </section>
 
-    <!-- Section 2 -->
-    <section class="legal-card" id="fairplay">
-      <div class="section-header">
-        <div class="section-icon-box" style="background: var(--coral); color: #FFF;">⚡</div>
-        <h2 class="section-title">2. FAIR PLAY, DRIFT INTEGRITY & ANTI-CHEAT</h2>
+    <!-- Section 1: Proprietary Rights & Anti-Cloning -->
+    <section class="legal-card">
+      <div class="card-header-bar">
+        <div class="card-icon" style="background: var(--yellow);">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#000" stroke-width="2.2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <h2 class="card-title">1. TRADEMARK OWNERSHIP &amp; ANTI-CLONING</h2>
       </div>
-      <div class="prose">
+      <div class="card-body">
         <p>
-          AirSkid is built around genuine driving skill, responsive WASM Rapier3D physics, drift recoil management, and slipstream drafting.
+          <strong>AIRSKIDO™ is an exclusive proprietary trademark and intellectual property authored and owned solely by Anish Srivastava (India).</strong> 
+          All worldwide rights, titles, and interests in and to AIRSKIDO — including its brand name, logos, visual style, custom assets, and UI components — are strictly reserved.
         </p>
-        <div class="callout-box callout-coral">
-          <div class="callout-icon">🚫</div>
-          <div class="callout-text">
-            <h4>Strict Prohibition of Exploits</h4>
-            <p>You agree not to modify the client memory, tamper with Rapier physics step timers, run automated macros, or inject spoofed packets to fake race completion times.</p>
+        <p>
+          The entire codebase (over 23,000+ lines of hand-crafted code, custom 3D rendering algorithms, real-time physics simulation engines, synthesized audio pipelines, and high-performance real-time game web servers) is protected under domestic and international copyright laws, intellectual property treaties, and trade secret protections.
+        </p>
+
+        <div class="notice-box box-red">
+          <div class="notice-icon">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="#BE123C" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+          </div>
+          <div class="notice-text">
+            <h4>Strict Prohibition of Theft, Cloning &amp; Mirroring</h4>
+            <p>
+              You may not copy, decompile, reverse-engineer, modify, redistribute, mirror, web-scrape, repackage, or embed (e.g. via <code>&lt;iframe&gt;</code>) AIRSKIDO or its source assets without express prior written consent from Anish Srivastava. Unauthorized clones, pirated mirrors, or trademark infringements will face immediate statutory DMCA takedowns, domain seizures, and aggressive legal litigation.
+            </p>
           </div>
         </div>
-        <p>
-          Legitimate techniques — including wall-bumping, drafting in competitor wake, timing nitro boosts on kicker ramps, and mastering tight apex drift lines — are fully permitted and celebrated!
-        </p>
       </div>
     </section>
 
-    <!-- Section 3 -->
-    <section class="legal-card" id="multiplayer">
-      <div class="section-header">
-        <div class="section-icon-box" style="background: var(--cyan);">🎮</div>
-        <h2 class="section-title">3. MULTIPLAYER ROOMS & CODE OF CONDUCT</h2>
+    <!-- Section 2: Fair Play & Anti-Cheat -->
+    <section class="legal-card">
+      <div class="card-header-bar">
+        <div class="card-icon" style="background: var(--coral); color: #FFF;">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#FFF" stroke-width="2.2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        </div>
+        <h2 class="card-title">2. ANTI-CHEAT, EXPLOITS &amp; NETWORK INTEGRITY</h2>
       </div>
-      <div class="prose">
+      <div class="card-body">
         <p>
-          Multiplayer matches operate over peer-to-peer WebRTC connections. When creating or joining custom rooms:
+          AIRSKIDO is engineered around genuine driving physics and competitive integrity. To preserve fair play across single-player sprint leaderboards and multiplayer lobbies, we enforce an uncompromising zero-tolerance policy against exploits:
         </p>
         <ul>
-          <li><strong>Respectful Callsigns:</strong> Racers must not choose callsigns containing hate speech, obscenities, or impersonation of developers.</li>
-          <li><strong>Host Authority:</strong> Room hosts have the right to kick uncooperative players from pre-race staging.</li>
-          <li><strong>Network Stability:</strong> Do not purposefully induce simulated network lag or flood other peers with malformed packets.</li>
+          <li><strong>Memory &amp; Client Tampering:</strong> Modifying client runtime memory, injecting scripts, altering physics delta step timers, or altering vehicle speed parameters is strictly prohibited.</li>
+          <li><strong>Automated Bots &amp; Macros:</strong> Using external bots, auto-steer macros, or automated lap recorders is prohibited.</li>
+          <li><strong>Lap Time Spoofing:</strong> Injecting physically impossible lap times (e.g., sub-8.0s lap records) directly to game servers or cloud databases will be flagged instantly by our validation heuristics.</li>
+          <li><strong>Network Attacks &amp; Tampering:</strong> Flooding real-time WebSockets or game web servers, forging connection handshakes, or initiating denial-of-service (DDoS) traffic against our infrastructure will result in immediate bans and ISP reports.</li>
+        </ul>
+
+        <div class="notice-box box-yellow">
+          <div class="notice-icon">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="#854D0E" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          </div>
+          <div class="notice-text">
+            <h4>Enforcement Penalties</h4>
+            <p>
+              Violators face immediate and irreversible termination of their player account profile, permanent wiping of all earned Coins and unlocked garage items, removal of all leaderboard records, and permanent IP firewall bans.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 3: User Accounts & Authentication -->
+    <section class="legal-card">
+      <div class="card-header-bar">
+        <div class="card-icon" style="background: var(--cyan);">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#000" stroke-width="2.2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </div>
+        <h2 class="card-title">3. USER ACCOUNTS &amp; AUTHENTICATION</h2>
+      </div>
+      <div class="card-body">
+        <p>
+          When you sign in to your verified player account to access your garage profile, synchronization, and global leaderboard rankings:
+        </p>
+        <ul>
+          <li>You are solely responsible for maintaining the confidentiality and security of your own account login credentials.</li>
+          <li>You agree not to impersonate any individual, developer, or entity, nor use deceptive or profane callsigns in public multiplayer matches.</li>
+          <li>We reserve the unilateral right to suspend, reset, or terminate any account found in violation of these Terms without prior notice.</li>
         </ul>
       </div>
     </section>
 
-    <!-- Section 4 -->
-    <section class="legal-card" id="economy">
-      <div class="section-header">
-        <div class="section-icon-box" style="background: var(--yellow);">🪙</div>
-        <h2 class="section-title">4. VIRTUAL ECONOMY & COSMETICS LICENSE</h2>
+    <!-- Section 4: Virtual Economy & Licenses -->
+    <section class="legal-card">
+      <div class="card-header-bar">
+        <div class="card-icon" style="background: var(--yellow);">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#000" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/><line x1="12" y1="6" x2="12" y2="8"/><line x1="12" y1="16" x2="12" y2="18"/></svg>
+        </div>
+        <h2 class="card-title">4. VIRTUAL GOODS &amp; LIMITED ENTERTAINMENT LICENSE</h2>
       </div>
-      <div class="prose">
+      <div class="card-body">
         <p>
-          AirSkid features an arcade virtual economy comprising Coins, Level XP, Cosmetic Liveries (Skins), Glasses (Chasma), and Drift Particle Trails:
+          AIRSKIDO provides an in-game progression system featuring earned Coins, pilot XP, vehicle liveries (Skins), and cosmetic accessories (Hats, Glasses):
         </p>
         <ul>
-          <li>All currency and vanity items are <strong>purely virtual licenses</strong> for gameplay entertainment.</li>
-          <li>In-game items have <strong>zero monetary cash-out value</strong> and cannot be redeemed for fiat currency.</li>
-          <li>Cosmetics are purely aesthetic and do not grant unfair pay-to-win mechanical advantages.</li>
+          <li>All virtual currencies, cosmetics, and unlocked items are <strong>limited, revocable, non-transferable digital entertainment licenses</strong> granted exclusively for personal gameplay within AIRSKIDO.</li>
+          <li>In-game currency and items hold <strong>zero monetary cash-out value</strong> and cannot be redeemed, transferred, or refunded for real-world fiat currency.</li>
+          <li>Cosmetics are strictly aesthetic and do not grant unfair pay-to-win mechanical advantages. We maintain an uncompromising 100% skill-based competitive environment.</li>
         </ul>
       </div>
     </section>
 
-    <!-- Section 5 -->
-    <section class="legal-card" id="leaderboard">
-      <div class="section-header">
-        <div class="section-icon-box" style="background: var(--purple); color: #FFF;">🏆</div>
-        <h2 class="section-title">5. GLOBAL SPRINT LEADERBOARD INTEGRITY</h2>
-      </div>
-      <div class="prose">
-        <p>
-          The Global Hall of Fame records the fastest 1-lap Time Sprint completions across Normal (Classic) and Hardcore (Cyber Canyon) tracks.
-        </p>
-        <div class="callout-box callout-yellow">
-          <div class="callout-icon">⏱️</div>
-          <div class="callout-text">
-            <h4>Record Validation & Audit</h4>
-            <p>Leaderboard records are backed by Firestore and audited against track gate checkpoint times. We reserve the right to remove any physically impossible lap entries to maintain competitive parity.</p>
-          </div>
+    <!-- Section 5: Multiplayer Conduct -->
+    <section class="legal-card">
+      <div class="card-header-bar">
+        <div class="card-icon" style="background: #E2E8F0;">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#000" stroke-width="2.2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
         </div>
+        <h2 class="card-title">5. MULTIPLAYER CODE OF CONDUCT</h2>
+      </div>
+      <div class="card-body">
+        <p>
+          Multiplayer lobbies operate across our secure real-time game web servers and WebSockets. When entering custom rooms or quick-match lobbies:
+        </p>
+        <ul>
+          <li>Racers must maintain respectful conduct. Harassment, hate speech, threats, or deliberate lag simulation are strictly prohibited.</li>
+          <li>Room hosts hold full operational authority to kick or deny entry to disruptive peers from staging areas.</li>
+        </ul>
       </div>
     </section>
 
-    <!-- Section 6 -->
-    <section class="legal-card" id="ip">
-      <div class="section-header">
-        <div class="section-icon-box" style="background: var(--green); color: #FFF;">🛡️</div>
-        <h2 class="section-title">6. INTELLECTUAL PROPERTY & ATTRIBUTION</h2>
-      </div>
-      <div class="prose">
-        <p>
-          AirSkid, including its custom Three.js rendering pipeline, WebAssembly physics bridges, brutalist audio synthesizers, original tracks, logo artwork, and Brutopia UI styling, is the creative intellectual work of Anish.
-        </p>
-        <p>
-          Players are warmly encouraged to stream gameplay, record YouTube / TikTok clips, and create content featuring AirSkid!
-        </p>
-      </div>
-    </section>
-
-    <!-- Section 7 -->
-    <section class="legal-card" id="contact">
-      <div class="section-header">
-        <div class="section-icon-box" style="background: var(--coral); color: #FFF;">📬</div>
-        <h2 class="section-title">7. SUPPORT & CONTACT</h2>
-      </div>
-      <div class="prose">
-        <p>
-          For rule questions, leaderboard appeals, or developer partnerships, reach out directly:
-        </p>
-        <div class="callout-box callout-blue">
-          <div class="callout-icon">✉️</div>
-          <div class="callout-text">
-            <h4>AirSkid Creator Support</h4>
-            <p>Email: <strong>anish@airskid.io</strong> • We usually reply within 24 hours.</p>
-          </div>
+    <!-- Section 6: Limitation of Liability -->
+    <section class="legal-card">
+      <div class="card-header-bar">
+        <div class="card-icon" style="background: #DCFCE7;">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#166534" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
         </div>
+        <h2 class="card-title">6. DISCLAIMER OF WARRANTIES &amp; LIABILITY</h2>
+      </div>
+      <div class="card-body">
+        <p>
+          AIRSKIDO is provided on an <strong>"AS IS"</strong> and <strong>"AS AVAILABLE"</strong> basis without warranties of any kind, either express or implied.
+        </p>
+        <p>
+          While we optimize the game engine to execute at 60 FPS under 5MB across modern WebGL hardware, Anish Srivastava does not guarantee uninterrupted service, browser compatibility with obsolete hardware, or zero latency across third-party internet service provider routing. To the fullest extent permitted by applicable law, Anish Srivastava shall not be liable for any direct, indirect, incidental, or consequential damages arising from your access to or inability to access the game.
+        </p>
       </div>
     </section>
 
-    <!-- ── FOOTER ── -->
-    <footer class="brut-footer">
-      <div class="footer-left">
-        <span class="footer-brand">AIRSKID RACING // BRUTOPIA EDITION</span>
-        <span class="footer-copy">© 2026 Developed with ❤️ by Anish. All rights reserved.</span>
+    <!-- Section 7: Legal Inquiries & Contact -->
+    <section class="contact-card">
+      <h2 class="contact-title">7. LEGAL NOTICES, DMCA &amp; INQUIRIES</h2>
+      <p class="contact-desc">
+        For trademark licensing inquiries, formal copyright / DMCA infringement claims, security disclosures, or legal questions, contact the rights holder directly:
+      </p>
+
+      <div class="contact-actions">
+        <a href="mailto:anish@airskido.io?subject=AIRSKIDO%20Legal%20or%20IP%20Inquiry" class="btn-mail-action">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="#FFF" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          <span>CONTACT LEGAL &amp; IP DESK</span>
+        </a>
       </div>
 
-      <div class="footer-links">
-        <a href="privacy.html" class="footer-link">Privacy Policy</a>
-        <a href="about.html" class="footer-link">About Developer</a>
-        <a href="index.html" class="footer-link" style="color: var(--yellow); font-weight: 900; background: #000; padding: 4px 10px; border-radius: 6px;">Back to Game 🏎️</a>
+      <p style="margin-top: 14px; font-size: 13px; font-weight: 700; color: var(--ink-secondary);">
+        Direct Inquiries: <code style="background: #FFFFFF; padding: 3px 8px; border: 1.5px solid #000; border-radius: 6px;">anish@airskido.io</code>
+      </p>
+    </section>
+
+    <!-- Minimal Footer -->
+    <footer class="page-footer">
+      <span class="footer-left-txt">© 2026 AIRSKIDO // Engineered by Full-Stack Developer Anish Srivastava. All rights reserved.</span>
+      <div class="footer-links-row">
+        <a href="about.html" class="footer-link">About</a>
+        <span style="color: var(--ink-muted);">•</span>
+        <a href="privacy.html" class="footer-link">Privacy</a>
+        <span style="color: var(--ink-muted);">•</span>
+        <a href="index.html" class="footer-link" style="background: var(--yellow); padding: 2px 8px; border: 1.5px solid #000; border-radius: 6px;">Play Game</a>
       </div>
     </footer>
 

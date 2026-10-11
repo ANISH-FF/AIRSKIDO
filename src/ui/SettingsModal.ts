@@ -9,6 +9,7 @@ export class SettingsModal {
   private engine?: Engine;
   private modalEl: HTMLElement | null = null;
   private isInRace: boolean = false;
+  private currentTab: 'settings' | 'controls' = 'settings';
   public onQuitRace?: () => void;
 
   constructor() {
@@ -28,9 +29,37 @@ export class SettingsModal {
     }
   }
 
-  public open() {
+  public getIsInRace(): boolean {
+    return this.isInRace;
+  }
+
+  public setTab(tab: 'settings' | 'controls') {
+    this.currentTab = tab;
+    const tabSettings = document.getElementById('tab-btn-settings');
+    const tabControls = document.getElementById('tab-btn-controls');
+    const paneGeneral = document.getElementById('settings-pane-general');
+    const paneControls = document.getElementById('settings-pane-controls');
+    const titleEl = document.getElementById('settings-header-title');
+
+    if (tab === 'settings') {
+      tabSettings?.classList.add('active');
+      tabControls?.classList.remove('active');
+      if (paneGeneral) paneGeneral.style.display = 'flex';
+      if (paneControls) paneControls.style.display = 'none';
+      if (titleEl) titleEl.innerText = 'GAME SETTINGS';
+    } else {
+      tabControls?.classList.add('active');
+      tabSettings?.classList.remove('active');
+      if (paneGeneral) paneGeneral.style.display = 'none';
+      if (paneControls) paneControls.style.display = 'flex';
+      if (titleEl) titleEl.innerText = 'HOW TO PLAY & CONTROLS';
+    }
+  }
+
+  public open(tab: 'settings' | 'controls' = 'settings') {
     sounds.playSelect();
     this.syncUI();
+    this.setTab(tab);
     const quitBtn = document.getElementById('btn-quit-race');
     if (quitBtn) {
       quitBtn.style.display = this.isInRace ? 'block' : 'none';
@@ -126,6 +155,21 @@ export class SettingsModal {
     if (btnInGame) btnInGame.onclick = () => this.open();
     if (btnClose) btnClose.onclick = () => this.close();
     if (btnDone) btnDone.onclick = () => this.close();
+
+    const tabSettings = document.getElementById('tab-btn-settings');
+    const tabControls = document.getElementById('tab-btn-controls');
+    if (tabSettings) {
+      tabSettings.onclick = () => {
+        sounds.playSelect();
+        this.setTab('settings');
+      };
+    }
+    if (tabControls) {
+      tabControls.onclick = () => {
+        sounds.playSelect();
+        this.setTab('controls');
+      };
+    }
 
     if (btnQuit) {
       btnQuit.onclick = () => {

@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 
 /**
- * AIRSKID RACING // 3D CHARACTER SUNGLASSES & ACCESSORIES BUILDER
+ * AIRSKIDO RACING // 3D CHARACTER SUNGLASSES & ACCESSORIES BUILDER
  * Production-ready, AAA arcade-quality 3D eyewear for the driver character.
  * Perfectly calibrated to the head size (width ~0.72) and resting proudly
  * over the bridge of the snout at (0, 0.738, 0.418) with ZERO eye clipping.

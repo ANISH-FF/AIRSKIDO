@@ -1,4 +1,5 @@
 import { sounds } from './Sound';
+import { ENABLE_VIP_AND_ADS } from './GameConfig';
 
 export interface EconomyState {
   coins: number;
@@ -15,7 +16,7 @@ export interface EconomyState {
   equippedTrail?: string;
 }
 
-const STORAGE_KEY = 'airskid_economy_v2';
+const STORAGE_KEY = 'airskido_economy_v2';
 
 export class EconomyManager {
   private state: EconomyState;
@@ -28,7 +29,11 @@ export class EconomyManager {
 
   private loadState(): EconomyState {
     try {
-      const saved = localStorage.getItem(STORAGE_KEY) || localStorage.getItem('aerocarts_economy_v2') || localStorage.getItem('aerocarts_economy_v1');
+      const saved =
+        localStorage.getItem(STORAGE_KEY) ||
+        localStorage.getItem('airskid_economy_v2') ||
+        localStorage.getItem('aerocarts_economy_v2') ||
+        localStorage.getItem('aerocarts_economy_v1');
       if (saved) {
         const parsed = JSON.parse(saved);
         return {
@@ -141,6 +146,7 @@ export class EconomyManager {
   }
 
   public isVip(): boolean {
+    if (!ENABLE_VIP_AND_ADS) return false;
     if (this.state.vipExpiresAt === -1) return true;
     return this.state.vipExpiresAt > Date.now();
   }
@@ -173,7 +179,7 @@ export class EconomyManager {
   public isItemUnlocked(itemId: string): boolean {
     if (
       itemId === 'skin_default' ||
-      itemId.startsWith('paint_') ||
+      (itemId.startsWith('paint_') && itemId !== 'paint_white') ||
       itemId === 'hat_none' ||
       itemId === 'hat_party' ||
       itemId === 'trail_cyan' ||
@@ -192,7 +198,11 @@ export class EconomyManager {
   }
 
   public getEquippedSkin(): string {
-    return this.state.equippedSkin;
+    const skin = this.state.equippedSkin || 'skin_default';
+    if (skin === 'paint_white' && !this.isItemUnlocked('paint_white')) {
+      return 'skin_default';
+    }
+    return skin;
   }
 
   public setEquippedSkin(skinId: string) {
@@ -202,7 +212,9 @@ export class EconomyManager {
   }
 
   public getEquippedHat(): string {
-    return this.state.equippedHat || 'hat_none';
+    const hat = this.state.equippedHat || 'hat_none';
+    if (!this.isItemUnlocked(hat)) return 'hat_none';
+    return hat;
   }
 
   public setEquippedHat(hatId: string) {
@@ -222,7 +234,9 @@ export class EconomyManager {
   }
 
   public getEquippedGlasses(): string {
-    return this.state.equippedGlasses || 'glasses_none';
+    const glasses = this.state.equippedGlasses || 'glasses_none';
+    if (!this.isItemUnlocked(glasses)) return 'glasses_none';
+    return glasses;
   }
 
   public setEquippedGlasses(glassesId: string) {
@@ -293,7 +307,7 @@ export class EconomyManager {
       this.state.xp -= needed;
       this.state.level += 1;
       leveledUp = true;
-      bonusCoins += 100; // +100 Coins reward on each level up!
+      bonusCoins += 200; // +200 Coins reward on each level up!
       needed = this.getXpNeeded();
     }
 
@@ -328,7 +342,7 @@ export class EconomyManager {
 
   public claimDailyFirstRace(): number {
     if (!this.canClaimDailyFirstRace()) return 0;
-    const baseReward = 200;
+    const baseReward = 500; // Boosted to 500 Coins for Daily 1st Race!
     const multiplier = this.isVip() ? 1.5 : 1.0;
     const finalReward = Math.round(baseReward * multiplier);
     this.state.coins += finalReward;
@@ -396,17 +410,23 @@ export class EconomyManager {
       }
     }
 
-    // 5. VIP Badge & Status in Lobby
+    // 5. VIP Badge & Status in Lobby (Hidden if ENABLE_VIP_AND_ADS is false)
     const vipBadge = document.getElementById('lobby-vip-badge');
     if (vipBadge) {
-      if (this.isVip()) {
-        vipBadge.classList.add('is-vip');
-        vipBadge.innerHTML = `<svg viewBox="0 0 24 24" width="15" height="15" style="fill: #000; vertical-align: middle;"><path d="M2 19h20v2H2v-2zm1-5l4-3 5 6 5-6 4 3-2-9-5 3-4-5-4 5-5-3-2 9z"/></svg> <span class="vip-text">VIP</span>`;
-        vipBadge.title = `VIP Active (${this.getVipRemainingTime()}) • 1.5x Coins & XP Bonus!`;
+      if (!ENABLE_VIP_AND_ADS) {
+        vipBadge.style.display = 'none';
       } else {
-        vipBadge.classList.remove('is-vip');
-        vipBadge.innerHTML = `<svg viewBox="0 0 24 24" width="15" height="15" style="fill: #000; vertical-align: middle;"><path d="M2 19h20v2H2v-2zm1-5l4-3 5 6 5-6 4 3-2-9-5 3-4-5-4 5-5-3-2 9z"/></svg> <span class="vip-text">VIP PASS</span>`;
-        vipBadge.title = 'Unlock VIP Crown & 1.5x Coin Boost!';
+        vipBadge.style.display = 'inline-flex';
+        const crownSvg = `<svg viewBox="0 0 24 24" width="15" height="15" style="fill: #000; vertical-align: middle;"><path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5zm14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z"/></svg>`;
+        if (this.isVip()) {
+          vipBadge.classList.add('is-vip');
+          vipBadge.innerHTML = `${crownSvg} <span class="vip-text">VIP</span>`;
+          vipBadge.title = `VIP Active (${this.getVipRemainingTime()}) • 1.5x Coins & XP Bonus!`;
+        } else {
+          vipBadge.classList.remove('is-vip');
+          vipBadge.innerHTML = `${crownSvg} <span class="vip-text">VIP PASS</span>`;
+          vipBadge.title = 'Unlock VIP Crown & 1.5x Coin Boost!';
+        }
       }
     }
 
@@ -420,14 +440,14 @@ export class EconomyManager {
       const bountySub = eventCard.querySelector('.bounty-subtext');
 
       if (bountyTitle) bountyTitle.textContent = 'DAILY FIRST RACE // BONUS';
-      if (bountyReward) bountyReward.textContent = '+200 COINS';
+      if (bountyReward) bountyReward.textContent = '+500 COINS';
       if (bountyFill) {
         bountyFill.style.width = isDailyReady ? '0%' : '100%';
         bountyFill.style.background = isDailyReady ? 'var(--brut-yellow)' : '#22c55e';
       }
       if (bountySub) {
         bountySub.innerHTML = isDailyReady
-          ? 'STATUS: <strong style="color: #f59e0b;">READY 🎁 (200 BONUS ON 1ST RACE)</strong>'
+          ? 'STATUS: <strong style="color: #f59e0b;">READY 🎁 (500 BONUS ON 1ST RACE)</strong>'
           : 'STATUS: <strong style="color: #16a34a;">CLAIMED ✔ (RESETS AT MIDNIGHT)</strong>';
       }
     }

@@ -267,7 +267,7 @@ export class RumbleManager {
         }
         this.lastPlayerKillTime = now;
 
-        const cleanName = victim.name.replace(/_/g, ' ').toUpperCase();
+        const cleanName = victim.name.replace(/_/g, ' ');
         let comboTitle = `YOU SLAMMED ${cleanName}!`;
         if (this.playerComboKills === 2) {
           comboTitle = 'DOUBLE SLAM!';
@@ -340,9 +340,6 @@ export class RumbleManager {
       return;
     }
 
-    // Sound effect
-    sounds.playRespawn();
-
     // Check target kills win condition
     if (this.winRule.startsWith('kills_')) {
       if (this.isTDM) {
@@ -393,7 +390,6 @@ export class RumbleManager {
         victim.kart.rigidBody.setLinvel({ x: curLv.x, y: -22.0, z: curLv.z }, true);
         victim.kart.airLaunchTimer = 1.8;
         victim.kart.isGrounded = false;
-        sounds.playRespawn();
       }
       // Note: executeRespawn is strictly handled by update(dt) when respawnTimer hits 0!
       // NEVER call this.executeRespawn(victim) prematurely here!
@@ -522,6 +518,9 @@ export class RumbleManager {
     spawnPos.y = 2.0;
     racer.kart.resetTo(spawnPos, spawnRot);
     racer.kart.setGhost(true, 3.5);
+    if (racer.isPlayer) {
+      sounds.playRespawn();
+    }
   }
 
   private checkLastKartStanding() {

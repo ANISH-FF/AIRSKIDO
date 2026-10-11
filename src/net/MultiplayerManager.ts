@@ -1,6 +1,7 @@
 import { Peer, DataConnection } from 'peerjs';
 import * as THREE from 'three';
 import { RumbleTeam } from '../world/RumbleManager';
+import { NET_CONFIG } from './NetConfig';
 
 export interface RemotePlayerInfo {
   peerId: string;
@@ -10,6 +11,8 @@ export interface RemotePlayerInfo {
   isHost: boolean;
   isReady: boolean;
   team?: 'frost' | 'blaze';
+  isVip?: boolean;
+  level?: number;
 }
 
 export interface RemoteKartTransform {
@@ -63,6 +66,10 @@ export class MultiplayerManager {
   public peer: Peer | null = null;
   public myPeerId: string = '';
   public roomCode: string = '';
+
+  public getPeerIdForRoom(roomCode: string): string {
+    return `airskido_room_${roomCode.toLowerCase()}`;
+  }
   public isHost: boolean = false;
   public playerName: string = 'RACER 1';
   public selectedKart: number = 0;
@@ -74,6 +81,8 @@ export class MultiplayerManager {
   public myTeam?: 'frost' | 'blaze' = 'frost';
   public matchState: 'staging' | 'in_race' = 'staging';
   public currentPing: number = 0;
+  public isVip: boolean = false;
+  public playerLevel: number = 1;
   private isRoomClosed: boolean = false;
 
   public connectedPeers: Map<string, DataConnection> = new Map();
@@ -114,6 +123,19 @@ export class MultiplayerManager {
 
   constructor() {}
 
+  private getPeerOptions(): any {
+    if (NET_CONFIG.USE_CUSTOM_SIGNALING && NET_CONFIG.CUSTOM_HOST) {
+      return {
+        ...MultiplayerManager.PEER_CONFIG,
+        host: NET_CONFIG.CUSTOM_HOST,
+        port: NET_CONFIG.CUSTOM_PORT,
+        path: NET_CONFIG.CUSTOM_PATH,
+        secure: NET_CONFIG.CUSTOM_SECURE,
+      };
+    }
+    return MultiplayerManager.PEER_CONFIG;
+  }
+
   public async initHost(
     playerName: string,
     kartType: number,
@@ -121,7 +143,9 @@ export class MultiplayerManager {
     mode: MpGameMode = 'classic',
     rumbleRule: string = 'kills_10',
     rumbleFormat: 'tdm' | 'ffa' = 'tdm',
-    skinId: string = 'skin_default'
+    skinId: string = 'skin_default',
+    isVip: boolean = false,
+    level: number = 1
   ): Promise<string> {
     this.cleanup();
     this.playerName = playerName || 'HOST';
@@ -131,16 +155,14 @@ export class MultiplayerManager {
     this.selectedMode = mode;
     this.selectedRumbleRule = rumbleRule;
     this.selectedRumbleFormat = rumbleFormat;
+    this.isVip = isVip;
+    this.playerLevel = level;
     this.myTeam = (mode === 'rumble' && rumbleFormat === 'ffa') ? undefined : 'frost';
     this.isHost = true;
 
-    // Generate clean 5-char alphanumeric code (17+ Million unique rooms, zero collision)
-    const chars = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
-    let code = '';
-    for (let i = 0; i < 5; i++) {
-      code += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    this.roomCode = `AERO-${code}`;
+    // Generate clean 6-digit numeric room code (1,000,000 unique room combinations)
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    this.roomCode = code;
 
     return new Promise((resolve, reject) => {
       let resolved = false;
@@ -157,8 +179,9 @@ export class MultiplayerManager {
         }
       }, 10000);
 
-      // Peer ID matches room code for direct 1-to-1 routing
-      this.peer = new Peer(this.roomCode.toLowerCase(), MultiplayerManager.PEER_CONFIG);
+      // Peer ID uses scoped namespace to prevent collisions on public PeerJS cloud
+      const hostPeerId = this.getPeerIdForRoom(this.roomCode);
+      this.peer = new Peer(hostPeerId, this.getPeerOptions());
 
       this.peer.on('open', (id) => {
         if (resolved) return;
@@ -174,6 +197,8 @@ export class MultiplayerManager {
             isHost: true,
             isReady: true,
             team: 'frost',
+            isVip: this.isVip,
+            level: this.playerLevel,
           },
         ];
         try {
@@ -206,26 +231,32 @@ export class MultiplayerManager {
     });
   }
 
-  public async joinRoom(roomCode: string, playerName: string, kartType: number, skinId: string = 'skin_default'): Promise<void> {
+  public async joinRoom(
+    roomCode: string,
+    playerName: string,
+    kartType: number,
+    skinId: string = 'skin_default',
+    isVip: boolean = false,
+    level: number = 1
+  ): Promise<void> {
     this.cleanup();
     this.playerName = playerName || 'GUEST';
     this.selectedKart = kartType;
     this.selectedSkinId = skinId || 'skin_default';
+    this.isVip = isVip;
+    this.playerLevel = level;
     this.isHost = false;
 
-    // Normalize room code: accept "AERO-XXXXX", "XXXXX", "aero xxxxx", or "aero-xxxxx"
-    let raw = roomCode.trim().toUpperCase().replace(/[\s\-_]+/g, '');
-    if (raw.startsWith('AERO')) {
-      raw = raw.slice(4);
-    }
+    // Normalize room code: accept "482910", "482 910", legacy "AERO-XXXXX", or custom inputs
+    let raw = roomCode.trim().toUpperCase().replace(/^AERO[-_]?/i, '').replace(/[\s\-_]+/g, '');
     if (!raw || raw.length < 3) {
       throw new Error('INVALID ROOM CODE');
     }
-    this.roomCode = `AERO-${raw}`;
+    this.roomCode = raw;
 
     return new Promise((resolve, reject) => {
       let resolved = false;
-      this.peer = new Peer(MultiplayerManager.PEER_CONFIG);
+      this.peer = new Peer(this.getPeerOptions());
 
       const timeoutId = setTimeout(() => {
         if (!resolved) {
@@ -242,7 +273,7 @@ export class MultiplayerManager {
 
       this.peer.on('open', (myId) => {
         this.myPeerId = myId;
-        const hostPeerId = this.roomCode.toLowerCase();
+        const hostPeerId = this.getPeerIdForRoom(this.roomCode);
         const conn = this.peer!.connect(hostPeerId, { reliable: true });
 
         conn.on('open', () => {
@@ -265,6 +296,8 @@ export class MultiplayerManager {
             isHost: false,
             isReady: true,
             team: this.myTeam,
+            isVip: this.isVip,
+            level: this.playerLevel,
           };
           try {
             conn.send({ type: 'player_join', player: selfInfo });
@@ -390,7 +423,7 @@ export class MultiplayerManager {
         return;
       }
       const hostPlayer = this.lobbyPlayers.find((p) => p.isHost);
-      const hostTargetId = hostPlayer ? hostPlayer.peerId : this.roomCode.toLowerCase();
+      const hostTargetId = hostPlayer ? hostPlayer.peerId : this.getPeerIdForRoom(this.roomCode);
       const conn = this.connectedPeers.get(hostTargetId);
       if (conn && conn.open) {
         try {
@@ -650,6 +683,8 @@ export class MultiplayerManager {
             isHost: false,
             isReady: true,
             team: this.myTeam,
+            isVip: this.isVip,
+            level: this.playerLevel,
           };
           try {
             newConn.send({ type: 'player_join', player: selfInfo });
@@ -679,7 +714,7 @@ export class MultiplayerManager {
         this.onLobbyUpdated(this.lobbyPlayers, this.selectedLaps, this.selectedMode, this.selectedRumbleRule, this.selectedRumbleFormat, this.matchState);
       }
     } else {
-      const hostPeerId = this.roomCode.toLowerCase();
+      const hostPeerId = this.getPeerIdForRoom(this.roomCode);
       const hostConn = this.connectedPeers.get(hostPeerId);
       if (hostConn && hostConn.open) {
         try {
@@ -692,7 +727,7 @@ export class MultiplayerManager {
     }
   }
 
-  public broadcastFirstFinish(winnerPeerId: string, winnerName: string, countdownSeconds: number = 20) {
+  public broadcastFirstFinish(winnerPeerId: string, winnerName: string, countdownSeconds: number = 15) {
     this.broadcast({ type: 'race_first_finish', winnerPeerId, winnerName, countdownSeconds });
   }
 
@@ -712,7 +747,7 @@ export class MultiplayerManager {
   public startHostRace() {
     if (!this.isHost) return;
     this.matchState = 'in_race';
-    const startTime = Date.now() + 5400; // Synchronized start across all network devices (2.2s loading screen + 3.2s countdown)
+    const startTime = Date.now() + 6000; // Synchronized start across all network devices (2.8s loading screen + 3.2s countdown)
     this.broadcast({
       type: 'start_countdown',
       startTime,

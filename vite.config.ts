@@ -8,11 +8,21 @@ export default defineConfig({
     host: true, // Listen on all local IPs so user can test on phone!
     allowedHosts: true, // Allow Cloudflare Tunnel hostnames!
     open: false,
+    watch: {
+      ignored: ['**/dist/**', '**/public/**']
+    }
+  },
+  preview: {
+    port: 3000,
+    host: true,
+    allowedHosts: true,
+    open: false,
   },
   build: {
     target: 'esnext',
     outDir: 'dist',
     assetsInlineLimit: 0,
+    sourcemap: false,
     rollupOptions: {
       input: {
         main: 'index.html',

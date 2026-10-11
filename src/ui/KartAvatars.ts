@@ -1,5 +1,5 @@
 // Dynamic Neo-Brutalist Isometric Kart & Skin Avatar Generator
-// Built exclusively for the universal single AirSkid Proto racer
+// Built exclusively for the universal single AIRSKIDO Proto racer
 
 export interface KartColors {
   body: string;
@@ -12,7 +12,7 @@ export interface KartColors {
 }
 
 export function getKartDisplayName(_kartType?: number): string {
-  return 'AIRSKID PROTO';
+  return 'AIRSKIDO PROTO';
 }
 
 export function getSkinDisplayName(skinId?: string): string {
@@ -34,7 +34,7 @@ export function getSkinDisplayName(skinId?: string): string {
 }
 
 export function getKartSkinColors(_kartType?: number, skinId?: string): KartColors {
-  const kName = 'AIRSKID PROTO';
+  const kName = 'AIRSKIDO PROTO';
   const sName = getSkinDisplayName(skinId);
 
   // If specific cosmetic livery equipped:

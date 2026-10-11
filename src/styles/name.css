@@ -1,5 +1,5 @@
 /* ================================================================
-   AIRSKID RACING // NAME SYSTEM & RACER CALLSIGN MODAL
+   AIRSKIDO RACING // NAME SYSTEM & RACER CALLSIGN MODAL
    ================================================================ */
 
 /* ── Lobby Top Bar Pilot Card ─────────────────────────────────── */
@@ -145,7 +145,6 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  text-transform: uppercase;
 }
 
 .pilot-edit-chip {
@@ -174,6 +173,7 @@
   border: 3px solid #000000 !important;
   box-shadow: 6px 6px 0px #000000 !important;
   border-radius: 18px !important;
+  padding: 20px;
 }
 
 .name-meta-strip {
@@ -209,7 +209,6 @@
   font-weight: 900;
   color: #000000;
   letter-spacing: 0.5px;
-  text-transform: uppercase;
 }
 
 .name-meta-divider {
@@ -461,7 +460,6 @@
   font-weight: 900;
   color: #000000;
   letter-spacing: 0.5px;
-  text-transform: uppercase;
   max-width: 95px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -838,7 +836,6 @@
   border-radius: 8px;
   padding: 4px 12px;
   display: inline-block;
-  text-transform: uppercase;
 }
 
 .name-locked-footer {
@@ -847,5 +844,108 @@
   font-weight: 700;
   color: #64748B;
   letter-spacing: 0.3px;
+}
+
+/* ── Mobile Responsive Rules for Pilot Profile Modal ── */
+@media (max-width: 860px), (max-height: 560px) {
+  .name-modal-card {
+    transform: none !important;
+    max-width: min(440px, 92vw) !important;
+    width: 92% !important;
+    max-height: 92vh !important;
+    max-height: 92dvh !important;
+    padding: 10px 14px !important;
+    border-radius: 14px !important;
+    border-width: 2.5px !important;
+    box-shadow: 4px 4px 0 #000 !important;
+  }
+  .name-meta-strip {
+    padding: 5px 8px !important;
+    margin-bottom: 6px !important;
+    border-radius: 8px !important;
+    border-width: 1.5px !important;
+  }
+  .name-meta-lbl {
+    font-size: 8px !important;
+  }
+  .name-meta-val {
+    font-size: 12px !important;
+  }
+  .name-meta-divider {
+    height: 16px !important;
+  }
+  .name-claim-box {
+    margin-top: 8px !important;
+  }
+  .name-input-section {
+    gap: 3px !important;
+    margin-bottom: 6px !important;
+  }
+  .name-input-label {
+    font-size: 10px !important;
+  }
+  .name-text-input {
+    font-size: 14px !important;
+    padding: 6px 8px !important;
+    border-radius: 8px !important;
+    border-width: 2px !important;
+  }
+  .name-status-badge {
+    font-size: 10px !important;
+    padding: 4px 8px !important;
+    margin-bottom: 4px !important;
+    border-radius: 6px !important;
+  }
+  .name-rules-hint {
+    font-size: 8px !important;
+    margin-bottom: 6px !important;
+  }
+  .name-actions-row {
+    margin-top: 6px !important;
+    margin-bottom: 10px !important;
+    gap: 6px !important;
+  }
+  .name-btn-cancel,
+  .name-btn-save {
+    padding: 7px 10px !important;
+    font-size: 11.5px !important;
+    border-radius: 8px !important;
+  }
+  .name-locked-card {
+    padding: 8px 10px !important;
+    margin-top: 6px !important;
+    margin-bottom: 10px !important;
+    border-radius: 10px !important;
+  }
+  .name-locked-val {
+    font-size: 15px !important;
+    padding: 2px 8px !important;
+  }
+  .modal-divider-row {
+    margin: 8px 0 !important;
+  }
+  .modal-divider-label {
+    font-size: 8.5px !important;
+  }
+  .google-modal-subcard {
+    padding: 8px 10px !important;
+    border-radius: 10px !important;
+  }
+  .google-benefit-desc {
+    font-size: 10px !important;
+    margin: 0 0 8px 0 !important;
+  }
+  .google-action-btn {
+    padding: 7px 10px !important;
+    font-size: 11px !important;
+    border-radius: 8px !important;
+  }
+  .google-stats-strip {
+    padding: 5px 8px !important;
+    margin-top: 5px !important;
+  }
+  .google-stat-val {
+    font-size: 11px !important;
+  }
 }
 

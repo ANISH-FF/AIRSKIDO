@@ -209,13 +209,11 @@ export class InputManager {
     let nitro = this.nitroTriggered;
     this.nitroTriggered = false;
 
-    // Keyboard controls
+    // Keyboard controls: WASD & Arrows for Drive (Aage/Peeche), Shift & Space for Nitro
     if (this.keys['KeyW'] || this.keys['ArrowUp']) throttle += 1;
     if (this.keys['KeyS'] || this.keys['ArrowDown']) throttle -= 1;
     if (this.keys['KeyA'] || this.keys['ArrowLeft']) steer -= 1;
     if (this.keys['KeyD'] || this.keys['ArrowRight']) steer += 1;
-    if (this.keys['Space'] || this.keys['ShiftLeft'] || this.keys['ShiftRight']) drift = true;
-    if (this.keys['KeyR']) respawn = true;
 
     // Mobile touch controls (Left Steering & Nitro, Right Pedals)
     if (this.touchGas) {

@@ -7,7 +7,7 @@ export class RumbleArenaConfig implements TrackDefinition {
   public isHardcore = false;
   public isArena = true;
   public arenaRadius = 98.0; // Expanded 196m diameter grand sky battle coliseum
-  public archTitle = 'AIRSKID // GRAND SKY COLISEUM';
+  public archTitle = 'AIRSKIDO // GRAND SKY COLISEUM';
   public curve: THREE.CatmullRomCurve3;
 
   public static readonly SAMPLES = 100;

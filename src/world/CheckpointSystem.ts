@@ -26,6 +26,8 @@ export interface RacerProgress {
   isRespawning: boolean;
   respawnTimer: number;
   finishTime: number | null;
+  isVip?: boolean;
+  rank?: number;
 }
 
 export class CheckpointSystem {
@@ -88,7 +90,20 @@ export class CheckpointSystem {
         }
       }
 
-      if (slice.isGap) {
+      // Dedicated jump zone safe respawn anchor:
+      // If gate is inside or adjacent to a jump zone gap, anchor safely back on the flat runway before the incline
+      const jumpZone = track.config.jumpZones?.find(j => {
+        const sIdx = Math.round(t * Track.SAMPLES);
+        return sIdx >= (j.startSlice - 2) && sIdx <= (j.endSlice + 2);
+      });
+
+      if (jumpZone && (slice.isGap || slice.isRamp)) {
+        const safeSliceIdx = Math.max(0, jumpZone.startSlice - 3);
+        const safeSlice = track.getTrackSlice(safeSliceIdx / Track.SAMPLES);
+        safePos = safeSlice.position.clone().add(new THREE.Vector3(0, 1.2, 0));
+        const fwdH = new THREE.Vector3(safeSlice.tangent.x, 0, safeSlice.tangent.z).normalize();
+        safeRot.setFromUnitVectors(new THREE.Vector3(0, 0, 1), fwdH);
+      } else if (slice.isGap) {
         const safeT = ((i - 2 + numGates) % numGates) / numGates;
         const safeSlice = track.getTrackSlice(safeT);
         safePos = safeSlice.position.clone().add(new THREE.Vector3(0, 1.2, 0));
@@ -109,7 +124,7 @@ export class CheckpointSystem {
     }
   }
 
-  public registerRacer(id: string, name: string, isPlayer: boolean, startPos: THREE.Vector3, startRot: THREE.Quaternion) {
+  public registerRacer(id: string, name: string, isPlayer: boolean, startPos: THREE.Vector3, startRot: THREE.Quaternion, isVip?: boolean) {
     // Level starting rotation
     const rotEuler = new THREE.Euler().setFromQuaternion(startRot, 'YXZ');
     const safeStartRot = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), rotEuler.y);
@@ -127,6 +142,7 @@ export class CheckpointSystem {
       isRespawning: false,
       respawnTimer: 0,
       finishTime: null,
+      isVip: !!isVip,
     });
   }
 
@@ -219,7 +235,7 @@ export class CheckpointSystem {
             return sIdx >= (j.startSlice - 2) && sIdx <= (j.endSlice + 4);
           }
         );
-        const maxVert = isGateNearJump ? 8.5 : 3.5;
+        const maxVert = isGateNearJump ? 18.0 : 3.5;
 
         // If not grounded, only allow checkpoint if within reasonable altitude
         if (!isGrounded && vertDist > maxVert) continue;
@@ -322,7 +338,6 @@ export class CheckpointSystem {
     racer.respawnTimer = 1.2; // 1.2 second penalty
 
     if (racer.isPlayer) {
-      sounds.playFall();
       if (this.onPlayerFall) this.onPlayerFall();
     }
   }
@@ -345,12 +360,23 @@ export class CheckpointSystem {
       // Otherwise rank by progress score
       return b.progressScore - a.progressScore;
     });
+
+    for (let i = 0; i < this._standingsList.length; i++) {
+      this._standingsList[i].rank = i + 1;
+    }
+
     return this._standingsList;
   }
 
   public getPlayerRank(): number {
     const standings = this.getStandings();
     const rank = standings.findIndex((r) => r.isPlayer);
+    return rank !== -1 ? rank + 1 : 1;
+  }
+
+  public getRacerRank(racerId: string): number {
+    const standings = this.getStandings();
+    const rank = standings.findIndex((r) => r.id === racerId);
     return rank !== -1 ? rank + 1 : 1;
   }
 }

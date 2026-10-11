@@ -101,11 +101,13 @@ export class KineticHazardManager {
       const rotMatrix = new THREE.Matrix4().makeBasis(slice.binormal, slice.normal, slice.tangent);
       group.quaternion.setFromRotationMatrix(rotMatrix);
 
-      const hubElevation = 6.2; // Hub sits 6.2m above road - blades sweep down to ground and smash karts into the air!
+      const bladeLength = cfg.bladeRadius;
+      const totalBladeReach = bladeLength + 1.0; // 9.5m reach (spans road from pillar to pillar!)
+      const hubElevation = totalBladeReach + 0.05; // 9.55m -> sweeps down to +0.05m (touches road surface, ZERO ground penetration!)
 
       // 1. Heavy Industrial Overhead Truss Gantry Arch
       const spanHalfWidth = slice.halfWidth + 0.8;
-      const gantryHeight = 14.5;
+      const gantryHeight = hubElevation + totalBladeReach + 1.2; // 20.25m (clears top blade sweep cleanly)
 
       const pGeom = new THREE.BoxGeometry(1.6, gantryHeight, 1.6);
       const pillarL = new THREE.Mesh(pGeom, metalMat);
@@ -186,16 +188,22 @@ export class KineticHazardManager {
       const hubDome = new THREE.Mesh(new THREE.SphereGeometry(1.6, 16, 16), metalMat);
       rotorGroup.add(hubDome);
 
-      const beacon = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.35, 0.6, 8), redBeaconMat);
-      beacon.rotateX(Math.PI / 2);
-      beacon.position.set(0, 0, 1.6);
-      rotorGroup.add(beacon);
+      // Front beacon: facing oncoming racers (-Z)
+      const beaconFront = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.35, 0.6, 8), redBeaconMat);
+      beaconFront.rotateX(Math.PI / 2);
+      beaconFront.position.set(0, 0, -1.6);
+      rotorGroup.add(beaconFront);
+
+      // Back beacon: facing racers looking backward (+Z)
+      const beaconBack = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.35, 0.6, 8), redBeaconMat);
+      beaconBack.rotateX(Math.PI / 2);
+      beaconBack.position.set(0, 0, 1.6);
+      rotorGroup.add(beaconBack);
 
       // 3 Giant Heavy Aero Blades (120° apart for generous open timing window!)
       const numBlades = 3;
-      const bladeLength = cfg.bladeRadius;
-      const bladeWidth = 1.35;
-      const bladeThick = 0.55;
+      const bladeWidth = 1.85;
+      const bladeThick = 0.65;
 
       for (let b = 0; b < numBlades; b++) {
         const bladePivot = new THREE.Group();
@@ -233,7 +241,7 @@ export class KineticHazardManager {
         binormal: slice.binormal.clone(),
         normal: slice.normal.clone(),
         hubY: hubElevation,
-        bladeRadius: cfg.bladeRadius,
+        bladeRadius: totalBladeReach,
         spanHalfWidth,
         rotationSpeed: cfg.speed,
         angleOffset: cfg.angleOffset || 0,
@@ -495,11 +503,6 @@ export class KineticHazardManager {
             const bounceVel = _khBounceVel.set(_khReboundDir.x * 16.0, 4.0, _khReboundDir.z * 16.0);
             kart.rigidBody.setLinvel({ x: bounceVel.x, y: bounceVel.y, z: bounceVel.z }, true);
             kart.currentSpeed *= -0.25;
-
-            sounds.playCrash(2.0);
-            if (onAlert && kart.id === 'kart-player') {
-              onAlert('GANTRY PILLAR // SOLID IMPACT!', 'recoil');
-            }
           }
           continue;
         }
@@ -520,10 +523,6 @@ export class KineticHazardManager {
               _khLaunchVel.copy(turbine.tangent).multiplyScalar(-26.0);
               _khLaunchVel.y += 14.0;
               kart.launchIntoAir(_khLaunchVel, false);
-              sounds.playCrash(2.2);
-              if (onAlert && kart.id === 'kart-player') {
-                onAlert('TURBINE HUB SMASH // SOLID CORE!', 'recoil');
-              }
             }
             continue;
           }
@@ -545,8 +544,8 @@ export class KineticHazardManager {
               // Perpendicular distance to blade centerline
               const distPerp = Math.abs(lat * by - vertHub * bx);
 
-              // Blade half-width (0.68m) + kart collision boundary padding (~1.4m) = 2.08m
-              if (distAlong >= 1.0 && distAlong <= (turbine.bladeRadius + 1.1) && distPerp < 2.15) {
+              // Blade half-width (0.925m) + kart collision boundary padding (~1.4m) = 2.33m
+              if (distAlong >= 1.0 && distAlong <= (turbine.bladeRadius + 1.1) && distPerp < 2.35) {
                 hitBlade = true;
                 hitBladeAngle = bladeAngle;
                 hitDistAlong = distAlong;
@@ -593,11 +592,6 @@ export class KineticHazardManager {
                 _khBounceVel.y += 8.0;
 
                 kart.launchIntoAir(_khLaunchVel, false, _khBounceVel);
-                sounds.playCrash(2.4);
-
-                if (onAlert && kart.id === 'kart-player') {
-                  onAlert('TURBINE BLADE SMACKED // AIRBORNE!', 'recoil');
-                }
               }
             }
           }
@@ -689,10 +683,6 @@ export class KineticHazardManager {
             kart.rigidBody.setLinvel({ x: _khBounceVel.x, y: _khBounceVel.y, z: _khBounceVel.z }, true);
             kart.currentSpeed *= -0.25;
 
-            sounds.playCrash(2.0);
-            if (onAlert && kart.id === 'kart-player') {
-              onAlert('GANTRY PILLAR // SOLID IMPACT!', 'recoil');
-            }
           }
           continue;
         }
@@ -721,11 +711,6 @@ export class KineticHazardManager {
               _khLaunchVel.y += 16.5;
 
               kart.launchIntoAir(_khLaunchVel, false);
-              sounds.playCrash(2.2);
-
-              if (onAlert && kart.id === 'kart-player') {
-                onAlert('HAMMER SMASHED // WATCH THE SWING!', 'recoil');
-              }
             }
           }
         }
@@ -739,8 +724,12 @@ export class KineticHazardManager {
       t.group.traverse((c) => {
         if (c instanceof THREE.Mesh) {
           c.geometry?.dispose();
-          if (Array.isArray(c.material)) c.material.forEach((m) => m.dispose());
-          else c.material?.dispose();
+          const mats = Array.isArray(c.material) ? c.material : [c.material];
+          for (const m of mats) {
+            if (!m) continue;
+            if (m.map) m.map.dispose();
+            m.dispose();
+          }
         }
       });
     }
@@ -749,8 +738,12 @@ export class KineticHazardManager {
       p.group.traverse((c) => {
         if (c instanceof THREE.Mesh) {
           c.geometry?.dispose();
-          if (Array.isArray(c.material)) c.material.forEach((m) => m.dispose());
-          else c.material?.dispose();
+          const mats = Array.isArray(c.material) ? c.material : [c.material];
+          for (const m of mats) {
+            if (!m) continue;
+            if (m.map) m.map.dispose();
+            m.dispose();
+          }
         }
       });
     }

@@ -309,23 +309,31 @@ export class CloudSyncService {
     }
 
     try {
-      const usernameDocRef = doc(db, 'usernames', lowerName);
-      const snap = await getDoc(usernameDocRef);
+      // Build normalized variants to catch leetspeak substitutions ('0' vs 'o')
+      const oToZero = lowerName.replace(/o/g, '0');
+      const zeroToO = lowerName.replace(/0/g, 'o');
+      const candidates = Array.from(new Set([lowerName, oToZero, zeroToO]));
 
-      if (!snap.exists()) {
-        return true;
-      }
-
-      const data = snap.data();
       const myUid = this.currentUser?.uid;
       const myPlayerId = nameSystem.playerId;
 
-      // Available if currently claimed by this same user/player
-      if ((myUid && data.uid === myUid) || data.playerId === myPlayerId) {
-        return true;
+      // Check all variants in parallel
+      const snaps = await Promise.all(
+        candidates.map((c) => getDoc(doc(db!, 'usernames', c)))
+      );
+
+      for (const snap of snaps) {
+        if (snap.exists()) {
+          const data = snap.data();
+          // Available only if claimed by this same user or playerId
+          const isMine = (myUid && data.uid === myUid) || (data.playerId && data.playerId === myPlayerId);
+          if (!isMine) {
+            return false;
+          }
+        }
       }
 
-      return false;
+      return true;
     } catch (err) {
       console.warn('[CloudSyncService] Error checking username availability:', err);
       return true;

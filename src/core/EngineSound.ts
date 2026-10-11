@@ -1,6 +1,6 @@
 /**
  * EngineSound.ts
- * Centralized Engine Sound Configuration for Airskido.
+ * Centralized Engine Sound Configuration for AIRSKIDO.
  */
 
 export interface SampleEngineAudioConfig {
@@ -53,28 +53,28 @@ export interface SampleEngineAudioConfig {
  * Default engine audio configuration (smooth, soothing, non-fatiguing mix).
  */
 export const DEFAULT_ENGINE_AUDIO_CONFIG: Readonly<SampleEngineAudioConfig> = Object.freeze({
-  idlePlaybackRate: 0.74,
-  accelBaseRate: 0.77,
-  accelRateMultiplier: 0.55,
-  coastBaseRate: 0.72,
-  coastRateMultiplier: 0.35,
+  idlePlaybackRate: 0.68,
+  accelBaseRate: 0.72,
+  accelRateMultiplier: 0.32,
+  coastBaseRate: 0.68,
+  coastRateMultiplier: 0.22,
 
-  initialFilterCutoff: 2400,
-  filterQ: 0.7,
-  accelBaseCutoff: 2400,
-  accelCutoffMultiplier: 2200,
-  coastBaseCutoff: 2100,
-  coastCutoffMultiplier: 1200,
+  initialFilterCutoff: 3600,
+  filterQ: 0.5,
+  accelBaseCutoff: 3800,
+  accelCutoffMultiplier: 1200,
+  coastBaseCutoff: 3600,
+  coastCutoffMultiplier: 800,
 
-  bassBoostFreq: 110,
-  initialBassBoostGain: 4.5,
-  accelBassBoostGain: 5.5,
-  coastBassBoostGain: 4.0,
+  bassBoostFreq: 90,
+  initialBassBoostGain: 1.5,
+  accelBassBoostGain: 2.5,
+  coastBassBoostGain: 1.0,
 
-  initialGain: 0.14,
-  accelBaseGain: 0.17,
-  accelGainMultiplier: 0.15,
-  coastBaseGain: 0.14,
+  initialGain: 0.18,
+  accelBaseGain: 0.22,
+  accelGainMultiplier: 0.16,
+  coastBaseGain: 0.18,
   coastGainMultiplier: 0.10,
 });
 

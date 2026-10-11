@@ -3,20 +3,93 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <title>AirSkid - Sky Track Smash Racer</title>
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/x-icon" href="./favicon.ico?v=3" />
+  <link rel="shortcut icon" type="image/x-icon" href="./favicon.ico?v=3" />
+  <link rel="apple-touch-icon" href="./favicon.png?v=3" />
+
+  <!-- Primary SEO Metadata for Google Indexing -->
+  <title>AIRSKIDO — Free 3D Arcade Kart Racing & Sumo Arena Game Online</title>
+  <meta name="description" content="Play AIRSKIDO, the ultimate free-to-play 3D arcade kart racer! Drift around floating sky tracks, burn nitro boosts, battle in the Sky Rumble sumo arena, and climb the Global Top 100 Leaderboards." />
+  <meta name="keywords" content="airskido, car racing game, 3d kart game, browser racing game, free online games, sky rumble, drift games, multiplayer racing, battle arena, arcade racer" />
+  <meta name="author" content="AIRSKIDO" />
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+
+  <link rel="canonical" href="https://airskido.io/" />
+  <meta property="og:url" content="https://airskido.io/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="AIRSKIDO — 3D Sky Track Kart Racing & Knockout Arena" />
+  <meta property="og:description" content="Play free in your browser with zero downloads! Burn nitro, unlock legendary skins, and race against global drivers." />
+  <meta property="og:image" content="/src/logo/airskido_logo.webp" />
+
+  <!-- Twitter Card Tags -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="AIRSKIDO — 3D Arcade Racing Game" />
+  <meta name="twitter:description" content="Race on floating sky tracks with nitro boosts and battle rivals in real-time." />
+  <meta name="twitter:image" content="/src/logo/airskido_logo.webp" />
+
+  <!-- Schema.org JSON-LD Structured Data for Google Rich Snippets -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "VideoGame",
+    "name": "AIRSKIDO",
+    "url": "https://airskido.io",
+    "description": "Fast-paced 3D arcade browser kart racing game featuring nitro boosts, drifts, and Sky Rumble knockout brawls.",
+    "genre": ["Racing", "Arcade", "Action"],
+    "playMode": "MultiPlayer",
+    "applicationCategory": "Game",
+    "operatingSystem": "Any",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    }
+  }
+  </script>
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Fredoka:wght@600;700;800&family=Space+Grotesk:wght@600;700&family=Teko:wght@700&family=Rajdhani:wght@700;800;900&display=swap" rel="stylesheet">
-  <!-- AIRSKID MODULAR DESIGN SYSTEM (Professional Component Architecture) -->
+  <!-- AIRSKIDO MODULAR DESIGN SYSTEM (Professional Component Architecture) -->
   <link rel="stylesheet" href="/src/styles/main.css">
 </head>
 <body>
-  <!-- High-End Pro Racing Loading Screen with Spinning Alloy Wheel & RPM Tachometer -->
+  <!-- High-End Full-Screen Pro Racing Splash Loading Screen -->
   <div id="loading-screen">
+    <!-- 1. Full-Screen Daytime Sky & Cloud Horizon Backdrop -->
+    <div class="loader-sky-backdrop" aria-hidden="true">
+      <div class="loader-sun-glow"></div>
+      
+      <!-- Layered Puffy Cartoon Floating Clouds -->
+      <div class="loader-cloud cloud-1"></div>
+      <div class="loader-cloud cloud-2"></div>
+      <div class="loader-cloud cloud-3"></div>
+      <div class="loader-cloud cloud-4"></div>
+
+      <!-- Cyber Speedlines -->
+      <div class="loader-speed-line blue-line lsl-1"></div>
+      <div class="loader-speed-line yellow-line lsl-2"></div>
+      <div class="loader-speed-line blue-line lsl-3"></div>
+      <div class="loader-speed-line yellow-line lsl-4"></div>
+      <div class="loader-speed-line blue-line lsl-5"></div>
+      <div class="loader-speed-line yellow-line lsl-6"></div>
+      <div class="loader-speed-line blue-line lsl-7"></div>
+      <div class="loader-speed-line yellow-line lsl-8"></div>
+
+      <!-- Grand Prix Checkered Track Horizon Strip -->
+      <div class="loader-curb-horizon"></div>
+    </div>
+
+    <!-- 2. Single Unified Pro Arcade Loader Card (Exact PC Layout) -->
     <div class="loader-card">
-      <!-- AIRSKID Clean Transparent Logo -->
+      <!-- AIRSKIDO Clean Transparent Logo -->
       <div class="loader-logo-wrap">
-        <img src="/src/logo/airskid_logo.webp" alt="AIRSKID" class="loader-brand-img" />
+        <img src="/src/logo/airskido_logo.webp" alt="AIRSKIDO" class="loader-brand-img" onerror="this.onerror=null;this.src='./logo/airskido_logo.webp';" />
       </div>
 
       <!-- Rotating Racing Alloy Wheel Assembly with Burnout Smoke & Caliper -->
@@ -73,7 +146,7 @@
             <path d="M 52,70 C 52,60 62,54 75,54 L 115,54 C 122,54 128,58 130,64 L 122,86 C 118,88 72,88 64,84 Z" 
                   fill="url(#loadCaliperRed)" stroke="#7F1D1D" stroke-width="2.5"/>
             <text x="92" y="74" font-family="'Rajdhani', sans-serif" font-size="10" font-weight="900" fill="#FFF" letter-spacing="1" text-anchor="middle">
-              AIRSKID
+              AIRSKIDO
             </text>
           </g>
 
@@ -127,7 +200,7 @@
         <div class="loader-bar-fill" id="loader-bar-fill" style="width: 60%;"></div>
       </div>
 
-      <div class="loader-status" id="loader-status">INITIALIZING RAPID PHYSICS ENGINE (WASM)...</div>
+      <div class="loader-status" id="loader-status">POLISHING THE DRIFT WHEELS...</div>
       <div class="loader-tap-hint" id="loader-tap-hint" style="display: none;">ENTER PITLANE // TAP TO PLAY</div>
     </div>
   </div>
@@ -137,32 +210,28 @@
   <!-- Tactical Nitro Radial Speedlines Overlay -->
   <canvas id="speedlines-canvas" style="position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 6;"></canvas>
 
-  <!-- Real-Time Production Performance / FPS Tracker (Diagnostic Tool) -->
-  <div id="perf-fps-tracker" style="position: fixed; top: 6px; left: 50%; transform: translateX(-50%); z-index: 999999; pointer-events: none; display: flex; align-items: center; gap: 8px; background: rgba(10, 15, 26, 0.88); border: 2px solid #000; box-shadow: 2.5px 2.5px 0px #000; border-radius: 12px; padding: 3px 12px; font-family: 'Rajdhani', sans-serif; font-weight: 900; letter-spacing: 0.5px;">
-    <span id="perf-fps-dot" style="font-size: 10px; color: #10B981; line-height: 1;">●</span>
-    <span style="display: flex; align-items: baseline; gap: 3px;">
-      <span id="perf-fps-val" style="font-size: 16px; color: #10B981; font-family: 'Rajdhani', monospace; font-weight: 900;">60</span>
-      <span style="font-size: 10px; color: #94A3B8; font-weight: 800;">FPS</span>
-    </span>
-    <span style="color: #475569; font-size: 11px;">|</span>
-    <span id="perf-fps-ms" style="font-size: 13px; color: #E2E8F0; font-family: 'Rajdhani', monospace;">16.6ms</span>
-  </div>
-
   <!-- In-Game Neo-Brutalist HUD -->
   <div id="hud-container">
     <!-- Top Status & Settings Bar (In-Game Only) -->
     <div id="top-bar">
+      <!-- In-Game Sleek Performance Telemetry (Ping & FPS to the LEFT of Settings) -->
+      <div class="hud-telemetry-cluster" id="hud-telemetry-cluster">
+        <div id="mp-ping-badge" class="mp-ping-pill" style="display: none;">
+          <span class="ping-dot">●</span>
+          <span class="ping-val">-- MS</span>
+        </div>
+        <div id="perf-fps-tracker" class="mp-fps-pill" style="display: none;">
+          <span id="perf-fps-val" class="fps-val">60</span>
+          <span class="fps-unit">FPS</span>
+        </div>
+      </div>
       <button type="button" id="btn-in-game-settings" title="Pause & Settings">
         <svg viewBox="0 0 24 24" width="16" height="16" fill="#000" style="vertical-align: middle;">
           <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
         </svg>
         <span>SETTINGS</span>
       </button>
-      <div id="room-badge">ROOM: ----</div>
-      <div id="mp-ping-badge" class="mp-ping-pill" style="display: none;">
-        <span class="ping-dot">●</span>
-        <span class="ping-val">-- MS</span>
-      </div>
+      <div id="room-badge" style="display: none !important;"></div>
     </div>
 
     <!-- Top-Left Status -->
@@ -172,7 +241,7 @@
         <div class="lap-title">LAP</div>
         <div class="lap-num" id="hud-lap">1/3</div>
       </div>
-      <div class="lap-box">
+      <div class="lap-box" id="hud-time-box" style="display: none;">
         <div class="lap-title">TIME</div>
         <div class="lap-num" id="hud-time">00:00.0</div>
       </div>
@@ -225,9 +294,8 @@
       </div>
       <div class="nitro-card">
         <div class="nitro-card-header">
-          <span class="nitro-card-title">⚡ NITRO</span>
+          <span class="nitro-card-title">NITRO</span>
           <span class="nitro-card-count" id="hud-nitro-count">3/3</span>
-          <span class="nitro-card-hint">[SPACE]</span>
         </div>
         <div class="nitro-pips-container" id="hud-nitro-pips">
           <div class="nitro-pip active" id="nitro-pip-1"></div>
@@ -258,8 +326,13 @@
 
   <!-- Finish Countdown Banner (Top Center) -->
   <div id="finish-countdown-banner">
-    <span class="finish-countdown-dot">●</span>
-    <span>RACE ENDING IN: <strong id="finish-countdown-sec">20</strong>s</span>
+    <div class="finish-countdown-icon">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+        <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.5-13H11v6l5.2 3.1.8-1.3-4.5-2.7V7z"/>
+      </svg>
+    </div>
+    <span class="finish-countdown-label">RACE ENDING IN:</span>
+    <span class="finish-countdown-digits"><strong id="finish-countdown-sec">15</strong>s</span>
   </div>
 
   <!-- Spectator Mode Overlay -->
@@ -282,7 +355,6 @@
     <div class="touch-steer-container" id="touch-steer-container">
       <div class="touch-steer-top-row">
         <button type="button" class="touch-ctrl-btn btn-nitro" id="touch-btn-nitro">
-          <span class="ctrl-icon-sm">⚡</span>
           <span class="ctrl-label" id="touch-nitro-label">NITRO (3)</span>
         </button>
       </div>
@@ -355,8 +427,8 @@
           </div>
           <span class="pilot-card-arrow" aria-hidden="true">›</span>
         </button>
-        <button type="button" class="lobby-vip-badge" id="lobby-vip-badge" title="VIP Status & 1.5x Boosters">
-          <svg viewBox="0 0 24 24" width="15" height="15" style="fill: #000;"><path d="M2 19h20v2H2v-2zm1-5l4-3 5 6 5-6 4 3-2-9-5 3-4-5-4 5-5-3-2 9z"/></svg>
+        <button type="button" class="lobby-vip-badge" id="lobby-vip-badge" title="VIP Status & 1.5x Boosters" style="display: none;">
+          <svg viewBox="0 0 24 24" width="15" height="15" style="fill: #000; vertical-align: middle;"><path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5zm14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z"/></svg>
           <span class="vip-text">VIP PASS</span>
         </button>
       </div>
@@ -371,7 +443,6 @@
           <span>LOBBY</span>
         </button>
         <div class="showroom-title-cluster">
-          <div class="showroom-badge-tag">TUNING & SHOWROOM</div>
           <h1 class="showroom-title-main">GARAGE SHOWROOM</h1>
         </div>
       </div>
@@ -400,20 +471,17 @@
           <svg viewBox="0 0 24 24" width="20" height="20" class="racer-btn-icon-svg"><path d="M4 8h16v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V8z" fill="#FF385C" stroke="#000" stroke-width="2"/><rect x="2" y="4" width="20" height="4" rx="1" fill="#FFDE59" stroke="#000" stroke-width="2"/><line x1="12" y1="4" x2="12" y2="22" stroke="#000" stroke-width="2"/></svg>
           <span class="gift-badge-dot pulse-anim" id="daily-gift-badge">FREE</span>
         </button>
-        <button type="button" class="lobby-icon-btn" id="btn-open-settings" title="Settings">
+        <button type="button" class="lobby-icon-btn" id="btn-open-settings" title="Settings & Controls">
           <svg viewBox="0 0 24 24" width="20" height="20" class="racer-btn-icon-svg" fill="#000">
             <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
           </svg>
         </button>
-        <button type="button" class="lobby-icon-btn" id="btn-open-guide" title="Controls & How to Play">
-          <svg viewBox="0 0 24 24" width="20" height="20" class="racer-btn-icon-svg"><rect x="2" y="6" width="20" height="12" rx="6" fill="#FFF" stroke="#000" stroke-width="2"/><line x1="7" y1="12" x2="11" y2="12" stroke="#000" stroke-width="2" stroke-linecap="round"/><line x1="9" y1="10" x2="9" y2="14" stroke="#000" stroke-width="2" stroke-linecap="round"/><circle cx="16" cy="10.5" r="1.5" fill="#FF385C"/><circle cx="18" cy="13.5" r="1.5" fill="#00D2FF"/></svg>
-        </button>
       </div>
     </div>
 
-    <!-- Center Stage Top: AUTHENTIC AIRSKID Game Logo -->
+    <!-- Center Stage Top: AUTHENTIC AIRSKIDO Game Logo -->
     <div class="lobby-center-branding">
-      <img src="/src/logo/airskid_logo.webp" alt="AIRSKID" class="airskid-brand-img" />
+      <img src="/src/logo/airskido_logo.webp" alt="AIRSKIDO" class="airskido-brand-img airskid-brand-img" onerror="this.onerror=null;this.src='./logo/airskido_logo.webp';" />
     </div>
 
     <!-- Floating Arcade Carousel Switch Arrows (Hidden for Single Master Machine) -->
@@ -438,7 +506,7 @@
             <span class="shop-banner-title">GARAGE SHOP</span>
             <span class="shop-banner-pill pulse-anim">3D SKINS</span>
           </div>
-          <span class="shop-banner-subtitle">LIVERIES • TUNING • VIP</span>
+          <span class="shop-banner-subtitle">LIVERIES • TUNING • ACCESSORIES</span>
         </div>
         <div class="shop-banner-arrow-box">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#000" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
@@ -550,12 +618,12 @@
         </button>
       </div>
 
-      <!-- Pro Racer Lobby Footer Links & Studio Tags -->
+      <!-- Lobby Footer Links (About Us, Terms of Service, Privacy Policy) -->
       <div class="lobby-footer-bar">
         <div class="footer-links-group">
-          <a href="privacy.html" target="_blank" rel="noopener noreferrer" class="footer-link-btn" id="btn-footer-privacy" title="Open Privacy Policy">
-            <svg viewBox="0 0 24 24" width="13" height="13" style="stroke: currentColor; fill: none; stroke-width: 2; vertical-align: middle;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-            <span>Privacy Policy</span>
+          <a href="about.html" target="_blank" rel="noopener noreferrer" class="footer-link-btn" id="btn-footer-about" title="About the Developer & How I Built AIRSKIDO">
+            <svg viewBox="0 0 24 24" width="13" height="13" style="stroke: currentColor; fill: none; stroke-width: 2.2; vertical-align: middle;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            <span>About Us</span>
           </a>
           <span class="footer-dot">•</span>
           <a href="terms.html" target="_blank" rel="noopener noreferrer" class="footer-link-btn" id="btn-footer-terms" title="Open Terms of Service">
@@ -563,15 +631,10 @@
             <span>Terms of Service</span>
           </a>
           <span class="footer-dot">•</span>
-          <a href="about.html" target="_blank" rel="noopener noreferrer" class="footer-link-btn" id="btn-footer-about" title="About the Developer & How I Built AirSkid">
-            <svg viewBox="0 0 24 24" width="13" height="13" style="stroke: currentColor; fill: none; stroke-width: 2.2; vertical-align: middle;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-            <span>About Us</span>
+          <a href="privacy.html" target="_blank" rel="noopener noreferrer" class="footer-link-btn" id="btn-footer-privacy" title="Open Privacy Policy">
+            <svg viewBox="0 0 24 24" width="13" height="13" style="stroke: currentColor; fill: none; stroke-width: 2; vertical-align: middle;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            <span>Privacy Policy</span>
           </a>
-        </div>
-        <div class="footer-badge-group">
-          <span class="version-tag">v1.2 // PRO EDITION</span>
-          <span class="footer-dot">•</span>
-          <span class="studio-tag">AIRSKID.IO</span>
         </div>
       </div>
     </div>
@@ -592,7 +655,7 @@
 
         <div class="mode-header-title-wrap">
           <div class="mode-header-badge">
-            <span>AIRSKID GRAND PRIX</span>
+            <span>AIRSKIDO GRAND PRIX</span>
           </div>
           <h2 class="mode-header-title">CHOOSE GAME MODE</h2>
         </div>
@@ -614,7 +677,7 @@
         <div class="mode-card card-grand-prix">
           <span class="mode-card-badge badge-yellow">CIRCUIT CUP</span>
           <div class="mode-visual-bubble bubble-yellow">
-            <svg viewBox="0 0 48 48" width="58" height="58" fill="none" stroke="#000" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <svg viewBox="0 0 48 48" width="78" height="78" fill="none" stroke="#000" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M26 6 L42 10 L36 18 L24 14 Z" fill="#FFF" stroke="#000" stroke-width="2"/>
               <rect x="30" y="8" width="4" height="4" fill="#000"/>
               <rect x="34" y="12" width="4" height="4" fill="#000"/>
@@ -630,7 +693,7 @@
           </div>
           <h3 class="mode-card-title">CLASSIC GP</h3>
           <span class="mode-card-meta meta-yellow">CIRCUIT RACING</span>
-          <p class="mode-card-desc">Classic 3-lap arcade cup! Drift for turbo boosts, draft behind rivals, and grab mystery weapon boxes.</p>
+          <p class="mode-card-desc">3-Lap arcade race with drifts, turbo boosts & weapon boxes!</p>
           <button type="button" class="mode-action-btn btn-action-yellow" id="start-race-btn" title="Launch Classic GP">
             <span>RACE NOW</span>
             <svg viewBox="0 0 24 24" width="16" height="16" fill="#000"><polygon points="5 3 19 12 5 21 5 3"/></svg>
@@ -641,7 +704,7 @@
         <div class="mode-card card-rumble">
           <span class="mode-card-badge badge-cyan">SUMO ARENA</span>
           <div class="mode-visual-bubble bubble-cyan">
-            <svg viewBox="0 0 48 48" width="58" height="58" fill="none" stroke="#000" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <svg viewBox="0 0 48 48" width="78" height="78" fill="none" stroke="#000" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
               <ellipse cx="24" cy="38" rx="20" ry="7" fill="#E0F7FA" stroke="#000" stroke-width="2.5"/>
               <path d="M8 26 L20 28 L16 34 L6 32 Z" fill="#00D2FF" stroke="#000" stroke-width="2.2"/>
               <path d="M40 26 L28 28 L32 34 L42 32 Z" fill="#FF385C" stroke="#000" stroke-width="2.2"/>
@@ -652,7 +715,7 @@
           </div>
           <h3 class="mode-card-title">SKY RUMBLE</h3>
           <span class="mode-card-meta meta-cyan">KNOCKOUT BRAWL</span>
-          <p class="mode-card-desc">Floating sky arena battle! Smash rivals off the platform with heavy bumpers and claim the crown.</p>
+          <p class="mode-card-desc">Knock rivals off the sky arena to claim the crown!</p>
           <button type="button" class="mode-action-btn btn-action-cyan" id="btn-open-rumble" title="Open Sky Rumble Setup">
             <span>ENTER BRAWL</span>
             <svg viewBox="0 0 24 24" width="16" height="16" fill="#000"><polygon points="5 3 19 12 5 21 5 3"/></svg>
@@ -661,9 +724,9 @@
 
         <!-- Card 3: Hardcore Sky -->
         <div class="mode-card card-hardcore">
-          <span class="mode-card-badge badge-red">EXPERT 150CC</span>
+          <span class="mode-card-badge badge-red">MAX DANGER</span>
           <div class="mode-visual-bubble bubble-red">
-            <svg viewBox="0 0 48 48" width="58" height="58" fill="none" stroke="#000" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <svg viewBox="0 0 48 48" width="78" height="78" fill="none" stroke="#000" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M6 34 Q2 26 8 20 Q12 28 8 36" fill="#FFDE59" stroke="#FF385C" stroke-width="2"/>
               <path d="M42 34 Q46 26 40 20 Q36 28 40 36" fill="#FFDE59" stroke="#FF385C" stroke-width="2"/>
               <ellipse cx="24" cy="22" rx="14" ry="13" fill="#FFF" stroke="#000" stroke-width="2.8"/>
@@ -678,7 +741,7 @@
           </div>
           <h3 class="mode-card-title">HARDCORE SKY</h3>
           <span class="mode-card-meta meta-red">EXTREME GAUNTLET</span>
-          <p class="mode-card-desc">Master pilots only! Supercharged speeds, razor chicanes, dense bomb hazards, and zero guardrails.</p>
+          <p class="mode-card-desc">Brutal challenge! More hazards, zero guardrails & extreme danger!</p>
           <button type="button" class="mode-action-btn btn-action-red" id="start-hardcore-btn" title="Launch Hardcore Gauntlet">
             <span>CHALLENGE</span>
             <svg viewBox="0 0 24 24" width="16" height="16" fill="#FFF"><polygon points="5 3 19 12 5 21 5 3"/></svg>
@@ -689,7 +752,7 @@
         <div class="mode-card card-time-attack" id="card-mode-time-attack">
           <span class="mode-card-badge badge-purple">RECORD HUNT</span>
           <div class="mode-visual-bubble bubble-purple">
-            <svg viewBox="0 0 48 48" width="58" height="58" fill="none" stroke="#000" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <svg viewBox="0 0 48 48" width="78" height="78" fill="none" stroke="#000" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
               <circle cx="24" cy="24" r="18" fill="#F3E8FF" stroke="#000" stroke-width="2.5"/>
               <polyline points="24 14 24 24 31 27" stroke="#7E22CE" stroke-width="3"/>
               <path d="M24 3v3M10 9l2 2M38 9l-2 2" stroke="#000" stroke-width="2.5"/>
@@ -697,7 +760,7 @@
           </div>
           <h3 class="mode-card-title">TIME SPRINT</h3>
           <span class="mode-card-meta meta-purple">NON-CONTACT SPRINT</span>
-          <p class="mode-card-desc">Pure driving precision with ZERO collisions or pushing! 1 clean lap to hunt down your personal best.</p>
+          <p class="mode-card-desc">Pure precision time-trial with zero collisions!</p>
 
           <!-- Roster Choice Toggle (Solo vs With Players) -->
           <div class="time-roster-group" style="display: flex; gap: 6px; width: 100%; margin-top: auto; margin-bottom: 8px;">
@@ -837,7 +900,7 @@
                 </svg>
               </div>
               <h4 class="mp-card-name">HARDCORE SKY</h4>
-              <span class="mp-card-meta">EXTREME 150CC</span>
+              <span class="mp-card-meta">MAX CHALLENGE</span>
               <p class="mp-card-blurb">Zero guardrails, lethal sky falls, 3x dense bomb hazards & razor chicanes.</p>
               <div class="mp-card-active-check">SELECTED ✔</div>
             </div>
@@ -867,11 +930,11 @@
             <div class="mp-setting-row" id="mp-track-row" style="display: none;">
               <div class="mp-setting-info">
                 <span class="mp-setting-title">CIRCUIT TRACK:</span>
-                <span class="mp-setting-hint">Choose classic sky circuit or hardcore 150cc gauntlet</span>
+                <span class="mp-setting-hint">Choose classic sky circuit or extreme hardcore gauntlet</span>
               </div>
               <div class="lap-select-group" id="mp-track-select-group">
-                <button type="button" class="lap-choice-btn active" data-track="classic">CLASSIC</button>
-                <button type="button" class="lap-choice-btn" data-track="hardcore">HARDCORE</button>
+                <button type="button" class="track-choice-btn active" data-track="classic">CLASSIC</button>
+                <button type="button" class="track-choice-btn" data-track="hardcore">HARDCORE</button>
               </div>
             </div>
             
@@ -947,10 +1010,10 @@
               </svg>
             </div>
             <h4 class="mp-join-heading">GOT AN INVITE?</h4>
-            <p class="mp-join-prompt">Type or paste the 4-digit room code below to instantly join your friend's room.</p>
+            <p class="mp-join-prompt">Type or paste the 6-digit room code below to instantly join your friend's room.</p>
             
             <div class="mp-input-wrap">
-              <input type="text" class="mp-code-input" id="join-room-input" placeholder="AERO-XXXX" maxlength="12" spellcheck="false" autocomplete="off" />
+              <input type="text" class="mp-code-input" id="join-room-input" placeholder="6-DIGIT ROOM CODE" maxlength="6" inputmode="numeric" pattern="[0-9]*" spellcheck="false" autocomplete="off" />
             </div>
 
             <button type="button" class="mp-hero-join-btn" id="btn-join-room">
@@ -960,7 +1023,7 @@
 
             <div class="mp-join-footer-tip">
               <span class="tip-star">✦</span>
-              <span>Direct Link Support: Opening any link formatted like <code>?room=AERO-XXXX</code> connects automatically!</span>
+              <span>Direct Link Support: Opening any link formatted like <code>?room=482910</code> connects automatically!</span>
             </div>
           </div>
         </div>
@@ -1104,14 +1167,14 @@
         </div>
         <div class="rumble-format-grid">
           <button type="button" class="rumble-format-btn active" data-format="tdm">
-            <span class="rumble-btn-icon">👥</span>
+            <span class="rumble-btn-icon"><svg viewBox="0 0 24 24" width="22" height="22" style="fill: #000; vertical-align: middle;"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg></span>
             <div class="rumble-btn-details">
               <span class="rumble-btn-main">TEAM DEATHMATCH</span>
               <span class="rumble-btn-sub">2 TEAMS CLASH</span>
             </div>
           </button>
           <button type="button" class="rumble-format-btn" data-format="ffa">
-            <span class="rumble-btn-icon">👑</span>
+            <span class="rumble-btn-icon"><svg viewBox="0 0 24 24" width="22" height="22" style="fill: #000; vertical-align: middle;"><path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5zm14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z"/></svg></span>
             <div class="rumble-btn-details">
               <span class="rumble-btn-main">SOLO FREE FOR ALL</span>
               <span class="rumble-btn-sub">EVERY RACER FOR THEMSELVES</span>
@@ -1175,6 +1238,8 @@
     </div>
   </div>
 
+
+
   <!-- Finish Leaderboard Modal -->
   <div class="modal-overlay" id="finish-modal" style="display: none;">
     <div class="menu-card" style="max-width: 520px; width: 92%;">
@@ -1185,14 +1250,22 @@
 
       <!-- Level Up Pop-up Celebration Badge -->
       <div id="finish-levelup-banner" class="finish-levelup-banner" style="display: none;">
-        <div class="levelup-star-icon">⭐</div>
+        <div class="levelup-star-badge">
+          <svg viewBox="0 0 24 24" width="26" height="26" fill="#FFE600" stroke="#000" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+          </svg>
+        </div>
         <div class="levelup-text-block">
           <div class="levelup-headline">LEVEL UP! LEVEL <span id="finish-new-level-num">2</span> REACHED!</div>
-          <div class="levelup-subline" id="finish-levelup-reward-text">🎁 +100 BONUS COINS UNLOCKED!</div>
+          <div class="levelup-subline" id="finish-levelup-reward-text">+100 BONUS COINS UNLOCKED!</div>
+        </div>
+        <div class="levelup-reward-chip" id="finish-levelup-chip">
+          <span>+100</span>
+          <span>🪙</span>
         </div>
       </div>
 
-      <!-- Trackmania Style Record Banner -->
+      <!-- Personal Best Track Record Banner -->
       <div id="finish-record-banner" class="finish-record-banner" style="display: none;">
         <span class="record-trophy-icon" id="finish-record-icon">🏆</span>
         <div class="record-details">
@@ -1200,6 +1273,61 @@
           <span class="record-stat" id="finish-record-stat">01:14.28</span>
         </div>
         <span class="record-delta-pill" id="finish-record-delta">-1.24s</span>
+      </div>
+
+      <!-- 2-Team Rumble Versus Scorecard (Frost vs Blaze) -->
+      <div id="rumble-tdm-results" class="rumble-tdm-results" style="display: none;">
+        <!-- Team Frost (Cyan / Blue) Squad Card -->
+        <div class="rumble-squad-card squad-frost">
+          <div class="rumble-squad-header">
+            <div class="rumble-squad-brand">
+              <div class="rumble-squad-titles">
+                <span class="rumble-squad-name">FROST</span>
+                <span class="rumble-squad-tag">BLUE SQUAD</span>
+              </div>
+            </div>
+            <div class="rumble-squad-score-col">
+              <span class="rumble-squad-outcome-pill" id="frost-outcome-pill">VICTORY</span>
+              <span class="rumble-squad-pts" id="frost-squad-pts">0</span>
+            </div>
+          </div>
+          <div class="rumble-squad-col-bar">
+            <span class="col-head-pilot">PILOT</span>
+            <div class="col-head-stats">
+              <span class="col-head-k">KILLS</span>
+              <span class="col-head-d">DEATHS</span>
+            </div>
+          </div>
+          <div class="rumble-squad-roster" id="frost-squad-roster">
+            <!-- Dynamically populated roster rows -->
+          </div>
+        </div>
+
+        <!-- Team Blaze (Crimson / Red) Squad Card -->
+        <div class="rumble-squad-card squad-blaze">
+          <div class="rumble-squad-header">
+            <div class="rumble-squad-brand">
+              <div class="rumble-squad-titles">
+                <span class="rumble-squad-name">BLAZE</span>
+                <span class="rumble-squad-tag">RED SQUAD</span>
+              </div>
+            </div>
+            <div class="rumble-squad-score-col">
+              <span class="rumble-squad-outcome-pill" id="blaze-outcome-pill">DEFEAT</span>
+              <span class="rumble-squad-pts" id="blaze-squad-pts">0</span>
+            </div>
+          </div>
+          <div class="rumble-squad-col-bar">
+            <span class="col-head-pilot">PILOT</span>
+            <div class="col-head-stats">
+              <span class="col-head-k">KILLS</span>
+              <span class="col-head-d">DEATHS</span>
+            </div>
+          </div>
+          <div class="rumble-squad-roster" id="blaze-squad-roster">
+            <!-- Dynamically populated roster rows -->
+          </div>
+        </div>
       </div>
 
       <table class="results-table" id="results-table">
@@ -1225,7 +1353,7 @@
 
         <!-- VIP 1.5x Multiplier Callout Banner -->
         <div id="finish-vip-badge" class="finish-vip-badge" style="display: none;">
-          <span class="finish-vip-crown-icon">👑</span>
+          <span class="finish-vip-crown-icon"><svg viewBox="0 0 24 24" width="18" height="18" style="fill: #000; vertical-align: middle;"><path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5zm14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z"/></svg></span>
           <span id="finish-vip-text">VIP 1.5x ACTIVE // +50% COINS & XP EARNED!</span>
         </div>
 
@@ -1252,7 +1380,7 @@
         </div>
       </div>
 
-      <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 6px;">
+      <div class="finish-actions-row" style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 6px;">
         <button class="brut-btn btn-yellow" id="restart-btn" style="font-size: 19px; padding: 10px 26px;">PLAY AGAIN</button>
         <button class="brut-btn btn-white" id="change-kart-btn" style="font-size: 18px; padding: 10px 26px; font-weight: 900;">LOBBY</button>
       </div>
@@ -1263,7 +1391,7 @@
   <div class="modal-overlay" id="vip-unlocked-modal" style="display: none;">
     <div class="menu-card vip-celebrate-card">
       <div class="vip-crown-badge-wrap">
-        <span class="vip-crown-3d">👑</span>
+        <span class="vip-crown-3d"><svg viewBox="0 0 24 24" width="46" height="46" style="fill: #000; display: block;"><path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5zm14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z"/></svg></span>
       </div>
 
       <div class="game-logo-badge vip-title-badge">
@@ -1290,7 +1418,7 @@
         </div>
 
         <div class="vip-perk-card">
-          <div class="vip-perk-icon">👑</div>
+          <div class="vip-perk-icon"><svg viewBox="0 0 24 24" width="22" height="22" style="fill: #000; display: block; margin: auto;"><path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5zm14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z"/></svg></div>
           <div class="vip-perk-info">
             <span class="vip-perk-title">GOLD VIP NAMETAG</span>
             <span class="vip-perk-desc">Luxury 3D Gold Crown in-game & lobbies!</span>
@@ -1314,14 +1442,15 @@
 
 
   <!-- Cute Neo-Brutalist Game Settings Modal -->
+  <!-- Cute Neo-Brutalist Game Settings & Controls Modal (Clickable Tab Hub) -->
   <div id="settings-modal" style="display: none;" class="modal-overlay">
-    <div class="policy-card" style="max-width: 440px; width: 92%; padding: 20px;">
-      <div class="mp-modal-top" style="margin-bottom: 16px;">
+    <div class="policy-card settings-modal-card">
+      <div class="mp-modal-top">
         <div class="mp-modal-badge" style="background: #FFE600; color: #000;">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="#000" style="vertical-align: middle;">
             <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
           </svg>
-          <span>SETTINGS</span>
+          <span id="settings-header-title">SETTINGS</span>
         </div>
         <button type="button" class="mp-close-btn" id="btn-close-settings" title="Close Settings">
           <svg viewBox="0 0 24 24" width="14" height="14" stroke="#000" stroke-width="3" stroke-linecap="round" fill="none">
@@ -1331,75 +1460,113 @@
         </button>
       </div>
 
-      <div class="settings-content-body" style="display: flex; flex-direction: column; gap: 14px;">
-        <!-- 1. Volume Slider -->
-        <div class="settings-row-card" style="background: #F8FAFC; border: 2px solid #000; box-shadow: 2.5px 2.5px 0px #000; border-radius: 14px; padding: 12px 14px;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-            <span style="font-family: var(--font-display); font-size: 13px; font-weight: 900; color: #0F172A; letter-spacing: 0.5px;">VOLUME</span>
-            <span id="settings-volume-badge" style="background: #FFE600; border: 1.5px solid #000; border-radius: 8px; padding: 2px 8px; font-family: var(--font-telemetry); font-size: 12px; font-weight: 900; color: #000;">80%</span>
+      <!-- Tab Switcher Header (Clickable TABS) -->
+      <div class="settings-tab-switcher">
+        <button type="button" class="settings-tab-pill active" id="tab-btn-settings" data-tab="settings">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
+            <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
+          </svg>
+          <span>GAME SETTINGS</span>
+        </button>
+        <button type="button" class="settings-tab-pill" id="tab-btn-controls" data-tab="controls">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="2" y="6" width="20" height="12" rx="6"/><line x1="7" y1="12" x2="11" y2="12"/><line x1="9" y1="10" x2="9" y2="14"/><circle cx="16" cy="11" r="1.5" fill="currentColor"/><circle cx="18" cy="13.5" r="1.5" fill="currentColor"/>
+          </svg>
+          <span>CONTROLS</span>
+        </button>
+      </div>
+
+      <!-- VIEW 1: GAME SETTINGS PANE -->
+      <div id="settings-pane-general" class="settings-tab-pane">
+        <!-- Volume Slider -->
+        <div class="settings-row-card">
+          <div class="settings-row-title-row">
+            <span class="settings-row-label">VOLUME</span>
+            <span id="settings-volume-badge">80%</span>
           </div>
-          <div style="display: flex; align-items: center; gap: 10px;">
-            <button type="button" id="settings-mute-btn" style="background: #FFF; border: 2px solid #000; border-radius: 10px; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; box-shadow: 1.5px 1.5px 0px #000;">
-              <span id="settings-mute-icon" style="display: flex; align-items: center; justify-content: center;">
+          <div class="settings-slider-wrap">
+            <button type="button" id="settings-mute-btn" title="Toggle Mute">
+              <span id="settings-mute-icon">
                 <svg viewBox="0 0 24 24" width="16" height="16" fill="#000"><polygon points="4,9 8,9 14,4 14,20 8,15 4,15"/><path d="M17 8c1.5 2 1.5 6 0 8" stroke="#000" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
               </span>
             </button>
-            <input type="range" id="settings-volume-slider" min="0" max="100" value="80" style="flex: 1; accent-color: #FFE600; height: 8px; border-radius: 6px; cursor: pointer;" />
+            <input type="range" id="settings-volume-slider" min="0" max="100" value="80" />
           </div>
         </div>
 
-        <!-- 2. Graphics Preset -->
-        <div class="settings-row-card" style="background: #F8FAFC; border: 2px solid #000; box-shadow: 2.5px 2.5px 0px #000; border-radius: 14px; padding: 12px 14px;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-            <span style="font-family: var(--font-display); font-size: 13px; font-weight: 900; color: #0F172A; letter-spacing: 0.5px;">GRAPHICS</span>
+        <!-- Graphics Preset -->
+        <div class="settings-row-card">
+          <div class="settings-row-title-row">
+            <span class="settings-row-label">GRAPHICS</span>
           </div>
-          <div class="settings-pill-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-            <button type="button" class="settings-choice-btn active" id="btn-gfx-high" data-gfx="high" style="padding: 9px; font-family: var(--font-display); font-size: 13px; font-weight: 900; border: 2px solid #000; border-radius: 10px; cursor: pointer; background: #FFE600; color: #000; box-shadow: 2px 2px 0px #000;">
-              HIGH
-            </button>
-            <button type="button" class="settings-choice-btn" id="btn-gfx-low" data-gfx="low" style="padding: 9px; font-family: var(--font-display); font-size: 13px; font-weight: 900; border: 2px solid #000; border-radius: 10px; cursor: pointer; background: #FFF; color: #64748B; box-shadow: none;">
-              LOW
-            </button>
+          <div class="settings-pill-group">
+            <button type="button" class="settings-choice-btn active" id="btn-gfx-high" data-gfx="high">HIGH</button>
+            <button type="button" class="settings-choice-btn" id="btn-gfx-low" data-gfx="low">LOW</button>
           </div>
         </div>
 
-        <!-- 3. Shadows Toggle -->
-        <div class="settings-row-card" style="background: #F8FAFC; border: 2px solid #000; box-shadow: 2.5px 2.5px 0px #000; border-radius: 14px; padding: 12px 14px;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-            <span style="font-family: var(--font-display); font-size: 13px; font-weight: 900; color: #0F172A; letter-spacing: 0.5px;">SHADOWS</span>
+        <!-- Shadows Toggle -->
+        <div class="settings-row-card">
+          <div class="settings-row-title-row">
+            <span class="settings-row-label">SHADOWS</span>
           </div>
-          <div class="settings-pill-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-            <button type="button" class="settings-choice-btn active" id="btn-shadows-on" data-shadows="on" style="padding: 9px; font-family: var(--font-display); font-size: 13px; font-weight: 900; border: 2px solid #000; border-radius: 10px; cursor: pointer; background: #FFE600; color: #000; box-shadow: 2px 2px 0px #000;">
-              ON
-            </button>
-            <button type="button" class="settings-choice-btn" id="btn-shadows-off" data-shadows="off" style="padding: 9px; font-family: var(--font-display); font-size: 13px; font-weight: 900; border: 2px solid #000; border-radius: 10px; cursor: pointer; background: #FFF; color: #64748B; box-shadow: none;">
-              OFF
-            </button>
+          <div class="settings-pill-group">
+            <button type="button" class="settings-choice-btn active" id="btn-shadows-on" data-shadows="on">ON</button>
+            <button type="button" class="settings-choice-btn" id="btn-shadows-off" data-shadows="off">OFF</button>
           </div>
         </div>
 
-        <!-- 4. FPS Counter -->
-        <div class="settings-row-card" style="background: #F8FAFC; border: 2px solid #000; box-shadow: 2.5px 2.5px 0px #000; border-radius: 14px; padding: 12px 14px;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-            <span style="font-family: var(--font-display); font-size: 13px; font-weight: 900; color: #0F172A; letter-spacing: 0.5px;">FPS COUNTER</span>
+        <!-- FPS Counter Toggle -->
+        <div class="settings-row-card">
+          <div class="settings-row-title-row">
+            <span class="settings-row-label">FPS COUNTER</span>
           </div>
-          <div class="settings-pill-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-            <button type="button" class="settings-choice-btn active" id="btn-fps-on" data-fps="on" style="padding: 9px; font-family: var(--font-display); font-size: 13px; font-weight: 900; border: 2px solid #000; border-radius: 10px; cursor: pointer; background: #FFE600; color: #000; box-shadow: 2px 2px 0px #000;">
-              ON
-            </button>
-            <button type="button" class="settings-choice-btn" id="btn-fps-off" data-fps="off" style="padding: 9px; font-family: var(--font-display); font-size: 13px; font-weight: 900; border: 2px solid #000; border-radius: 10px; cursor: pointer; background: #FFF; color: #64748B; box-shadow: none;">
-              OFF
-            </button>
+          <div class="settings-pill-group">
+            <button type="button" class="settings-choice-btn" id="btn-fps-on" data-fps="on">ON</button>
+            <button type="button" class="settings-choice-btn active" id="btn-fps-off" data-fps="off">OFF</button>
           </div>
+        </div>
+
+        <!-- In-Game Quit Button -->
+        <button type="button" id="btn-quit-race" style="display: none;">
+          QUIT RACE // RETURN TO LOBBY
+        </button>
+      </div>
+
+      <!-- VIEW 2: CONTROLS PANE -->
+      <div id="settings-pane-controls" class="settings-tab-pane" style="display: none;">
+        <div class="settings-ctrl-grid">
+          <div class="ctrl-card">
+            <span class="ctrl-key-badge">W / ↑</span>
+            <span class="ctrl-desc">Drive Forward (Aage)</span>
+          </div>
+          <div class="ctrl-card">
+            <span class="ctrl-key-badge">S / ↓</span>
+            <span class="ctrl-desc">Brake / Reverse (Peeche)</span>
+          </div>
+          <div class="ctrl-card">
+            <span class="ctrl-key-badge">A / ←</span>
+            <span class="ctrl-desc">Steer Left</span>
+          </div>
+          <div class="ctrl-card">
+            <span class="ctrl-key-badge">D / →</span>
+            <span class="ctrl-desc">Steer Right</span>
+          </div>
+          <div class="ctrl-card ctrl-card-nitro" style="grid-column: span 2; background: #FFFDF0; border: 2px solid #000; box-shadow: 2px 2px 0 #000;">
+            <span class="ctrl-key-badge" style="background: #FFE600; font-weight: 900;">SHIFT / SPACE</span>
+            <span class="ctrl-desc" style="font-weight: 900; color: #000;">NITRO BOOST 🚀</span>
+          </div>
+        </div>
+
+        <div class="settings-pro-tips-card">
+          <div class="tips-heading">💡 PRO RACER TIPS</div>
+          <div class="tips-item">• <strong>Nitro Burst:</strong> Press SHIFT or SPACE to burn nitro for blazing top speed!</div>
+          <div class="tips-item">• <strong>Corner Turning:</strong> Steer sharply into corners at high speed to drift around apexes.</div>
+          <div class="tips-item">• <strong>Daily Loot:</strong> Claim your free mystery chest in the lobby every 24 hours.</div>
         </div>
       </div>
 
-      <!-- In-Game Quit Button (Shown when inside an active race) -->
-      <button type="button" id="btn-quit-race" style="display: none; margin-top: 12px; width: 100%; padding: 11px; font-family: var(--font-display); font-size: 13px; font-weight: 900; background: #FF385C; color: #FFF; border: 2px solid #000; box-shadow: 2.5px 2.5px 0px #000; border-radius: 12px; cursor: pointer; letter-spacing: 0.5px;">
-        QUIT RACE // RETURN TO LOBBY
-      </button>
-
-      <button type="button" class="brut-btn btn-yellow" id="btn-close-settings-done" style="margin-top: 10px; font-size: 14px; padding: 10px; width: 100%; border: 2px solid #000; box-shadow: 2.5px 2.5px 0px #000; border-radius: 12px; cursor: pointer; background: #FFE600; color: #000;">
+      <button type="button" class="brut-btn btn-yellow" id="btn-close-settings-done">
         SAVE & CLOSE
       </button>
     </div>
@@ -1407,7 +1574,7 @@
 
   <!-- Centered Pilot Profile, Callsign & Cloud Sync Modal (Unified Neo-Brutalist Hub) -->
   <div id="change-name-modal" style="display: none;" class="modal-overlay">
-    <div class="policy-card name-modal-card" style="max-width: 480px; width: 92%; padding: 22px; max-height: 90vh; overflow-y: auto;">
+    <div class="policy-card name-modal-card" style="max-width: 480px; width: 92%; max-height: 90vh; overflow-y: auto;">
       
       <!-- Top Header Bar -->
       <div class="mp-modal-top" style="margin-bottom: 14px;">
@@ -1422,7 +1589,7 @@
       <div class="name-meta-strip">
         <div class="name-meta-col">
           <span class="name-meta-lbl">PERMANENT ID</span>
-          <span class="name-meta-val" id="change-name-id-val">#AS-849201</span>
+          <span class="name-meta-val" id="change-name-id-val">#84920153</span>
         </div>
         <div class="name-meta-divider"></div>
         <div class="name-meta-col">
@@ -1562,9 +1729,9 @@
     <div class="policy-card lb-modal-card">
       
       <!-- Top Header Bar -->
-      <div class="mp-modal-header" style="margin-bottom: 8px;">
+      <div class="mp-modal-top mp-modal-header">
         <div class="mp-header-left">
-          <div class="mp-brand-badge" style="background: #FFE600;">
+          <div class="mp-brand-badge">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="#000"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
           </div>
           <div class="mp-header-titles">
@@ -1643,20 +1810,16 @@
             <span class="ctrl-desc">Reverse / Brake</span>
           </div>
           <div class="ctrl-card">
-            <span class="ctrl-key-badge">A / D or ← / →</span>
-            <span class="ctrl-desc">Steer Left & Right</span>
+            <span class="ctrl-key-badge">A / ←</span>
+            <span class="ctrl-desc">Steer Left</span>
           </div>
           <div class="ctrl-card">
-            <span class="ctrl-key-badge">SHIFT / SPACE</span>
-            <span class="ctrl-desc">Drift for Boost Sparks 🔥</span>
+            <span class="ctrl-key-badge">D / →</span>
+            <span class="ctrl-desc">Steer Right</span>
           </div>
-          <div class="ctrl-card">
-            <span class="ctrl-key-badge">E / ALT</span>
-            <span class="ctrl-desc">Fire Nitro Boost 🚀</span>
-          </div>
-          <div class="ctrl-card">
-            <span class="ctrl-key-badge">R</span>
-            <span class="ctrl-desc">Quick Respawn to Track</span>
+          <div class="ctrl-card ctrl-card-nitro" style="grid-column: span 2; background: #FFFDF0; border: 2px solid #000; box-shadow: 2px 2px 0 #000;">
+            <span class="ctrl-key-badge" style="background: #FFE600; font-weight: 900;">SHIFT / SPACE</span>
+            <span class="ctrl-desc" style="font-weight: 900; color: #000;">NITRO BOOST 🚀</span>
           </div>
         </div>
         <div class="policy-section" style="margin-top: 4px;">
@@ -1720,7 +1883,7 @@
   <!-- In-Game Controls Settings Modal (Dual Buttons vs Steering Wheel) -->
 
 
-  <!-- Mobile Portrait Rotate Prompt (Smash Karts Standard) -->
+  <!-- Mobile Portrait Rotate Prompt (Widescreen Landscape Mode) -->
   <div id="rotate-device-overlay">
     <div class="rotate-icon-wrap">
       <svg viewBox="0 0 48 48" width="56" height="56" fill="none" stroke="#000" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
@@ -1733,7 +1896,7 @@
     </div>
     <div class="rotate-text-block">
       <h2 class="rotate-title">ROTATE YOUR DEVICE</h2>
-      <p class="rotate-subtext">AirSkid is built for Widescreen Landscape Racing!</p>
+      <p class="rotate-subtext">AIRSKIDO is built for Widescreen Landscape Racing!</p>
     </div>
   </div>
 

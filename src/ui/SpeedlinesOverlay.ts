@@ -1,4 +1,4 @@
-// High-Octane Radial Speedlines / Wind Rush Streaks Effect (Deadshot.io / Warp Speed Style)
+// High-Octane Radial Speedlines / Wind Rush Streaks Effect (Warp Speed Style)
 // STRICT PROMISE: Only activates during Nitro/Boost (boostTime > 0). Zero overhead & completely invisible during normal driving.
 
 interface SpeedStreak {

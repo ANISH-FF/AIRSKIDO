@@ -5,7 +5,7 @@ export class HardcoreTrackConfig implements TrackDefinition {
   public id = 'hardcore';
   public name = 'HARDCORE GAUNTLET';
   public isHardcore = true;
-  public archTitle = 'AIRSKID // HARDCORE GAUNTLET';
+  public archTitle = 'AIRSKIDO // HARDCORE';
   public curve: THREE.CatmullRomCurve3;
 
   public static readonly SAMPLES = 400;
@@ -171,11 +171,13 @@ export class HardcoreTrackConfig implements TrackDefinition {
   public boostPads = [
     { t: 25 / 400, isRamp: true },   // Sprint pad before Jump 1 launch ramp
     { t: 55 / 400, isRamp: false },  // Landing exit surge pad after Jump 1
+    { t: 98 / 400, isRamp: false },  // Mountain Carousel entry turn drift boost
     { t: 122 / 400, isRamp: true },  // Mountain crest launch boost for Jump 2
     { t: 153 / 400, isRamp: false }, // Carousel landing surge pad (entrance to Cyber Vortex Tube)
     { t: 176 / 400, isRamp: false }, // Mid-tube Cyber Vortex hyper-drive boost strip
     { t: 204 / 400, isRamp: true },  // Pre-jump boost for Jump 3
     { t: 234 / 400, isRamp: false }, // West straight sprint pad leading toward 3 Turbines
+    { t: 340 / 400, isRamp: false }, // South banking curve apex drift boost
     { t: 356 / 400, isRamp: true },  // Skyline launch boost for Jump 4
     { t: 386 / 400, isRamp: false }, // Final straightaway surge pad into Finish Line
   ];
@@ -184,16 +186,22 @@ export class HardcoreTrackConfig implements TrackDefinition {
   public kickerRamps = [
     { t: 68 / 400, offsetLat: -4.0 },  // Turn 1 entry inside apex kicker
     { t: 105 / 400, offsetLat: 3.8 },  // Mountain carousel mid-apex kicker
+    { t: 112 / 400, offsetLat: -3.5 }, // Mountain carousel sharp hairpin apex kicker
     { t: 200 / 400, offsetLat: -3.5 }, // Post-tube S-turn apex kicker
+    { t: 308 / 400, offsetLat: 3.6 },  // South sweeper turn entry kicker
     { t: 330 / 400, offsetLat: 4.2 },  // South sweeper drift apex kicker
   ];
 
   // Heavy Concrete Barrier Blocks for Slalom Weaving
   public hazardBlocks = [
-    { id: 'hc-block-1', t: 85 / 400, offsetLat: -3.8 },   // Sector 2 entry left barrier
-    { id: 'hc-block-2', t: 92 / 400, offsetLat: 3.8 },    // Sector 2 entry right barrier (slalom pair)
-    { id: 'hc-block-3', t: 203 / 400, offsetLat: 2.5 },   // Post-tube chicane right divider block
-    { id: 'hc-block-4', t: 295 / 400, offsetLat: -3.2 },  // South sweeper entry divider block
+    { id: 'hc-block-start', t: 16 / 400, offsetLat: 3.6 },   // Starting drag right obstacle
+    { id: 'hc-block-land', t: 60 / 400, offsetLat: -3.6 },   // Post-Jump 1 landing lane divider
+    { id: 'hc-block-1', t: 85 / 400, offsetLat: -3.8 },      // Sector 2 entry left barrier
+    { id: 'hc-block-2', t: 92 / 400, offsetLat: 3.8 },       // Sector 2 entry right barrier (slalom pair)
+    { id: 'hc-block-hairpin', t: 115 / 400, offsetLat: 3.5 },// Mountain carousel hairpin apex blocker
+    { id: 'hc-block-3', t: 203 / 400, offsetLat: 2.5 },      // Post-tube chicane right divider block
+    { id: 'hc-block-4', t: 295 / 400, offsetLat: -3.2 },     // South sweeper entry divider block
+    { id: 'hc-block-finish', t: 390 / 400, offsetLat: -3.4 },// Final straight sprint obstacle
   ];
 
   // 3X Sequential Rotating Blades along West Straight (Cleanly spaced ~65m apart)

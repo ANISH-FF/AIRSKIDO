@@ -43,7 +43,7 @@ export class AdsManager {
         <div class="ad-video-mockup">
           <div class="ad-sponsor-icon">🎮</div>
           <h3 class="ad-sponsor-title" id="ad-reward-title">WATCH AD TO EARN REWARD</h3>
-          <p class="ad-sponsor-desc" id="ad-reward-desc">Support AirSkid to claim free VIP perks & coin bonuses!</p>
+          <p class="ad-sponsor-desc" id="ad-reward-desc">Support AIRSKIDO to claim free VIP perks & coin bonuses!</p>
           <div class="ad-progress-bar-bg">
             <div class="ad-progress-fill" id="ad-progress-fill"></div>
           </div>

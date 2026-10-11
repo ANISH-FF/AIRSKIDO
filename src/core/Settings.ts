@@ -3,7 +3,7 @@ export interface GameSettings {
   muted: boolean; // default false
   graphics: 'high' | 'low'; // default 'high'
   shadows: boolean; // default true
-  fpsCounter: boolean; // default true
+  fpsCounter: boolean; // default false
 }
 
 export class SettingsManager {
@@ -16,7 +16,7 @@ export class SettingsManager {
 
   private load(): GameSettings {
     try {
-      const saved = localStorage.getItem('airskid_settings');
+      const saved = localStorage.getItem('airskido_settings') || localStorage.getItem('airskid_settings');
       if (saved) {
         const parsed = JSON.parse(saved);
         return {
@@ -24,7 +24,7 @@ export class SettingsManager {
           muted: typeof parsed.muted === 'boolean' ? parsed.muted : false,
           graphics: parsed.graphics === 'low' ? 'low' : 'high',
           shadows: typeof parsed.shadows === 'boolean' ? parsed.shadows : true,
-          fpsCounter: typeof parsed.fpsCounter === 'boolean' ? parsed.fpsCounter : true,
+          fpsCounter: typeof parsed.fpsCounter === 'boolean' ? parsed.fpsCounter : false,
         };
       }
     } catch {}
@@ -33,13 +33,13 @@ export class SettingsManager {
       muted: false,
       graphics: 'high',
       shadows: true,
-      fpsCounter: true,
+      fpsCounter: false,
     };
   }
 
   public save() {
     try {
-      localStorage.setItem('airskid_settings', JSON.stringify(this.settings));
+      localStorage.setItem('airskido_settings', JSON.stringify(this.settings));
     } catch {}
     this.notify();
   }

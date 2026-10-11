@@ -1,0 +1,12 @@
+{
+  "name": "airskido-signaling-server",
+  "version": "1.0.0",
+  "description": "Ultra-lightweight private signaling server for AIRSKIDO WebRTC multiplayer",
+  "main": "signaling-server.js",
+  "scripts": {
+    "start": "node signaling-server.js"
+  },
+  "dependencies": {
+    "peer": "^1.0.2"
+  }
+}

@@ -5,7 +5,7 @@ export class ClassicTrackConfig implements TrackDefinition {
   public id = 'classic';
   public name = 'CLASSIC GRAND PRIX';
   public isHardcore = false;
-  public archTitle = 'AIRSKID // GRAND PRIX';
+  public archTitle = 'AIRSKIDO // GRAND PRIX';
   public curve: THREE.CatmullRomCurve3;
 
   public static readonly SAMPLES = 400;
@@ -135,15 +135,23 @@ export class ClassicTrackConfig implements TrackDefinition {
   ];
 
   public kickerRamps = [
-    { t: 155 / 400, offsetLat: -3.6 },
-    { t: 184 / 400, offsetLat: 3.5 },
-    { t: 342 / 400, offsetLat: -3.2 },
+    { t: 114 / 400, offsetLat: -3.4 }, // Turn 1 apex turn (uphill into downhill transition)
+    { t: 152 / 400, offsetLat: 3.2 },  // Chicane entry turn (high lateral load)
+    { t: 176 / 400, offsetLat: -3.5 }, // Chicane exit sweeping left turn
+    { t: 346 / 400, offsetLat: -3.2 }, // South sweeping summit curve apex
+    { t: 370 / 400, offsetLat: 3.4 },  // South return downhill banking curve
   ];
 
   public hazardBlocks = [
-    { id: 'c-block-1', t: 102 / 400, offsetLat: -4.0 },
-    { id: 'c-block-2', t: 110 / 400, offsetLat: 4.0 },
-    { id: 'c-block-3', t: 315 / 400, offsetLat: 0.0 },
+    { id: 'c-block-1', t: 36 / 400, offsetLat: 3.6 },    // Main straight pre-ramp: breaks straight line
+    { id: 'c-block-2', t: 104 / 400, offsetLat: -4.0 },  // Turn 1 entry inside apex
+    { id: 'c-block-3', t: 122 / 400, offsetLat: 3.8 },   // Turn 1 exit downhill sweeper
+    { id: 'c-block-4', t: 142 / 400, offsetLat: -3.6 },  // Chicane entrance inside curb
+    { id: 'c-block-5', t: 164 / 400, offsetLat: 3.8 },   // Chicane mid-turn slalom barrier
+    { id: 'c-block-6', t: 236 / 400, offsetLat: -3.2 },  // Between camelback rollercoaster dips
+    { id: 'c-block-7', t: 312 / 400, offsetLat: -3.8 },  // Canyon landing rollout left
+    { id: 'c-block-8', t: 326 / 400, offsetLat: 3.6 },   // Canyon rollout right (slalom gate)
+    { id: 'c-block-9', t: 358 / 400, offsetLat: -3.4 },  // South panoramic summit inside curve
   ];
 
   public turbines = [

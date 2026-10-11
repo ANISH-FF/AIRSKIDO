@@ -48,7 +48,7 @@ function playCombatSounds(
 }
 
 /**
- * RumbleCombat — SmashKarts 100% Solid & Fair Combat Resolution Engine
+ * RumbleCombat — 100% Solid & Fair Combat Resolution Engine
  *
  * Dedicated to Sky Rumble Coliseum.
  * Rules:
@@ -142,8 +142,12 @@ export function resolveRumbleCombat(
 
   // 3. UNCONDITIONAL NORMAL VELOCITY DEFLECTION / ELASTIC BUMPER BOUNCE
   // Cancels relative penetration velocity so karts bounce off instead of tunneling on next frame
-  const lvA = getKartVel ? getKartVel(kartA) : (kartA.rigidBody ? kartA.rigidBody.linvel() : { x: 0, y: 0, z: 0 });
-  const lvB = getKartVel ? getKartVel(kartB) : (kartB.rigidBody ? kartB.rigidBody.linvel() : { x: 0, y: 0, z: 0 });
+  const rawLvA = getKartVel ? getKartVel(kartA) : (kartA.rigidBody ? kartA.rigidBody.linvel() : { x: 0, y: 0, z: 0 });
+  _rcVA.set(rawLvA.x, rawLvA.y, rawLvA.z);
+  const rawLvB = getKartVel ? getKartVel(kartB) : (kartB.rigidBody ? kartB.rigidBody.linvel() : { x: 0, y: 0, z: 0 });
+  _rcVB.set(rawLvB.x, rawLvB.y, rawLvB.z);
+  const lvA = _rcVA;
+  const lvB = _rcVB;
 
   const closingA = lvA.x * nx + lvA.z * nz;      // > 0 means A is driving into B
   const closingB = -(lvB.x * nx + lvB.z * nz);   // > 0 means B is driving into A
@@ -438,7 +442,58 @@ export function resolveRumbleCombat(
     }
   }
 
-  // ── SCENARIO 4: SOLID GROUNDED BUMPER BUMP (Low speed / glancing contact) ──
+  // ── SCENARIO 4: ACTIVE NITRO SMASH OR SOLID GROUNDED BUMPER BUMP ──
+  // If Kart A has active Nitro charging forward, guarantee skyward Nitro smash!
+  if (kartA.boostTime > 0 && !isARemote && (closingA > 0.4 || headA > 0.05)) {
+    const launchSpeed = 22.0 + Math.max(0, closingA) * 1.35 + boostA;
+    const lift = Math.min(26.0, Math.max(14.0, 10.0 + Math.max(0, closingA) * 0.4));
+    const targetLaunch = _rcTargetLaunch.set(nx * launchSpeed, lift, nz * launchSpeed);
+    const recoilSpeed = 4.0;
+    const recoilVel = _rcRammerRecoil.set(-nx * recoilSpeed, 0.5, -nz * recoilSpeed);
+
+    kartB.applyNitroSmash(targetLaunch, false);
+    kartA.applyNitroSmash(recoilVel, true);
+    if (onRemoteHit) {
+      onRemoteHit(kartB, targetLaunch, true);
+      onRemoteHit(kartA, recoilVel, false);
+    }
+    rumbleManager.recordHit(kartA, kartB);
+    playCombatSounds(kartA, kartB, playerKart, posA, posB, 1.8);
+    if (kartA === playerKart) {
+      triggerImpactShake(1.6);
+      economy.addCoins(25); economy.addXp(15); sounds.playCoin();
+    } else if (kartB === playerKart) {
+      triggerImpactShake(2.0);
+    }
+    return;
+  }
+
+  // If Kart B has active Nitro charging forward, guarantee skyward Nitro smash!
+  if (kartB.boostTime > 0 && !isBRemote && (closingB > 0.4 || headB > 0.05)) {
+    const launchSpeed = 22.0 + Math.max(0, closingB) * 1.35 + boostB;
+    const lift = Math.min(26.0, Math.max(14.0, 10.0 + Math.max(0, closingB) * 0.4));
+    const targetLaunch = _rcTargetLaunch.set(-nx * launchSpeed, lift, -nz * launchSpeed);
+    const recoilSpeed = 4.0;
+    const recoilVel = _rcRammerRecoil.set(nx * recoilSpeed, 0.5, nz * recoilSpeed);
+
+    kartA.applyNitroSmash(targetLaunch, false);
+    kartB.applyNitroSmash(recoilVel, true);
+    if (onRemoteHit) {
+      onRemoteHit(kartA, targetLaunch, true);
+      onRemoteHit(kartB, recoilVel, false);
+    }
+    rumbleManager.recordHit(kartB, kartA);
+    playCombatSounds(kartA, kartB, playerKart, posA, posB, 1.8);
+    if (kartB === playerKart) {
+      triggerImpactShake(1.6);
+      economy.addCoins(25); economy.addXp(15); sounds.playCoin();
+    } else if (kartA === playerKart) {
+      triggerImpactShake(2.0);
+    }
+    return;
+  }
+
+  // Solid grounded bumper bump (low speed / glancing contact without active nitro)
   const pushForce = Math.min(18.0, Math.max(6.0, impactSpeed * 0.8));
   const impulseA = _rcImpulseA.set(-nx * pushForce, 0, -nz * pushForce);
   const impulseB = _rcImpulseB.set(nx * pushForce, 0, nz * pushForce);

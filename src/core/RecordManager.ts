@@ -9,7 +9,7 @@ export interface RecordsState {
   hardcore: TrackRecord;
 }
 
-const STORAGE_KEY = 'airskid_track_records_v1';
+const STORAGE_KEY = 'airskido_track_records_v1';
 
 export class RecordManager {
   private records: RecordsState;
@@ -25,7 +25,7 @@ export class RecordManager {
     };
 
     try {
-      const saved = localStorage.getItem(STORAGE_KEY);
+      const saved = localStorage.getItem(STORAGE_KEY) || localStorage.getItem('airskid_track_records_v1');
       if (saved) {
         const parsed = JSON.parse(saved);
         return {

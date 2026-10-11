@@ -1,54 +1,48 @@
 /**
  * MatchLoadingScreen.ts
- * Authentic AirSkid Neo-Brutalist Arcade Match Loading Screen.
- * Perfectly styled to match AirSkid's signature yellow, white & black cartoon aesthetic:
+ * Authentic AIRSKIDO Neo-Brutalist Arcade Match Loading Screen.
+ * Perfectly styled to match AIRSKIDO's signature yellow, white & black cartoon aesthetic:
  * warm radial sunburst gradient, chunky 4px borders, hard drop shadows, Fredoka typography,
- * spinning alloy tire, and clean eco-driving quotes.
+ * spinning alloy tire, and mode-specific tactical gamer quotes.
  */
 
-export interface LoadingQuote {
-  quote: string;
-  author: string;
-}
+import airskidoLogoUrl from '../logo/airskido_logo.webp';
 
-// ── CUSTOMIZABLE QUOTES LIST ──────────────────────────────────────────
-// Feel free to add, remove, or modify quotes here at any time!
-export const MATCH_LOADING_QUOTES: LoadingQuote[] = [
-  {
-    quote: "🌱 In the game, trees can save you. In real life, you can save them.",
-    author: "PLANET EARTH"
-  },
-  {
-    quote: "🌳 Trees might save you in the game. Plant one to save the planet.",
-    author: "AIRSKID INITIATIVE"
-  },
-  {
-    quote: "Straight roads are for fast cars. Sharp turns are for fast drivers.",
-    author: "APEX PRINCIPLE"
-  },
-  {
-    quote: "No shortcuts, no gimmicks. Victory is earned at the apex of every corner.",
-    author: "RACING CODE"
-  },
-  {
-    quote: "Smooth is fast. True precision on the racing line beats brute speed every time.",
-    author: "DRIVER DISCIPLINE"
-  },
-  {
-    quote: "Every millisecond counts. Master your braking point, conquer the exit.",
-    author: "TRACK MASTERY"
-  },
-  {
-    quote: "A great driver doesn't fight the track — they flow with the asphalt.",
-    author: "PURE SKILL"
-  }
+export type LoadingMode = 'classic' | 'hardcore' | 'time_sprint' | 'rumble';
+
+// ── MODE-SPECIFIC ARCADE QUOTES (NO AUTHORS, PURE GAMER TIPS) ──────────
+export const RUMBLE_QUOTES: string[] = [
+  "🌱 In the game, trees can save you. In real life, you can save them.",
+  "🌳 Trees might save you in the game. Plant one to save the planet.",
+  "Smash into enemies at full speed for instant knockouts.",
+  "Chain double and triple smashes to dominate the arena."
+];
+
+export const HARDCORE_QUOTES: string[] = [
+  "No abilities, no gimmicks. Win on pure driving skill.",
+  "Raw skill over raw speed. One mistake and the track punishes you.",
+  "No room for error. Survival here takes razor-sharp reflexes and absolute control.",
+  "Watch the swing rhythm of the kinetic hammers — timing is everything."
+];
+
+export const CLASSIC_QUOTES: string[] = [
+  "You only have 3 Nitros for the whole race. Save them for the long straights.",
+  "Hold drift through sharp corners and release for a clean mini-turbo burst.",
+  "Hit the glowing yellow boost chevrons on the ground for instant speed.",
+  "Brake before entering a sharp turn, hit the inside apex, and accelerate out.",
+  "Smooth steering preserves momentum. Oversteering just kills your speed."
+];
+
+export const TIME_SPRINT_QUOTES: string[] = [
+  "Every millisecond matters. Find the tightest racing line around each apex.",
+  "Zero collisions, zero rivals. Pure 1-lap speed against the clock.",
+  "No abilities, no luck. Beat the ghost with pure driving lines."
 ];
 
 export class MatchLoadingScreen {
   private overlay: HTMLElement | null = null;
   private titleEl: HTMLElement | null = null;
   private quoteTextEl: HTMLElement | null = null;
-  private quoteAuthorEl: HTMLElement | null = null;
   private progressBarEl: HTMLElement | null = null;
   private statusTextEl: HTMLElement | null = null;
   private isVisible: boolean = false;
@@ -66,162 +60,40 @@ export class MatchLoadingScreen {
 
     const overlay = document.createElement('div');
     overlay.id = 'match-loading-overlay';
-    overlay.style.cssText = `
-      position: fixed;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      z-index: 999998;
-      display: none;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      background: radial-gradient(circle at 50% 38%, #FFF9C4 0%, #FFDE59 45%, #F59E0B 85%, #D97706 100%);
-      opacity: 0;
-      transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-      pointer-events: all;
-      user-select: none;
-      overflow: hidden;
-      padding: 20px;
-      box-sizing: border-box;
-      font-family: 'Fredoka', 'Space Grotesk', sans-serif;
-    `;
+    overlay.className = 'match-loading-overlay';
 
     overlay.innerHTML = `
-      <div style="
-        background: #FFFDF5;
-        border: 4px solid #000000;
-        box-shadow: 10px 10px 0px #000000;
-        border-radius: 28px;
-        padding: 28px 36px;
-        max-width: 540px;
-        width: 100%;
-        text-align: center;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 16px;
-        position: relative;
-        overflow: hidden;
-        box-sizing: border-box;
-      ">
+      <div id="match-loading-card" class="match-loading-card">
         <!-- Top Rainbow Deco Strip -->
-        <div style="
-          position: absolute;
-          top: 0;
-          left: 0;
-          right: 0;
-          height: 6px;
-          background: linear-gradient(90deg, #FFDE59 0%, #00D2FF 50%, #FFDE59 100%);
-        "></div>
+        <div class="match-loading-strip"></div>
 
-        <!-- AIRSKID Logo -->
-        <div style="width: 100%; max-width: 280px; display: flex; justify-content: center; margin-top: 4px;">
-          <img src="/src/logo/airskid_logo.webp" alt="AIRSKID" style="width: 100%; max-height: 70px; object-fit: contain;" />
+        <!-- AIRSKIDO Logo -->
+        <div class="match-loading-logo-wrap">
+          <img src="${airskidoLogoUrl}" alt="AIRSKIDO" class="match-loading-brand-img" onerror="this.onerror=null;this.src='./logo/airskido_logo.webp';" />
         </div>
 
         <!-- Mode Badge -->
-        <div style="
-          display: inline-flex;
-          align-items: center;
-          gap: 8px;
-          background: #FFDE59;
-          border: 2.5px solid #000;
-          box-shadow: 3px 3px 0 #000;
-          border-radius: 12px;
-          padding: 6px 18px;
-        ">
-          <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #EF4444; border: 1.5px solid #000;"></span>
-          <span id="match-loading-title" style="
-            font-family: 'Fredoka', 'Bungee', sans-serif;
-            font-size: 13px;
-            font-weight: 800;
-            letter-spacing: 1px;
-            color: #000;
-            text-transform: uppercase;
-          ">PREPARING MATCH...</span>
+        <div class="match-loading-badge">
+          <span class="match-loading-dot"></span>
+          <span id="match-loading-title">PREPARING MATCH...</span>
         </div>
 
-        <!-- Quote Card Box -->
-        <div style="
-          width: 100%;
-          background: #FFFFFF;
-          border: 3px solid #000000;
-          box-shadow: 4px 4px 0px #000000;
-          border-radius: 18px;
-          padding: 18px 22px;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          box-sizing: border-box;
-          min-height: 95px;
-        ">
-          <div id="match-loading-quote" style="
-            font-family: 'Fredoka', sans-serif;
-            font-size: 18px;
-            font-weight: 700;
-            line-height: 1.4;
-            color: #0F172A;
-            margin-bottom: 8px;
-            letter-spacing: 0.2px;
-          ">
-            “Straight roads are for fast cars. Sharp turns are for fast drivers.”
-          </div>
-          <div id="match-loading-author" style="
-            font-family: 'Fredoka', sans-serif;
-            font-size: 12px;
-            font-weight: 800;
-            color: #0284C7;
-            letter-spacing: 1.5px;
-            text-transform: uppercase;
-          ">
-            — RACING CODE
+        <!-- Quote Card Box (Clean, Direct Gamer Tip) -->
+        <div class="match-loading-quote-box">
+          <div id="match-loading-quote" class="match-loading-quote-text">
+            “No abilities, no gimmicks. Win on pure driving skill.”
           </div>
         </div>
 
         <!-- Precision Chunky Loading Bar -->
-        <div style="
-          width: 100%;
-          height: 18px;
-          background: #FFFFFF;
-          border: 2.5px solid #000000;
-          box-shadow: 3px 3px 0 #000000;
-          border-radius: 10px;
-          overflow: hidden;
-          position: relative;
-          box-sizing: border-box;
-        ">
-          <div id="match-loading-bar" style="
-            width: 15%;
-            height: 100%;
-            background: linear-gradient(90deg, #FFDE59 0%, #00D2FF 100%);
-            border-right: 2px solid #000;
-            border-radius: 7px;
-            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-          "></div>
+        <div class="match-loading-bar-wrap">
+          <div id="match-loading-bar" class="match-loading-bar-fill"></div>
         </div>
 
         <!-- Status Tag -->
-        <div style="
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          width: 100%;
-          font-family: 'Fredoka', sans-serif;
-          font-size: 12px;
-          font-weight: 800;
-          color: #0F172A;
-          letter-spacing: 1px;
-        ">
+        <div class="match-loading-status-wrap">
           <span id="match-loading-status">SYNCHRONIZING SQUADS & TRACK...</span>
-          <span style="
-            background: #FFDE59;
-            border: 1.5px solid #000;
-            border-radius: 6px;
-            padding: 2px 8px;
-            font-size: 11px;
-          ">AIRSKID NET</span>
+          <span class="match-loading-pill">AIRSKIDO.IO</span>
         </div>
       </div>
     `;
@@ -231,18 +103,23 @@ export class MatchLoadingScreen {
     this.overlay = overlay;
     this.titleEl = document.getElementById('match-loading-title');
     this.quoteTextEl = document.getElementById('match-loading-quote');
-    this.quoteAuthorEl = document.getElementById('match-loading-author');
     this.progressBarEl = document.getElementById('match-loading-bar');
     this.statusTextEl = document.getElementById('match-loading-status');
   }
 
   /**
-   * Show the Match Loading Screen with a random quote and animated progress bar
-   * @param title Custom header title (e.g. "SKY RUMBLE // ARENA CLASH")
-   * @param durationMs Duration in ms before auto-fading out (default: 2200ms)
+   * Show the Match Loading Screen with a mode-specific random gamer quote and animated progress bar
+   * @param title Custom header title (e.g. "CLASSIC GRAND PRIX")
+   * @param durationMs Duration in ms before auto-fading out (default: 2800ms)
+   * @param mode Target game mode to select appropriate quotes ('classic' | 'hardcore' | 'time_sprint' | 'rumble')
    * @param onComplete Callback invoked when the screen finishes fading out
    */
-  public show(title?: string, durationMs: number = 2200, onComplete?: () => void) {
+  public show(
+    title?: string,
+    durationMs: number = 2800,
+    mode: LoadingMode = 'classic',
+    onComplete?: () => void
+  ) {
     if (!this.overlay) this.createDOM();
     if (!this.overlay) return;
 
@@ -251,18 +128,31 @@ export class MatchLoadingScreen {
       this.hideTimeout = null;
     }
 
-    // Pick a random quote
-    const randomIdx = Math.floor(Math.random() * MATCH_LOADING_QUOTES.length);
-    const selectedQuote = MATCH_LOADING_QUOTES[randomIdx];
+    // Pick a random quote based on the current mode
+    let pool: string[];
+    switch (mode) {
+      case 'rumble':
+        pool = RUMBLE_QUOTES;
+        break;
+      case 'hardcore':
+        pool = HARDCORE_QUOTES;
+        break;
+      case 'time_sprint':
+        pool = TIME_SPRINT_QUOTES;
+        break;
+      case 'classic':
+      default:
+        pool = CLASSIC_QUOTES;
+        break;
+    }
+    const randomIdx = Math.floor(Math.random() * pool.length);
+    const selectedQuote = pool[randomIdx];
 
     if (this.titleEl) {
-      this.titleEl.innerText = title || 'PREPARING ARENA...';
+      this.titleEl.innerText = title || 'PREPARING MATCH...';
     }
     if (this.quoteTextEl) {
-      this.quoteTextEl.innerText = `“${selectedQuote.quote}”`;
-    }
-    if (this.quoteAuthorEl) {
-      this.quoteAuthorEl.innerText = `— ${selectedQuote.author}`;
+      this.quoteTextEl.innerText = `“${selectedQuote}”`;
     }
 
     if (this.progressBarEl) {
@@ -275,8 +165,18 @@ export class MatchLoadingScreen {
 
     // Display overlay
     this.overlay.style.display = 'flex';
+    const card = document.getElementById('match-loading-card');
+    if (card) {
+      card.style.transform = 'scale(0.96) translateY(8px)';
+      card.style.opacity = '0';
+    }
+
     requestAnimationFrame(() => {
       if (this.overlay) this.overlay.style.opacity = '1';
+      if (card) {
+        card.style.transform = 'scale(1) translateY(0)';
+        card.style.opacity = '1';
+      }
     });
     this.isVisible = true;
 
@@ -313,11 +213,19 @@ export class MatchLoadingScreen {
     }
 
     this.overlay.style.opacity = '0';
+    const card = document.getElementById('match-loading-card');
+    if (card) {
+      card.style.transform = 'scale(0.97) translateY(-6px)';
+      card.style.opacity = '0';
+    }
     this.isVisible = false;
 
     setTimeout(() => {
       if (this.overlay) {
         this.overlay.style.display = 'none';
+      }
+      if (card) {
+        card.style.transform = 'scale(0.96) translateY(8px)';
       }
       if (onComplete) onComplete();
     }, 420);

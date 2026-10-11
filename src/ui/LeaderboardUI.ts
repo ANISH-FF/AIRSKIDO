@@ -104,6 +104,7 @@ export class LeaderboardUI {
     sounds.playSelect();
     this.currentTrack = track;
     leaderboard.setActiveTrack(track);
+    leaderboard.fetchRemoteLeaderboard(track);
 
     // Update active class in dock tabs
     document.querySelectorAll('#lb-dock-tabs .lb-tab-btn').forEach((b) => {
@@ -172,6 +173,7 @@ export class LeaderboardUI {
       b.classList.toggle('active', (b as HTMLElement).dataset.track === this.currentTrack);
     });
 
+    leaderboard.fetchRemoteLeaderboard(this.currentTrack, true);
     this.allEntries = leaderboard.getEntries(this.currentTrack);
     this.renderModalTable(this.getFilteredEntries());
     if (this.modalEl) {
@@ -216,9 +218,8 @@ export class LeaderboardUI {
 
     entries.forEach((e) => {
       const tr = document.createElement('tr');
-      if (e.isCurrentPlayer) {
-        tr.className = 'row-player';
-      }
+      const rowRankClass = `row-rank-${e.rank}`;
+      tr.className = `${e.isCurrentPlayer ? 'row-player' : ''} ${rowRankClass}`.trim();
 
       const rankBadgeClass =
         e.rank === 1 ? 'rank-gold' : e.rank === 2 ? 'rank-silver' : e.rank === 3 ? 'rank-bronze' : 'rank-other';
@@ -228,13 +229,15 @@ export class LeaderboardUI {
           ? 'LEADER'
           : `+${(e.timeSeconds - leaderTime).toFixed(2)}s`;
 
+      const cleanPlayerId = String(e.playerId || '').replace(/^AS-?/i, '');
+
       tr.innerHTML = `
         <td class="td-rank">
           <span class="lb-rank-badge ${rankBadgeClass}">#${e.rank}</span>
         </td>
         <td class="td-pilot">
           <strong>${e.username}</strong>
-          <span class="pilot-id-sub">#${e.playerId}</span>
+          <span class="pilot-id-sub">#${cleanPlayerId}</span>
         </td>
         <td class="td-time">${e.formattedTime}</td>
         <td class="td-gap">${gapText}</td>

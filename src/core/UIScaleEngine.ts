@@ -1,7 +1,7 @@
 /**
- * AIRSKID RACING // UNIVERSAL UI SCALE ENGINE
+ * AIRSKIDO RACING // UNIVERSAL UI SCALE ENGINE
  * ================================================================
- * Resolution-Independent UI Scaling System (Smash Karts / Unity WebGL Architecture).
+ * Resolution-Independent UI Scaling System (WebGL Responsive Architecture).
  *
  * Dynamically computes viewport-ratio scale factors and updates root CSS variables
  * (--ui-scale, --topbar-scale, --vh, --vw) on every resize and orientation change.

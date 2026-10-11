@@ -172,19 +172,15 @@ export class Engine {
         frameCount = 0;
         fpsAccumTime = 0;
 
-        if (fpsValEl) fpsValEl.textContent = `${currentFps}`;
-        if (fpsMsEl) fpsMsEl.textContent = `${avgMs}ms`;
-        if (fpsDotEl && fpsValEl) {
-          if (currentFps >= 55) {
-            fpsDotEl.style.color = '#10B981';
-            fpsValEl.style.color = '#10B981';
-          } else if (currentFps >= 35) {
-            fpsDotEl.style.color = '#FFDE59';
-            fpsValEl.style.color = '#FFDE59';
-          } else {
-            fpsDotEl.style.color = '#FF385C';
-            fpsValEl.style.color = '#FF385C';
-          }
+        if (fpsValEl) {
+          fpsValEl.textContent = `${currentFps}`;
+          fpsValEl.style.color = '#000';
+        }
+        if (fpsMsEl) {
+          fpsMsEl.textContent = `${avgMs}ms`;
+        }
+        if (fpsDotEl) {
+          fpsDotEl.style.color = '#000';
         }
       }
 
