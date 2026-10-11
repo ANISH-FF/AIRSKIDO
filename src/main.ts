@@ -1614,7 +1614,7 @@ class Game {
       }
     };
 
-    net.onCountdownTriggered = (startTime: number, laps: number, mode?: MpGameMode, rumbleRule?: string, rumbleFormat?: 'tdm' | 'ffa') => {
+    net.onCountdownTriggered = (startTime: number, laps: number, mode?: MpGameMode, rumbleRule?: string, rumbleFormat?: 'tdm' | 'ffa', durationMs?: number) => {
       this.isMidRaceSpectator = false;
       this.isSpectating = false;
       this.hud.hideSpectatorOverlay();
@@ -1626,8 +1626,14 @@ class Game {
         ? `SKY RUMBLE // ${(rumbleFormat || net.selectedRumbleFormat || 'tdm').toUpperCase()} BATTLE`
         : (targetMode === 'hardcore' ? 'HARDCORE SKY GRAND PRIX' : 'CLASSIC GRAND PRIX');
 
-      // Display high-performance match loading screen with quotes while assets, geometry, and WASM colliders build
-      const loadingTimeMs = Math.max(1200, startTime - Date.now() - 3200);
+      // Relative Duration Sync: Completely eliminates cross-device cell phone clock drift (Date.now desync).
+      // Uses local Date.now() + remaining duration rather than remote host's raw system clock!
+      const totalDuration = durationMs || 6000;
+      const transitLatency = net.isHost ? 0 : Math.min(200, Math.max(10, (net.currentPing || 40) / 2));
+      const remainingDuration = Math.max(3300, totalDuration - transitLatency);
+      const localStartTime = Date.now() + remainingDuration;
+      const loadingTimeMs = Math.max(1200, remainingDuration - 3200);
+
       const modeKey: LoadingMode = targetMode === 'rumble' ? 'rumble' : (targetMode === 'hardcore' || targetMode === 'time_attack_hardcore' ? 'hardcore' : (targetMode === 'time_attack' ? 'time_sprint' : 'classic'));
       matchLoadingScreen.show(modeTitle, loadingTimeMs, modeKey);
       closeMpHub();
@@ -1637,7 +1643,7 @@ class Game {
         if (targetMode === 'rumble') {
           this.selectedRumbleFormat = rumbleFormat || net.selectedRumbleFormat || 'tdm';
           this.selectedRumbleRule = rumbleRule || net.selectedRumbleRule || 'kills_10';
-          this.startRumbleMatch(startTime, true);
+          this.startRumbleMatch(localStartTime, true);
         } else {
           const isTimeAttack = targetMode === 'time_attack' || targetMode === 'time_attack_hardcore';
           const isHardcore = targetMode === 'hardcore' || targetMode === 'time_attack_hardcore';
@@ -1654,7 +1660,7 @@ class Game {
           const modeSelectModal = document.getElementById('mode-select-modal');
           if (modeSelectModal) modeSelectModal.style.display = 'none';
           this.isMultiplayer = true;
-          this.startRaceCountdown(startTime);
+          this.startRaceCountdown(localStartTime);
           if (isTimeAttack) {
             this.hud.showAlert('⏱️ TIMER SPRINT // ZERO COLLISIONS!', 'boost');
           }

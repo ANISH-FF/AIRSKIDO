@@ -52,7 +52,7 @@ export type NetPacket =
   | { type: 'player_join'; player: RemotePlayerInfo }
   | { type: 'player_left'; peerId: string; name?: string }
   | { type: 'team_change'; peerId: string; team: 'frost' | 'blaze' }
-  | { type: 'start_countdown'; startTime: number; laps: number; mode?: MpGameMode; rumbleRule?: string; rumbleFormat?: 'tdm' | 'ffa' }
+  | { type: 'start_countdown'; startTime: number; durationMs?: number; laps: number; mode?: MpGameMode; rumbleRule?: string; rumbleFormat?: 'tdm' | 'ffa' }
   | { type: 'kart_transform'; data: RemoteKartTransform }
   | { type: 'race_first_finish'; winnerPeerId: string; winnerName: string; countdownSeconds: number }
   | { type: 'rumble_finish'; winningTeam: RumbleTeam | 'draw'; winnerName: string }
@@ -90,7 +90,7 @@ export class MultiplayerManager {
 
   // Callbacks
   public onLobbyUpdated?: (players: RemotePlayerInfo[], laps: number, mode?: MpGameMode, rule?: string, format?: 'tdm' | 'ffa', matchState?: 'staging' | 'in_race') => void;
-  public onCountdownTriggered?: (startTime: number, laps: number, mode?: MpGameMode, rule?: string, format?: 'tdm' | 'ffa') => void;
+  public onCountdownTriggered?: (startTime: number, laps: number, mode?: MpGameMode, rule?: string, format?: 'tdm' | 'ffa', durationMs?: number) => void;
   public onRemoteTransform?: (data: RemoteKartTransform) => void;
   public onFirstFinishReceived?: (winnerPeerId: string, winnerName: string, countdownSeconds: number) => void;
   public onRumbleFinishReceived?: (winningTeam: RumbleTeam | 'draw', winnerName: string) => void;
@@ -580,7 +580,7 @@ export class MultiplayerManager {
         if (packet.rumbleRule) this.selectedRumbleRule = packet.rumbleRule;
         if (packet.rumbleFormat) this.selectedRumbleFormat = packet.rumbleFormat;
         if (this.onCountdownTriggered) {
-          this.onCountdownTriggered(packet.startTime, this.selectedLaps, this.selectedMode, this.selectedRumbleRule, this.selectedRumbleFormat);
+          this.onCountdownTriggered(packet.startTime, this.selectedLaps, this.selectedMode, this.selectedRumbleRule, this.selectedRumbleFormat, packet.durationMs);
         }
         break;
 
@@ -751,21 +751,23 @@ export class MultiplayerManager {
     }
   }
 
-  // Called by Host to trigger race for all connected clients with synchronized timestamp
+  // Called by Host to trigger race for all connected clients with synchronized timestamp & duration
   public startHostRace() {
     if (!this.isHost) return;
     this.matchState = 'in_race';
-    const startTime = Date.now() + 6000; // Synchronized start across all network devices (2.8s loading screen + 3.2s countdown)
+    const durationMs = 6000; // Synchronized start across all network devices (2.8s loading screen + 3.2s countdown)
+    const startTime = Date.now() + durationMs;
     this.broadcast({
       type: 'start_countdown',
       startTime,
+      durationMs,
       laps: this.selectedLaps,
       mode: this.selectedMode,
       rumbleRule: this.selectedRumbleRule,
       rumbleFormat: this.selectedRumbleFormat,
     });
     if (this.onCountdownTriggered) {
-      this.onCountdownTriggered(startTime, this.selectedLaps, this.selectedMode, this.selectedRumbleRule, this.selectedRumbleFormat);
+      this.onCountdownTriggered(startTime, this.selectedLaps, this.selectedMode, this.selectedRumbleRule, this.selectedRumbleFormat, durationMs);
     }
   }
 
