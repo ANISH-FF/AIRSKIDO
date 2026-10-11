@@ -1669,6 +1669,7 @@ class Game {
     };
 
     net.onRemoteTransform = (data) => this.handleRemoteTransform(data);
+    net.onCountdownTickReceived = (count) => this.handleAuthoritativeCountdownTick(count);
     net.onSmashReceived = (packet) => this.handleRemoteSmash(packet);
     net.onPlayerLeft = (peerId, name) => this.handleRemotePlayerLeft(peerId, name);
     net.onFirstFinishReceived = (winnerPeerId, winnerName, countdownSeconds) => {
@@ -3228,9 +3229,61 @@ class Game {
     this.syncCountdownTick();
   }
 
+  private handleAuthoritativeCountdownTick(count: 3 | 2 | 1 | 0) {
+    if (this.state !== GameState.COUNTDOWN && count !== 0) return;
+    matchLoadingScreen.hide();
+
+    if (count === 3) {
+      if (this.lastAnnouncedCountdown !== '3') {
+        this.lastAnnouncedCountdown = '3';
+        this.hud.showCountdown('3');
+        sounds.playCountdown(false);
+      }
+    } else if (count === 2) {
+      if (this.lastAnnouncedCountdown !== '2') {
+        this.lastAnnouncedCountdown = '2';
+        this.hud.showCountdown('2');
+        sounds.playCountdown(false);
+      }
+    } else if (count === 1) {
+      if (this.lastAnnouncedCountdown !== '1') {
+        this.lastAnnouncedCountdown = '1';
+        this.hud.showCountdown('1');
+        sounds.playCountdown(false);
+      }
+    } else if (count === 0) {
+      const goText = this.isRumbleMode ? 'SMASH!' : 'GO!';
+      if (this.lastAnnouncedCountdown !== goText) {
+        this.lastAnnouncedCountdown = goText;
+        this.hud.showCountdown(goText);
+        sounds.playCountdown(true);
+        sounds.startEngine();
+        this.state = GameState.RACING;
+      }
+    }
+  }
+
   private syncCountdownTick() {
     if (this.state !== GameState.COUNTDOWN) {
       this.hud.hideCountdown();
+      return;
+    }
+
+    // In Multiplayer: Guest strictly synchronizes with Host's authoritative broadcast ticks
+    // Guest never runs ahead or starts early!
+    if (this.isMultiplayer && !net.isHost) {
+      // Safety net fallback: if Host drops offline during countdown, auto-unlock after targetStartTime + 1500ms
+      if (Date.now() > this.raceStartTime + 1500) {
+        matchLoadingScreen.hide();
+        const goText = this.isRumbleMode ? 'SMASH!' : 'GO!';
+        if (this.lastAnnouncedCountdown !== goText) {
+          this.lastAnnouncedCountdown = goText;
+          this.hud.showCountdown(goText);
+          sounds.playCountdown(true);
+          sounds.startEngine();
+          this.state = GameState.RACING;
+        }
+      }
       return;
     }
 
@@ -3246,18 +3299,27 @@ class Game {
         this.lastAnnouncedCountdown = '3';
         this.hud.showCountdown('3');
         sounds.playCountdown(false);
+        if (this.isMultiplayer && net.isHost) {
+          net.broadcastCountdownTick(3);
+        }
       }
     } else if (msLeft > 1000) {
       if (this.lastAnnouncedCountdown !== '2') {
         this.lastAnnouncedCountdown = '2';
         this.hud.showCountdown('2');
         sounds.playCountdown(false);
+        if (this.isMultiplayer && net.isHost) {
+          net.broadcastCountdownTick(2);
+        }
       }
     } else if (msLeft > 0) {
       if (this.lastAnnouncedCountdown !== '1') {
         this.lastAnnouncedCountdown = '1';
         this.hud.showCountdown('1');
         sounds.playCountdown(false);
+        if (this.isMultiplayer && net.isHost) {
+          net.broadcastCountdownTick(1);
+        }
       }
     } else if (msLeft > -900) {
       const goText = this.isRumbleMode ? 'SMASH!' : 'GO!';
@@ -3267,11 +3329,17 @@ class Game {
         sounds.playCountdown(true);
         sounds.startEngine();
         this.state = GameState.RACING;
+        if (this.isMultiplayer && net.isHost) {
+          net.broadcastCountdownTick(0);
+        }
       }
     } else {
       // Race has already begun on network (e.g. tab focused late)
       this.state = GameState.RACING;
       sounds.startEngine();
+      if (this.isMultiplayer && net.isHost) {
+        net.broadcastCountdownTick(0);
+      }
     }
   }
 

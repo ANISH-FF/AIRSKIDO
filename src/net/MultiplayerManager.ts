@@ -60,6 +60,7 @@ export type NetPacket =
   | { type: 'room_closed'; reason?: string }
   | { type: 'ping'; t: number }
   | { type: 'pong'; t: number }
+  | { type: 'countdown_tick'; count: 3 | 2 | 1 | 0 }
   | SmashPacket;
 
 export class MultiplayerManager {
@@ -91,6 +92,7 @@ export class MultiplayerManager {
   // Callbacks
   public onLobbyUpdated?: (players: RemotePlayerInfo[], laps: number, mode?: MpGameMode, rule?: string, format?: 'tdm' | 'ffa', matchState?: 'staging' | 'in_race') => void;
   public onCountdownTriggered?: (startTime: number, laps: number, mode?: MpGameMode, rule?: string, format?: 'tdm' | 'ffa', durationMs?: number) => void;
+  public onCountdownTickReceived?: (count: 3 | 2 | 1 | 0) => void;
   public onRemoteTransform?: (data: RemoteKartTransform) => void;
   public onFirstFinishReceived?: (winnerPeerId: string, winnerName: string, countdownSeconds: number) => void;
   public onRumbleFinishReceived?: (winningTeam: RumbleTeam | 'draw', winnerName: string) => void;
@@ -584,6 +586,12 @@ export class MultiplayerManager {
         }
         break;
 
+      case 'countdown_tick':
+        if (this.onCountdownTickReceived) {
+          this.onCountdownTickReceived(packet.count);
+        }
+        break;
+
       case 'kart_transform':
         if (this.onRemoteTransform) this.onRemoteTransform(packet.data);
         break;
@@ -769,6 +777,12 @@ export class MultiplayerManager {
     if (this.onCountdownTriggered) {
       this.onCountdownTriggered(startTime, this.selectedLaps, this.selectedMode, this.selectedRumbleRule, this.selectedRumbleFormat, durationMs);
     }
+  }
+
+  // Host-Authoritative countdown tick synchronization (count = 3, 2, 1, or 0 for GO!)
+  public broadcastCountdownTick(count: 3 | 2 | 1 | 0) {
+    if (!this.isHost) return;
+    this.broadcast({ type: 'countdown_tick', count });
   }
 
   // Stream local kart transform

@@ -1154,7 +1154,7 @@
       -webkit-text-stroke: 4px #000;
       text-shadow: 8px 8px 0px #000;
       display: none;
-      z-index: 25;
+      z-index: 1000000;
       pointer-events: none;
     }
 
