@@ -1416,18 +1416,37 @@
     text-shadow: 4px 4px 0px #000 !important;
   }
   #wrong-way-banner {
-    top: 62px !important;
-    font-size: 13px !important;
-    padding: 6px 16px !important;
-    border-width: 2.5px !important;
-    box-shadow: 2.5px 2.5px 0px #000 !important;
-    gap: 7px !important;
+    top: 60px !important;
+    padding: 5px 12px 5px 10px !important;
+    gap: 8px !important;
+    border-width: 2px !important;
+    border-left-width: 4px !important;
+    box-shadow: 3px 3px 0px #000 !important;
+    border-radius: 10px !important;
   }
-  .wrong-way-icon {
-    width: 19px !important;
-    height: 19px !important;
-    font-size: 11px !important;
-    border-width: 1.5px !important;
+  .wrong-way-hazard-wrap {
+    width: 22px !important;
+    height: 22px !important;
+    border-radius: 6px !important;
+  }
+  .wrong-way-hazard-icon {
+    width: 13px !important;
+    height: 13px !important;
+  }
+  .wrong-way-tag {
+    font-size: 8px !important;
+    letter-spacing: 1.2px !important;
+  }
+  .wrong-way-title {
+    font-size: 12.5px !important;
+    letter-spacing: 0.5px !important;
+  }
+  .wrong-way-arrow {
+    margin-left: 0 !important;
+  }
+  .wrong-way-uturn-svg {
+    width: 14px !important;
+    height: 14px !important;
   }
   #finish-countdown-banner {
     top: 8px !important;

@@ -1242,61 +1242,100 @@
       }
     }
 
-    /* Cute Neo-Brutalist Arcade Wrong-Way Pill Banner */
+    /* ── PREMIUM MOTORSPORT WRONG-WAY TELEMETRY BANNER ── */
     #wrong-way-banner {
       position: absolute;
       top: 76px;
       left: 50%;
       transform: translateX(-50%);
+      background: rgba(13, 18, 28, 0.95);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      color: #fff;
+      border: 2.5px solid #000;
+      border-left: 5px solid #FF1E56;
+      border-right: 2.5px solid #000;
+      box-shadow: 4px 4px 0px #000, 0 8px 24px rgba(255, 30, 86, 0.35);
+      border-radius: 14px;
+      padding: 7px 18px 7px 14px;
       font-family: var(--font-display, 'Fredoka', sans-serif);
-      font-size: 18px;
-      font-weight: 900;
-      letter-spacing: 0.5px;
-      color: #FFFFFF;
-      background: linear-gradient(135deg, #FF1E56 0%, #FF3366 50%, #E11D48 100%);
-      border: 3px solid #000;
-      box-shadow: 3.5px 3.5px 0px #000;
-      border-radius: 999px;
-      padding: 9px 24px;
       display: none;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
       z-index: 1000;
       pointer-events: none;
-      text-align: center;
-      white-space: nowrap;
       user-select: none;
-      animation: cuteWrongWayPulse 0.45s ease-in-out infinite alternate;
+      animation: premiumWrongWayPulse 0.85s ease-in-out infinite alternate;
     }
 
-    .wrong-way-icon {
-      display: inline-flex;
+    .wrong-way-hazard-wrap {
+      display: flex;
       align-items: center;
       justify-content: center;
-      width: 24px;
-      height: 24px;
-      background: #FFE600;
-      color: #000;
-      border: 2px solid #000;
-      border-radius: 50%;
-      font-size: 14px;
+      width: 28px;
+      height: 28px;
+      background: rgba(255, 30, 86, 0.16);
+      border: 1.5px solid #FF1E56;
+      border-radius: 8px;
+      color: #FF1E56;
+      flex-shrink: 0;
+    }
+
+    .wrong-way-hazard-icon {
+      width: 17px;
+      height: 17px;
+      fill: currentColor;
+    }
+
+    .wrong-way-content {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      line-height: 1.15;
+    }
+
+    .wrong-way-tag {
+      font-size: 10px;
       font-weight: 900;
-      line-height: 1;
-      box-shadow: 1px 1px 0 #000;
+      letter-spacing: 1.8px;
+      color: #FF1E56;
+      text-transform: uppercase;
     }
 
-    .wrong-way-text {
-      text-shadow: 1.5px 1.5px 0 #000;
+    .wrong-way-title {
+      font-size: 16px;
+      font-weight: 900;
       letter-spacing: 0.8px;
+      color: #FFFFFF;
+      text-shadow: 1px 1px 0 #000;
+      white-space: nowrap;
     }
 
-    @keyframes cuteWrongWayPulse {
+    .wrong-way-arrow {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #FFDE59;
+      flex-shrink: 0;
+      margin-left: 2px;
+    }
+
+    .wrong-way-uturn-svg {
+      width: 18px;
+      height: 18px;
+      stroke: currentColor;
+      filter: drop-shadow(0 0 4px rgba(255, 222, 89, 0.5));
+    }
+
+    @keyframes premiumWrongWayPulse {
       0% {
-        transform: translateX(-50%) scale(0.97);
-        filter: drop-shadow(0 0 6px rgba(255, 30, 86, 0.45));
+        transform: translateX(-50%) scale(0.985);
+        box-shadow: 4px 4px 0px #000, 0 6px 18px rgba(255, 30, 86, 0.25);
+        border-left-color: #FF1E56;
       }
       100% {
-        transform: translateX(-50%) scale(1.03);
-        filter: drop-shadow(0 0 14px rgba(255, 51, 102, 0.85));
+        transform: translateX(-50%) scale(1.02);
+        box-shadow: 4px 4px 0px #000, 0 10px 28px rgba(255, 30, 86, 0.55);
+        border-left-color: #FF3366;
       }
     }
