@@ -1,3 +1,5 @@
+import { isTouchControlsEnabled } from './Device';
+
 export interface KartInputState {
   throttle: number; // -1 (reverse/brake) to +1 (forward gas)
   steer: number;    // -1 (full left) to +1 (full right)
@@ -59,14 +61,12 @@ export class InputManager {
   }
 
   private setupTouch() {
-    // Detect mobile touch or narrow device width
     const checkTouch = () => {
-      this.isTouchDevice = 'ontouchstart' in window || (navigator.maxTouchPoints && navigator.maxTouchPoints > 0) || window.innerWidth <= 1024;
+      this.isTouchDevice = isTouchControlsEnabled();
     };
 
-    window.addEventListener('touchstart', checkTouch, { once: true });
-    window.addEventListener('pointerdown', checkTouch, { once: true });
-    window.addEventListener('resize', checkTouch);
+    window.addEventListener('resize', checkTouch, { passive: true });
+    window.addEventListener('fullscreenchange', checkTouch, { passive: true });
     checkTouch();
 
     // ── Left Steering Cluster: Dual Buttons (Left / Right) ──

@@ -9,6 +9,7 @@ import { economy } from '../core/Economy';
 import { RecordManager } from '../core/RecordManager';
 import { sounds } from '../core/Sound';
 import { nameSystem } from '../core/NameSystem';
+import { isTouchControlsEnabled } from '../core/Device';
 
 const VIP_CROWN_SVG = `<svg viewBox="0 0 24 24" width="12" height="12" class="standing-vip-crown" fill="currentColor"><path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5zm14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z"/></svg>`;
 
@@ -179,15 +180,23 @@ export class HUD {
     }
   }
 
+  public updateTouchControlsVisibility() {
+    const touch = document.getElementById('touch-controls');
+    const isTouch = isTouchControlsEnabled();
+    if (touch) {
+      touch.style.display = isTouch ? 'block' : 'none';
+    }
+    if (isTouch) {
+      document.body.classList.add('touch-mode');
+    } else {
+      document.body.classList.remove('touch-mode');
+    }
+  }
+
   public showHUD() {
     const hud = document.getElementById('hud-container');
     if (hud) hud.style.display = 'block';
-
-    const touch = document.getElementById('touch-controls');
-    const isTouch = 'ontouchstart' in window || (navigator.maxTouchPoints && navigator.maxTouchPoints > 0) || window.innerWidth <= 1024;
-    if (touch && isTouch) {
-      touch.style.display = 'block';
-    }
+    this.updateTouchControlsVisibility();
   }
 
   public hideHUD() {
@@ -198,6 +207,7 @@ export class HUD {
     if (touch) {
       touch.style.display = 'none';
     }
+    document.body.classList.remove('touch-mode');
 
     this.hideFinishCountdown();
     this.hideSpectatorOverlay();

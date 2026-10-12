@@ -158,6 +158,12 @@ export class CheckpointSystem {
     const racer = this.racers.get(racerId);
     if (!racer) return;
 
+    // Freeze checkpoints & track progress permanently if racer has already completed the race
+    if (racer.finishTime !== null) {
+      racer.prevPos.copy(currentPos);
+      return;
+    }
+
     // Handle active respawn delay
     if (racer.isRespawning) {
       racer.respawnTimer -= dt;
@@ -264,9 +270,12 @@ export class CheckpointSystem {
         }
 
         // Check if finished total laps
-        if (racer.lap > this.totalLaps && racer.finishTime === null) {
-          racer.finishTime = performance.now();
-          if (this.onRacerFinish) this.onRacerFinish(racer);
+        if (racer.lap > this.totalLaps) {
+          racer.lap = this.totalLaps;
+          if (racer.finishTime === null) {
+            racer.finishTime = performance.now();
+            if (this.onRacerFinish) this.onRacerFinish(racer);
+          }
         }
       }
     }

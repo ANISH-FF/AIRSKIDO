@@ -1287,9 +1287,13 @@ class Game {
           settingsModal.open();
         }
       }
+      this.hud?.updateTouchControlsVisibility();
     };
     document.addEventListener('fullscreenchange', onFsChange);
     document.addEventListener('webkitfullscreenchange', onFsChange);
+    window.addEventListener('resize', () => {
+      this.hud?.updateTouchControlsVisibility();
+    }, { passive: true });
 
     // Initial Fullscreen gesture: Only attempts once on initial user interaction, NEVER forces after user exits
     let hasAttemptedInitialFullscreen = false;
@@ -3688,6 +3692,22 @@ class Game {
       if (spectatables.length > 0) {
         this.startSpectating();
       }
+    } else if (this.isSpectating) {
+      // If we are currently spectating and the spectated racer just crossed the finish line,
+      // seamlessly cycle camera to the next active racer who is still competing!
+      const spectatables = this.getSpectatableKarts();
+      const currentTarget = spectatables[this.spectatedTargetIdx % spectatables.length];
+      if (currentTarget && currentTarget.id === racer.id) {
+        const nextActiveIdx = spectatables.findIndex((k) => {
+          const p = this.checkpoints.racers.get(k.id);
+          return p && p.finishTime === null;
+        });
+        if (nextActiveIdx !== -1) {
+          this.spectatedTargetIdx = nextActiveIdx;
+          sounds.stopDrift();
+          this.updateSpectatorUI();
+        }
+      }
     }
   }
 
@@ -3723,18 +3743,34 @@ class Game {
       return list;
     }
 
+    // Racing Modes (Classic & Hardcore): Separate active and finished racers
+    const active: typeof list = [];
+    const finished: typeof list = [];
+
     // Bots
     for (const b of this.bots) {
       const prog = this.checkpoints.racers.get(b.kart.id);
-      list.push({ kart: b.kart, name: prog ? prog.name : 'BOT', id: b.kart.id });
+      const item = { kart: b.kart, name: prog ? prog.name : 'BOT', id: b.kart.id };
+      if (prog && prog.finishTime !== null) {
+        finished.push(item);
+      } else {
+        active.push(item);
+      }
     }
 
     // Remote Players
     for (const remote of this.remoteRacers.values()) {
-      list.push({ kart: remote.kart, name: remote.name, id: remote.kart.id });
+      const prog = this.checkpoints.racers.get(remote.kart.id);
+      const item = { kart: remote.kart, name: remote.name, id: remote.kart.id };
+      if (prog && prog.finishTime !== null) {
+        finished.push(item);
+      } else {
+        active.push(item);
+      }
     }
 
-    return list;
+    // Return active racers first so spectator focus stays on live racing action
+    return [...active, ...finished];
   }
 
   private startSpectating() {
@@ -4470,12 +4506,22 @@ class Game {
 
       // 2c. Update AI Bots
       for (const bot of this.bots) {
+        const botProg = !this.isRumbleMode ? this.checkpoints.racers.get(bot.kart.id) : null;
+        const isBotFinished = !!(botProg && botProg.finishTime !== null);
+
         if (this.isRumbleMode && this.rumbleManager?.isRacerKnockedOut(bot.kart.id)) {
           bot.kart.applyInput(0, 0, false, dt, this.physics);
+        } else if (isBotFinished) {
+          // Finished racer: cut throttle & nitro, coast/brake smoothly to a complete stop past finish line
+          bot.kart.boostTime = 0;
+          bot.kart.applyInput(0, 0, false, dt, this.physics);
+          const curLv = bot.kart.rigidBody.linvel();
+          const damp = Math.max(0, 1.0 - dt * 2.5);
+          bot.kart.rigidBody.setLinvel({ x: curLv.x * damp, y: curLv.y, z: curLv.z * damp }, true);
         } else {
           bot.update(dt, this.physics, this.allKarts);
         }
-        if (!this.isRumbleMode) {
+        if (!this.isRumbleMode && !isBotFinished) {
           this.checkpoints.update(
             bot.kart.id,
             bot.kart.group.position,
