@@ -42,7 +42,7 @@
           "@type": "Country",
           "name": "India"
         },
-        "email": "anish@airskido.io",
+        "email": "airskido@gmail.com",
         "url": "https://airskido.io/about.html",
         "description": "Solo creator and developer of AIRSKIDO, the lightest (<5MB) and fastest 3D multiplayer web racing game across the internet. Hand-crafted from scratch through thousands of bug fixes."
       },
@@ -1056,14 +1056,14 @@
 
       <!-- Quick Action Buttons -->
       <div class="connect-buttons-row">
-        <a id="btn-mail-link" href="mailto:anish@airskido.io?subject=AIRSKIDO%20Track%20%2F%20Feature%20Concept&body=Hey%20Anish%2C%20I%20have%20an%20idea%20for%20a%20track%20or%20feature%20in%20AIRSKIDO%3A%20" class="btn-mail-action">
+        <a id="btn-mail-link" href="mailto:airskido@gmail.com?subject=AIRSKIDO%20Track%20%2F%20Feature%20Concept&body=Hey%20Anish%2C%20I%20have%20an%20idea%20for%20a%20track%20or%20feature%20in%20AIRSKIDO%3A%20" class="btn-mail-action">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#FFF" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
           <span>SEND NOTE TO ANISH</span>
         </a>
 
-        <button type="button" id="btn-copy-mail" class="btn-copy-box" title="Copy anish@airskido.io">
+        <button type="button" id="btn-copy-mail" class="btn-copy-box" title="Copy airskido@gmail.com">
           <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#000" stroke-width="2.2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-          <span>COPY: anish@airskido.io</span>
+          <span>COPY: airskido@gmail.com</span>
         </button>
 
         <span id="toast-notify" class="copy-toast">COPIED TO CLIPBOARD!</span>
@@ -1113,18 +1113,18 @@
           const template = chip.getAttribute('data-template') || 'Hey Anish, ';
 
           if (mailBtn) {
-            mailBtn.href = `mailto:anish@airskido.io?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(template)}`;
+            mailBtn.href = `mailto:airskido@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(template)}`;
           }
         });
       });
 
       if (copyBtn && toast) {
         copyBtn.addEventListener('click', () => {
-          navigator.clipboard.writeText('anish@airskido.io').then(() => {
+          navigator.clipboard.writeText('airskido@gmail.com').then(() => {
             toast.style.display = 'inline-block';
             setTimeout(() => { toast.style.display = 'none'; }, 2200);
           }).catch(() => {
-            window.location.href = 'mailto:anish@airskido.io';
+            window.location.href = 'mailto:airskido@gmail.com';
           });
         });
       }
