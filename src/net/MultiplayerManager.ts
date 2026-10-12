@@ -57,6 +57,7 @@ export type NetPacket =
   | { type: 'race_first_finish'; winnerPeerId: string; winnerName: string; countdownSeconds: number }
   | { type: 'rumble_finish'; winningTeam: RumbleTeam | 'draw'; winnerName: string }
   | { type: 'rumble_knockout'; victimId: string; attackerId?: string; victimLives?: number }
+  | { type: 'rumble_score_sync'; frostScore: number; blazeScore: number; racerScores: Array<{ racerId: string; kills: number; deaths: number; lives: number }> }
   | { type: 'room_closed'; reason?: string }
   | { type: 'ping'; t: number }
   | { type: 'pong'; t: number }
@@ -97,6 +98,11 @@ export class MultiplayerManager {
   public onFirstFinishReceived?: (winnerPeerId: string, winnerName: string, countdownSeconds: number) => void;
   public onRumbleFinishReceived?: (winningTeam: RumbleTeam | 'draw', winnerName: string) => void;
   public onRumbleKnockoutReceived?: (victimId: string, attackerId?: string, victimLives?: number) => void;
+  public onRumbleScoreSyncReceived?: (
+    frostScore: number,
+    blazeScore: number,
+    racerScores: Array<{ racerId: string; kills: number; deaths: number; lives: number }>
+  ) => void;
   public onSmashReceived?: (data: SmashPacket) => void;
   public onPlayerLeft?: (peerId: string, playerName?: string) => void;
   public onRoomClosed?: (reason?: string) => void;
@@ -515,7 +521,14 @@ export class MultiplayerManager {
         // Handle transform or game event
         this.handlePacket(packet, conn.peer);
         // Relay to other guests if Host
-        if (this.isHost && (packet.type === 'kart_transform' || packet.type === 'smash' || packet.type === 'race_first_finish' || packet.type === 'rumble_finish')) {
+        if (this.isHost && (
+          packet.type === 'kart_transform' ||
+          packet.type === 'smash' ||
+          packet.type === 'race_first_finish' ||
+          packet.type === 'rumble_finish' ||
+          packet.type === 'rumble_knockout' ||
+          packet.type === 'rumble_score_sync'
+        )) {
           this.broadcast(packet, conn.peer);
         }
       }
@@ -632,6 +645,12 @@ export class MultiplayerManager {
       case 'rumble_knockout':
         if (this.onRumbleKnockoutReceived) {
           this.onRumbleKnockoutReceived(packet.victimId, packet.attackerId, packet.victimLives);
+        }
+        break;
+
+      case 'rumble_score_sync':
+        if (this.onRumbleScoreSyncReceived) {
+          this.onRumbleScoreSyncReceived(packet.frostScore, packet.blazeScore, packet.racerScores);
         }
         break;
     }
@@ -844,6 +863,20 @@ export class MultiplayerManager {
       victimId,
       attackerId,
       victimLives,
+    });
+  }
+
+  // Authoritatively broadcast synchronized rumble scores across all peers
+  public broadcastRumbleScoreSync(
+    frostScore: number,
+    blazeScore: number,
+    racerScores: Array<{ racerId: string; kills: number; deaths: number; lives: number }>
+  ) {
+    this.broadcast({
+      type: 'rumble_score_sync',
+      frostScore,
+      blazeScore,
+      racerScores,
     });
   }
 

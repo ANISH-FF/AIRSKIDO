@@ -1538,11 +1538,24 @@ export class Kart {
         );
       } else if (throttle < 0 && this.boostTime <= 0) {
         // Reverse or Brake (disabled during active rocket boost)
-        const brakeMag = this.stats.acceleration * accelScale * 1.2 * mass * 2.0 * throttle;
-        this.rigidBody.applyImpulse(
-          { x: driveForward.x * brakeMag * dt, y: driveForward.y * brakeMag * dt, z: driveForward.z * brakeMag * dt },
-          true
-        );
+        if (this.currentSpeed > 1.2) {
+          // 1. Moving forward: Apply strong, controlled braking deceleration
+          const brakeForce = this.stats.acceleration * accelScale * 2.2 * mass * throttle;
+          this.rigidBody.applyImpulse(
+            { x: driveForward.x * brakeForce * dt, y: driveForward.y * brakeForce * dt, z: driveForward.z * brakeForce * dt },
+            true
+          );
+        } else {
+          // 2. Stopped or reversing: Apply realistic capped reverse gear power (~30-34 km/h max)
+          const maxReverseSpeed = isArena ? -7.5 : -9.5;
+          if (this.currentSpeed > maxReverseSpeed) {
+            const reverseForce = this.stats.acceleration * accelScale * 0.85 * mass * throttle;
+            this.rigidBody.applyImpulse(
+              { x: driveForward.x * reverseForce * dt, y: driveForward.y * reverseForce * dt, z: driveForward.z * reverseForce * dt },
+              true
+            );
+          }
+        }
       }
 
       // 2. Lateral Tire Grip along Road Surface

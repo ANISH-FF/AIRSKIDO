@@ -610,4 +610,46 @@ export class RumbleManager {
 
     if (this.onKillfeedEvent) this.onKillfeedEvent(entry);
   }
+
+  /**
+   * Returns an array of current kills, deaths, and lives for all registered racers.
+   */
+  public getRacerScoresArray(): Array<{ racerId: string; kills: number; deaths: number; lives: number }> {
+    const list: Array<{ racerId: string; kills: number; deaths: number; lives: number }> = [];
+    for (const r of this.racers.values()) {
+      list.push({
+        racerId: r.id,
+        kills: r.kills,
+        deaths: r.deaths,
+        lives: r.lives,
+      });
+    }
+    return list;
+  }
+
+  /**
+   * Authoritatively syncs scores from Host across all clients.
+   * Guarantees 1000% identical scoreboard display across all 8 players!
+   */
+  public syncAuthoritativeScores(
+    frostScore: number,
+    blazeScore: number,
+    racerScores: Array<{ racerId: string; kills: number; deaths: number; lives: number }>
+  ) {
+    this.frostScore = frostScore;
+    this.blazeScore = blazeScore;
+
+    if (Array.isArray(racerScores)) {
+      for (const rData of racerScores) {
+        const racer = this.racers.get(rData.racerId);
+        if (racer) {
+          racer.kills = rData.kills;
+          racer.deaths = rData.deaths;
+          racer.lives = rData.lives;
+        }
+      }
+    }
+
+    if (this.onScoreUpdate) this.onScoreUpdate();
+  }
 }

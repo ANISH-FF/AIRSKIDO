@@ -82,12 +82,13 @@ export class InputManager {
       if (!leftBtn || !rightBtn) return;
       const rL = leftBtn.getBoundingClientRect();
       const rR = rightBtn.getBoundingClientRect();
-      leftL = rL.left - 20;
-      leftR = rL.right + 10;
+      const midX = (rL.right + rR.left) * 0.5;
+      leftL = rL.left - 25;
+      leftR = midX;
       leftT = rL.top - 30;
       leftB = rL.bottom + 30;
-      rightL = rR.left - 10;
-      rightR = rR.right + 20;
+      rightL = midX;
+      rightR = rR.right + 25;
       rightT = rR.top - 30;
       rightB = rR.bottom + 30;
       rectsCached = true;
@@ -215,19 +216,9 @@ export class InputManager {
     if (this.keys['KeyA'] || this.keys['ArrowLeft']) steer -= 1;
     if (this.keys['KeyD'] || this.keys['ArrowRight']) steer += 1;
 
-    // Mobile touch controls (Left Steering & Nitro, Right Pedals)
-    if (this.touchGas) {
-      throttle += 1;
-      this.touchGasBufferTimer = 0.35; // 350ms inertia grace buffer
-    } else if (this.touchGasBufferTimer > 0) {
-      this.touchGasBufferTimer -= dt;
-      throttle += 1; // Preserve full throttle during thumb shift
-    }
-
-    if (this.touchBrake) {
-      this.touchGasBufferTimer = 0; // Immediate brake cancel
-      throttle -= 1;
-    }
+    // Mobile touch controls (Left Steering & Nitro, Right Pedals: 1:1 Instantaneous Response)
+    if (this.touchGas) throttle += 1;
+    if (this.touchBrake) throttle -= 1;
 
     if (this.touchSteerLeft) steer -= 1;
     if (this.touchSteerRight) steer += 1;

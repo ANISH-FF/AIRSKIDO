@@ -279,6 +279,7 @@ class Game {
   private isTimeAttackSolo: boolean = true;
   private selectedMpRumbleFormat: 'tdm' | 'ffa' = 'tdm';
   private selectedMpRumbleRule: string = 'kills_10';
+  private rumbleScoreSyncTimer: number = 0;
   private isModeSelectOpen: boolean = false;
   private isStoreOpen: boolean = false;
 
@@ -1685,6 +1686,19 @@ class Game {
     net.onRumbleKnockoutReceived = (victimId, attackerId, victimLives) => {
       if (this.rumbleManager) {
         this.rumbleManager.applyRemoteKnockout(victimId, attackerId, victimLives);
+        // If Host, immediately broadcast authoritative synchronized scores to all peers!
+        if (net.isHost) {
+          net.broadcastRumbleScoreSync(
+            this.rumbleManager.frostScore,
+            this.rumbleManager.blazeScore,
+            this.rumbleManager.getRacerScoresArray()
+          );
+        }
+      }
+    };
+    net.onRumbleScoreSyncReceived = (frostScore, blazeScore, racerScores) => {
+      if (this.rumbleManager) {
+        this.rumbleManager.syncAuthoritativeScores(frostScore, blazeScore, racerScores);
       }
     };
     net.onHostMigrated = (newHost, isSelf) => {
@@ -2306,6 +2320,13 @@ class Game {
     this.rumbleManager.onKnockoutBroadcast = (victimId, attackerId, victimLives) => {
       if (this.isMultiplayer) {
         net.broadcastRumbleKnockout(victimId, attackerId, victimLives);
+        if (net.isHost && this.rumbleManager) {
+          net.broadcastRumbleScoreSync(
+            this.rumbleManager.frostScore,
+            this.rumbleManager.blazeScore,
+            this.rumbleManager.getRacerScoresArray()
+          );
+        }
       }
     };
 
@@ -4548,6 +4569,19 @@ class Game {
           }
         }
         this.hud.updateRumbleHud(this.rumbleManager, this.player.kart, spectatedId);
+
+        // Host Periodic 1.0s Score Heartbeat to prevent ANY desync across all 8 players
+        if (this.isMultiplayer && net.isHost) {
+          this.rumbleScoreSyncTimer += dt;
+          if (this.rumbleScoreSyncTimer >= 1.0) {
+            this.rumbleScoreSyncTimer = 0;
+            net.broadcastRumbleScoreSync(
+              this.rumbleManager.frostScore,
+              this.rumbleManager.blazeScore,
+              this.rumbleManager.getRacerScoresArray()
+            );
+          }
+        }
       }
 
       // 2d. Continuous Combat Collision Check
