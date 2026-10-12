@@ -36,7 +36,7 @@ export const CLASSIC_QUOTES: string[] = [
 export const TIME_SPRINT_QUOTES: string[] = [
   "Every millisecond matters. Find the tightest racing line around each apex.",
   "Zero collisions, zero rivals. Pure 1-lap speed against the clock.",
-  "No abilities, no luck. Beat the ghost with pure driving lines."
+  "No abilities, no luck. Beat the clock and set the ultimate lap record."
 ];
 
 export class MatchLoadingScreen {
