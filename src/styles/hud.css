@@ -539,42 +539,24 @@
       width: auto;
     }
     body.touch-mode .speed-value {
-      font-size: 32px;
-      color: #fff;
+      font-family: var(--font-digital);
+      font-size: 26px;
+      color: #FFDE59;
+      line-height: 1;
+      letter-spacing: 0.5px;
+      text-shadow: 1px 1px 0 #000;
     }
     body.touch-mode .speed-unit {
-      font-size: 11px;
-      color: #00f0ff;
+      font-family: var(--font-display);
+      font-size: 9px;
+      font-weight: 900;
+      color: #FFFFFF;
+      letter-spacing: 1px;
       margin-top: 0;
     }
+    /* Hide desktop nitro widget on mobile — touch pedal cluster has its own big Nitro button! */
     body.touch-mode .nitro-card {
-      margin-top: 0;
-      padding-top: 0;
-      border-top: none;
-      flex-direction: row;
-      align-items: center;
-      gap: 6px;
-      width: auto;
-    }
-    body.touch-mode .nitro-card-header {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
-    body.touch-mode .nitro-card-title {
-      display: none;
-    }
-    body.touch-mode .nitro-card-count {
-      font-size: 12px;
-      color: #ffe600;
-    }
-    body.touch-mode .nitro-pips-container {
-      display: none;
-    }
-    body.touch-mode .nitro-bar-container {
-      width: 55px;
-      height: 8px;
-      border: 1.5px solid #000;
+      display: none !important;
     }
 
     /* ── RIGHT CLUSTER: Throttle, Brake, Nitro & Drift Pedals ── */
