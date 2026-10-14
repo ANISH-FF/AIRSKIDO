@@ -126,6 +126,7 @@ export class Kart {
   // Arcade vehicle states
   public currentSpeed: number = 0;
   public steerAngle: number = 0;
+  public smoothedSteer: number = 0;
   public isDrifting: boolean = false;
   public driftTime: number = 0;
   public boostTime: number = 0;
@@ -1546,10 +1547,10 @@ export class Kart {
             true
           );
         } else {
-          // 2. Stopped or reversing: Apply realistic capped reverse gear power (~30-34 km/h max)
-          const maxReverseSpeed = isArena ? -7.5 : -9.5;
+          // 2. Stopped or reversing: Punchy arcade reverse gear (~60-70 km/h top speed)
+          const maxReverseSpeed = isArena ? -16.5 : -19.0;
           if (this.currentSpeed > maxReverseSpeed) {
-            const reverseForce = this.stats.acceleration * accelScale * 0.85 * mass * throttle;
+            const reverseForce = this.stats.acceleration * accelScale * 1.5 * mass * throttle;
             this.rigidBody.applyImpulse(
               { x: driveForward.x * reverseForce * dt, y: driveForward.y * reverseForce * dt, z: driveForward.z * reverseForce * dt },
               true
@@ -1573,10 +1574,21 @@ export class Kart {
       const speedFactor = Math.max(0.35, Math.min(1.0, Math.abs(this.currentSpeed) / 7.0));
       const steerDirection = this.currentSpeed >= -0.5 ? -1 : 1;
       const handlingMultiplier = isArena ? 1.25 : 1.0;
-      // High-speed steering weight: at 80-170 km/h, normal steering gets realistic weight/understeer (down to 65%)
-      // In drift mode, steering gets a 1.55x boost so player can carve the corner sharply!
-      const highSpeedWeight = this.isDrifting ? 1.55 : THREE.MathUtils.lerp(1.0, 0.65, THREE.MathUtils.clamp((speedKmh - 75) / 85, 0, 1));
-      const turnRate = this.stats.handling * handlingMultiplier * highSpeedWeight * steer * speedFactor * steerDirection;
+
+      // Smooth steering micro-ramp to eliminate digital 0ms twitch on keyboard/touch:
+      // Reaches target in ~60-70ms (dt * 18.0) - feels ultra responsive with zero lag, but eliminates 0ms violent jerk!
+      this.smoothedSteer = THREE.MathUtils.lerp(this.smoothedSteer, steer, Math.min(1.0, dt * 18.0));
+
+      // High-speed steering weight:
+      // 0 - 50 km/h: 100% response (crisp agility)
+      // 50 - 110 km/h: ~95% response
+      // 110 - 180 km/h: 90% response (exact 90% requested by user)
+      // In drift mode, preserve full turning boost (1.55x) so car can spin and carve freely!
+      const highSpeedWeight = this.isDrifting
+        ? 1.55
+        : THREE.MathUtils.lerp(1.0, 0.90, THREE.MathUtils.clamp((speedKmh - 45) / 125, 0, 1));
+
+      const turnRate = this.stats.handling * handlingMultiplier * highSpeedWeight * this.smoothedSteer * speedFactor * steerDirection;
       this.rigidBody.setAngvel({ x: 0, y: turnRate, z: 0 }, true);
 
       // 4. Smooth Road Height Lock (Zero Bounce, Zero Hopping, Zero Sinking)

@@ -416,24 +416,26 @@
 
 .pilot-name {
   font-family: var(--font-display);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 900;
   color: #000;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 155px;
+  max-width: 150px;
+  flex-shrink: 1;
+  min-width: 0;
 }
 
 .pilot-you-tag {
   font-family: var(--font-display);
-  font-size: 8.5px;
+  font-size: 8px;
   font-weight: 900;
   background: #ffe600;
   color: #000;
   border: 1.5px solid #000;
   border-radius: 4px;
-  padding: 1px 4px;
+  padding: 0.5px 3.5px;
   box-shadow: 1px 1px 0 #000;
   flex-shrink: 0;
 }
@@ -546,12 +548,14 @@
     border-radius: 6px !important;
   }
   .pilot-name {
-    max-width: 130px !important;
-    font-size: 10.5px !important;
+    max-width: 135px !important;
+    font-size: 9.5px !important;
+    flex-shrink: 1 !important;
+    min-width: 0 !important;
   }
   .pilot-mvp-pill, .pilot-you-tag {
-    font-size: 7.5px !important;
-    padding: 0.5px 3px !important;
+    font-size: 7px !important;
+    padding: 0.5px 2.5px !important;
   }
   #finish-modal.has-tdm .finish-rewards-box {
     padding: 3px 8px !important;
@@ -673,6 +677,23 @@
     line-height: 1 !important;
   }
   .rumble-squad-col-bar {
+    padding: 3px 8px !important;
+    font-size: 8px !important;
+    border-bottom: 1.5px solid #000 !important;
+  }
+  .col-head-pilot {
+    font-size: 8px !important;
+    font-weight: 900 !important;
+  }
+  .col-head-stats {
+    gap: 4px !important;
+  }
+  .col-head-k, .col-head-d {
+    width: 22px !important;
+    font-size: 8px !important;
+    font-weight: 900 !important;
+  }
+  .rumble-squad-col-bar {
     padding: 2px 6px !important;
     font-size: 7.5px !important;
     font-weight: 900 !important;
@@ -699,31 +720,44 @@
     border: 1px solid #000 !important;
     border-radius: 5px !important;
     box-shadow: 1px 1px 0 #000 !important;
-    min-height: 22px !important; /* 22px rows fit perfectly in 280px total height */
+    min-height: 22px !important;
     box-sizing: border-box !important;
+    background: #fff !important;
+  }
+  .rumble-pilot-row.is-self {
+    background: #fffdf0 !important;
+    box-shadow: 1.5px 1.5px 0 #ffe600, 1.5px 1.5px 0 1px #000 !important;
+    border-left: 1px solid #000 !important;
   }
   .pilot-left {
-    gap: 3px !important;
+    gap: 2.5px !important;
+    min-width: 0 !important;
   }
   .pilot-mvp-pill {
-    font-size: 7px !important;
-    padding: 0.5px 3px !important;
+    font-size: 6.5px !important;
+    padding: 0.5px 2.5px !important;
     border-width: 1px !important;
     border-radius: 2px !important;
     font-weight: 900 !important;
   }
   .pilot-you-tag {
-    font-size: 7px !important;
-    padding: 0.5px 3px !important;
+    font-size: 6.5px !important;
+    padding: 0.5px 2.5px !important;
     border-width: 1px !important;
     border-radius: 2px !important;
     font-weight: 900 !important;
+    background: #ffe600 !important;
+    color: #000 !important;
+    border-color: #000 !important;
   }
   .pilot-name {
-    max-width: 82px !important;
-    font-size: 10px !important;
+    max-width: 110px !important;
+    font-size: 8.5px !important;
     font-weight: 900 !important;
     line-height: 1 !important;
+    color: #000 !important;
+    flex-shrink: 1 !important;
+    min-width: 0 !important;
   }
   .pilot-stat-cols {
     gap: 4px !important;
@@ -734,10 +768,13 @@
     font-size: 11px !important;
     line-height: 16px !important;
     border-width: 1px !important;
+    border: 1px solid #000 !important;
     border-radius: 3px !important;
     box-shadow: none !important;
     padding: 0 !important;
     font-weight: 900 !important;
+    background: #fff !important;
+    color: #000 !important;
   }
   /* Finish Rewards Box Compact in Landscape */
   #finish-modal.has-tdm .finish-rewards-box {
@@ -747,6 +784,8 @@
     border-radius: 7px !important;
     border-width: 1.5px !important;
     box-shadow: 1.5px 1.5px 0 #000 !important;
+    background: #fffbe6 !important;
+    border-color: #000 !important;
   }
   #finish-modal.has-tdm .finish-rewards-row {
     gap: 8px !important;
@@ -757,12 +796,19 @@
     font-weight: 900 !important;
     border-radius: 5px !important;
     border-width: 1px !important;
+    border-color: #000 !important;
+    box-shadow: 1px 1px 0 #000 !important;
+    background: #fff !important;
+    color: #000 !important;
   }
   #finish-modal.has-tdm .finish-xp-progression-box {
     padding: 1.5px 6px !important;
     gap: 2px !important;
     border-radius: 5px !important;
     border-width: 1px !important;
+    border-color: #000 !important;
+    box-shadow: 1px 1px 0 #000 !important;
+    background: #fff !important;
   }
   #finish-modal.has-tdm .finish-level-tag {
     font-size: 7.5px !important;
@@ -798,12 +844,12 @@
 .finish-rewards-box {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  background: #fffbe6;
-  border: 2.5px solid #000;
+  gap: 6px;
+  background: #ffffff;
+  border: 2px solid #000;
   box-shadow: 3.5px 3.5px 0 #000;
-  border-radius: 14px;
-  padding: 10px 14px;
+  border-radius: 12px;
+  padding: 8px 12px;
   margin: 6px 0;
   width: 100%;
   box-sizing: border-box;
@@ -826,22 +872,22 @@
 .finish-rewards-row {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   width: 100%;
 }
 .finish-reward-pill {
   display: flex;
   align-items: center;
   gap: 6px;
-  background: #fff;
-  border: 2px solid #000;
-  box-shadow: 2px 2px 0 #000;
-  border-radius: 10px;
-  padding: 6px 12px;
+  background: #ffffff;
+  border: 2px solid #000000;
+  box-shadow: 2px 2px 0px #000000;
+  border-radius: 8px;
+  padding: 5px 12px;
   font-family: var(--font-display);
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 900;
-  color: #000;
+  color: #000000;
   white-space: nowrap;
 }
 .finish-xp-progression-box {
@@ -849,10 +895,10 @@
   display: flex;
   flex-direction: column;
   gap: 3px;
-  background: #fff;
-  border: 2px solid #000;
-  box-shadow: 2px 2px 0 #000;
-  border-radius: 10px;
+  background: #f8fafc;
+  border: 1.5px solid #e2e8f0;
+  box-shadow: none;
+  border-radius: 8px;
   padding: 5px 10px;
 }
 .finish-xp-header {

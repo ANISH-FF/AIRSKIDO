@@ -7,8 +7,8 @@ import { sounds } from '../core/Sound';
 export class PlayerKart {
   public kart: Kart;
   public input: InputManager;
-  private cameraOffset = new THREE.Vector3(0, 2.85, -5.9);
-  private cameraTargetOffset = new THREE.Vector3(0, 1.05, 2.6);
+  private cameraOffset = new THREE.Vector3(0, 2.65, -5.1);
+  private cameraTargetOffset = new THREE.Vector3(0, 1.0, 2.2);
 
   private currentCamPos = new THREE.Vector3();
   private currentCamLookAt = new THREE.Vector3();
@@ -25,7 +25,7 @@ export class PlayerKart {
   private readonly _camSmoothHeading = new THREE.Quaternion();
   private readonly _camDesiredPos = new THREE.Vector3();
   private readonly _camDesiredLookAt = new THREE.Vector3();
-  private readonly _camAirOffset = new THREE.Vector3(0, 3.3, -6.5);
+  private readonly _camAirOffset = new THREE.Vector3(0, 3.0, -5.9);
   private readonly _camShakeRight = new THREE.Vector3();
   private readonly _camShakeUp = new THREE.Vector3();
   private readonly _camFwdSnap = new THREE.Vector3();
@@ -88,6 +88,8 @@ export class PlayerKart {
       this._camOffsetWithSpeed.copy(this.cameraOffset).applyQuaternion(this._camSmoothHeading);
       this.currentCamPos.copy(kartPos).add(this._camOffsetWithSpeed);
       this.currentCamLookAt.copy(kartPos);
+      camera.position.copy(this.currentCamPos);
+      camera.lookAt(this.currentCamLookAt);
     }
 
     const isAirborne = kartToFollow.airLaunchTimer > 0 || (kartPos.y < -4.0);
@@ -146,11 +148,19 @@ export class PlayerKart {
         this._camDesiredLookAt.set(kartPos.x, kartPos.y + 0.8, kartPos.z);
       } else {
         // ── GROUNDED DRIVING MODE ──
-        if (kartToFollow.rigidBody) {
+        if (kartToFollow === this.kart && kartToFollow.rigidBody) {
           const rbRot = kartToFollow.rigidBody.rotation();
           const fwdX = 2 * rbRot.w * rbRot.y;
           const fwdZ = rbRot.w * rbRot.w - rbRot.y * rbRot.y;
           const groundYaw = Math.atan2(fwdX, fwdZ);
+
+          let diff = groundYaw - this.camYaw;
+          while (diff < -Math.PI) diff += Math.PI * 2;
+          while (diff > Math.PI) diff -= Math.PI * 2;
+          this.camYaw += diff * (1.0 - Math.exp(-12.0 * dt));
+        } else {
+          this._camFwdSnap.set(0, 0, 1).applyQuaternion(kartRot);
+          const groundYaw = Math.atan2(this._camFwdSnap.x, this._camFwdSnap.z);
 
           let diff = groundYaw - this.camYaw;
           while (diff < -Math.PI) diff += Math.PI * 2;

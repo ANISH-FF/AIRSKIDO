@@ -196,7 +196,17 @@ export class SparkParticles {
 
   public dispose(scene?: THREE.Scene) {
     if (this.geometry) this.geometry.dispose();
-    if (this.material) this.material.dispose();
-    if (scene && this.mesh) scene.remove(this.mesh);
+    if (this.points) {
+      if (Array.isArray(this.points.material)) {
+        this.points.material.forEach((m) => m.dispose());
+      } else if (this.points.material) {
+        this.points.material.dispose();
+      }
+      if (scene) {
+        scene.remove(this.points);
+      } else if (this.points.parent) {
+        this.points.parent.remove(this.points);
+      }
+    }
   }
 }

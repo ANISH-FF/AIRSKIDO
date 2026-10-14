@@ -175,6 +175,24 @@ export class NetworkInterpolator {
   }
 
   /**
+   * Smoothly blends from current visual landing position into the network stream.
+   * Calculates errorOffset = currentVisualPos - networkPos.
+   * Nearby physical landing divergences (0.1m - 6.0m) blend 100% seamlessly
+   * without twitching, jerking, or teleporting!
+   */
+  public blendFromPosition(currentVisualPos: THREE.Vector3) {
+    if (this.buffer.length === 0) return;
+    const newest = this.buffer[this.buffer.length - 1];
+    NetworkInterpolator._p0.set(newest.x, newest.y, newest.z);
+    const distSq = currentVisualPos.distanceToSquared(NetworkInterpolator._p0);
+    if (distSq < 36.0) {
+      this.errorOffset.copy(currentVisualPos).sub(NetworkInterpolator._p0);
+    } else {
+      this.errorOffset.set(0, 0, 0);
+    }
+  }
+
+  /**
    * Primary 60/120 FPS update call. Computes smooth position and rotation.
    */
   public update(dt: number, outPosition: THREE.Vector3, outQuaternion: THREE.Quaternion) {

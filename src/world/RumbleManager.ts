@@ -17,7 +17,24 @@ export interface RumbleRacer {
   lives: number;
   isEliminated: boolean;
   respawnTimer: number;
+  lastKillSeq?: number;
   lastHitBy?: { attackerId: string; attackerName: string; attackerTeam: RumbleTeam; time: number };
+}
+
+/**
+ * Deterministic Pro-Gaming Comparator for Rumble Racers & MVP Selection:
+ * 1. Highest Kills (b.kills - a.kills)
+ * 2. Lowest Deaths (a.deaths - b.deaths)
+ * 3. First to reach that Kill Count (smaller lastKillSeq wins)
+ * 4. Deterministic ID tie-breaker (a.id.localeCompare(b.id))
+ */
+export function compareRumbleRacers(a: RumbleRacer, b: RumbleRacer): number {
+  if (b.kills !== a.kills) return b.kills - a.kills;
+  if (a.deaths !== b.deaths) return a.deaths - b.deaths;
+  const seqA = a.lastKillSeq && a.lastKillSeq > 0 ? a.lastKillSeq : 999999;
+  const seqB = b.lastKillSeq && b.lastKillSeq > 0 ? b.lastKillSeq : 999999;
+  if (seqA !== seqB) return seqA - seqB;
+  return a.id.localeCompare(b.id);
 }
 
 export interface KillfeedEntry {
@@ -61,10 +78,11 @@ export class RumbleManager {
   public onPlayerEliminated?: () => void;
   public onPlayerScoredKill?: (victimName: string, comboCount: number, comboTitle: string) => void;
   public onPlayerKnockedOut?: (attackerName?: string) => void;
-  public onKnockoutBroadcast?: (victimId: string, attackerId?: string, victimLives?: number) => void;
+  public onKnockoutBroadcast?: (victimId: string, attackerId?: string, victimLives?: number, victimDeaths?: number) => void;
 
   private playerComboKills: number = 0;
   private lastPlayerKillTime: number = 0;
+  private killSequenceCounter: number = 0;
   private arenaConfig: RumbleArenaConfig;
 
   constructor(arenaConfig: RumbleArenaConfig) {
@@ -79,6 +97,7 @@ export class RumbleManager {
     this.winnerName = '';
     this.frostScore = 0;
     this.blazeScore = 0;
+    this.killSequenceCounter = 0;
     this.killfeed = [];
 
     if (winRule === 'kills_10') this.targetKills = 10;
@@ -250,6 +269,7 @@ export class RumbleManager {
 
     if (attacker && attacker !== victim) {
       attacker.kills++;
+      attacker.lastKillSeq = ++this.killSequenceCounter;
       if (this.isTDM) {
         if (attacker.team === 'frost' || attacker.team === 'cyan') this.frostScore++;
         else if (attacker.team === 'blaze' || attacker.team === 'crimson') this.blazeScore++;
@@ -328,14 +348,17 @@ export class RumbleManager {
       );
     }
 
+    // Always broadcast knockout BEFORE checking finishMatch so final winning kill is sent first!
+    if (this.onKnockoutBroadcast) {
+      this.onKnockoutBroadcast(victim.id, attacker?.id, victim.lives, victim.deaths);
+    }
+
+    if (this.onScoreUpdate) this.onScoreUpdate();
+
     if (isElimination) {
       if (victim.isPlayer && this.onPlayerEliminated) {
         this.onPlayerEliminated();
       }
-      if (this.onKnockoutBroadcast) {
-        this.onKnockoutBroadcast(victim.id, attacker?.id, victim.lives);
-      }
-      if (this.onScoreUpdate) this.onScoreUpdate();
       this.checkLastKartStanding();
       return;
     }
@@ -362,44 +385,31 @@ export class RumbleManager {
         }
       }
     }
-
-    if (this.onKnockoutBroadcast) {
-      this.onKnockoutBroadcast(victim.id, attacker?.id, victim.lives);
-    }
-
-    if (this.onScoreUpdate) this.onScoreUpdate();
   }
 
-  public applyRemoteKnockout(victimId: string, attackerId?: string, victimLives?: number) {
+  public applyRemoteKnockout(victimId: string, attackerId?: string, victimLives?: number, victimDeaths?: number) {
     const victim = this.racers.get(victimId);
-    if (!victim || this.isMatchOver) return;
+    // Local player processes its own fall in processKnockout; ignore duplicate or already-respawning packets
+    if (!victim || victim.isPlayer || victim.respawnTimer > 0) return;
+
+    // Check if an authoritative score sync already updated this victim's death count
+    const alreadyCountedBySync = victimDeaths !== undefined && victim.deaths >= victimDeaths;
 
     let attacker: RumbleRacer | undefined;
     if (attackerId) {
       attacker = this.racers.get(attackerId);
     }
 
-    const wasAlreadyRespawning = victim.respawnTimer > 0;
-    if (!wasAlreadyRespawning) {
-      victim.deaths++;
-      victim.respawnTimer = 1.8;
-      if (victim.isPlayer) {
-        // If local player was knocked out remotely before local rim check,
-        // initiate natural 1.8s downward sky plunge instead of a premature teleport!
-        const curLv = victim.kart.rigidBody.linvel();
-        victim.kart.rigidBody.setLinvel({ x: curLv.x, y: -22.0, z: curLv.z }, true);
-        victim.kart.airLaunchTimer = 1.8;
-        victim.kart.isGrounded = false;
-      }
-      // Note: executeRespawn is strictly handled by update(dt) when respawnTimer hits 0!
-      // NEVER call this.executeRespawn(victim) prematurely here!
+    if (!alreadyCountedBySync) {
+      victim.deaths = victimDeaths !== undefined ? Math.max(victim.deaths + 1, victimDeaths) : victim.deaths + 1;
     }
+    victim.respawnTimer = 1.8;
 
     let isElimination = false;
     if (this.winRule === 'lives_3') {
       if (victimLives !== undefined) {
         victim.lives = victimLives;
-      } else if (!wasAlreadyRespawning) {
+      } else if (!alreadyCountedBySync) {
         victim.lives--;
       }
       if (victim.lives <= 0) {
@@ -408,11 +418,40 @@ export class RumbleManager {
       }
     }
 
+    const now = performance.now();
+
     if (attacker && attacker !== victim) {
-      attacker.kills++;
-      if (this.isTDM) {
-        if (attacker.team === 'frost' || attacker.team === 'cyan') this.frostScore++;
-        else if (attacker.team === 'blaze' || attacker.team === 'crimson') this.blazeScore++;
+      if (!alreadyCountedBySync) {
+        attacker.kills++;
+        attacker.lastKillSeq = ++this.killSequenceCounter;
+        if (this.isTDM) {
+          if (attacker.team === 'frost' || attacker.team === 'cyan') this.frostScore++;
+          else if (attacker.team === 'blaze' || attacker.team === 'crimson') this.blazeScore++;
+        }
+      }
+
+      if (attacker.isPlayer) {
+        const timeSinceLast = now - this.lastPlayerKillTime;
+        if (timeSinceLast < 4000) {
+          this.playerComboKills++;
+        } else {
+          this.playerComboKills = 1;
+        }
+        this.lastPlayerKillTime = now;
+
+        const cleanName = victim.name.replace(/_/g, ' ');
+        let comboTitle = `YOU SLAMMED ${cleanName}!`;
+        if (this.playerComboKills === 2) {
+          comboTitle = 'DOUBLE SLAM!';
+        } else if (this.playerComboKills === 3) {
+          comboTitle = 'TRIPLE SLAM!';
+        } else if (this.playerComboKills >= 4) {
+          comboTitle = 'SKY DOMINATOR!';
+        }
+
+        if (this.onPlayerScoredKill) {
+          this.onPlayerScoredKill(victim.name, this.playerComboKills, comboTitle);
+        }
       }
 
       const notifText = isElimination
@@ -429,18 +468,10 @@ export class RumbleManager {
         !!victim.isPlayer,
         isElimination
       );
-
-      if (victim.isPlayer && this.onPlayerKnockedOut) {
-        this.onPlayerKnockedOut(attacker.name);
-      }
     } else {
-      if (this.isTDM) {
+      if (!alreadyCountedBySync && this.isTDM) {
         if (victim.team === 'frost' || victim.team === 'cyan') this.blazeScore++;
         else if (victim.team === 'blaze' || victim.team === 'crimson') this.frostScore++;
-      }
-
-      if (victim.isPlayer && this.onPlayerKnockedOut) {
-        this.onPlayerKnockedOut(undefined);
       }
 
       const notifText = isElimination
@@ -459,11 +490,11 @@ export class RumbleManager {
       );
     }
 
+    if (this.onScoreUpdate) this.onScoreUpdate();
+
+    if (this.isMatchOver) return;
+
     if (isElimination) {
-      if (victim.isPlayer && this.onPlayerEliminated) {
-        this.onPlayerEliminated();
-      }
-      if (this.onScoreUpdate) this.onScoreUpdate();
       this.checkLastKartStanding();
       return;
     }
@@ -488,8 +519,6 @@ export class RumbleManager {
         }
       }
     }
-
-    if (this.onScoreUpdate) this.onScoreUpdate();
   }
 
   private executeRespawn(racer: RumbleRacer) {
@@ -541,11 +570,8 @@ export class RumbleManager {
         const winner = aliveRacers[0];
         let champName = winner ? winner.name : '';
         if (!champName) {
-          let topRacer: RumbleRacer | null = null;
-          for (const r of this.racers.values()) {
-            if (!topRacer || r.kills > topRacer.kills) topRacer = r;
-          }
-          champName = topRacer ? topRacer.name : 'CHAMPION';
+          const sorted = Array.from(this.racers.values()).sort(compareRumbleRacers);
+          champName = sorted[0] ? sorted[0].name : 'CHAMPION';
         }
         this.finishMatch('none', champName);
       }
@@ -562,14 +588,9 @@ export class RumbleManager {
         this.finishMatch('draw', 'DRAW / TIE');
       }
     } else {
-      // Find racer with most kills
-      let topRacer: RumbleRacer | null = null;
-      for (const r of this.racers.values()) {
-        if (!topRacer || r.kills > topRacer.kills) {
-          topRacer = r;
-        }
-      }
-      this.finishMatch('none', topRacer ? topRacer.name : 'CHAMPION');
+      // Find racer with most kills (tie-breaker: fewer deaths, then first to score, then id)
+      const sorted = Array.from(this.racers.values()).sort(compareRumbleRacers);
+      this.finishMatch('none', sorted[0] ? sorted[0].name : 'CHAMPION');
     }
   }
 
@@ -612,44 +633,97 @@ export class RumbleManager {
   }
 
   /**
-   * Returns an array of current kills, deaths, and lives for all registered racers.
+   * Returns an array of current kills, deaths, lives, elimination status, and kill sequence for all registered racers.
    */
-  public getRacerScoresArray(): Array<{ racerId: string; kills: number; deaths: number; lives: number }> {
-    const list: Array<{ racerId: string; kills: number; deaths: number; lives: number }> = [];
+  public getRacerScoresArray(): Array<{ racerId: string; kills: number; deaths: number; lives: number; isEliminated?: boolean; lastKillSeq?: number }> {
+    const list: Array<{ racerId: string; kills: number; deaths: number; lives: number; isEliminated?: boolean; lastKillSeq?: number }> = [];
     for (const r of this.racers.values()) {
       list.push({
         racerId: r.id,
         kills: r.kills,
         deaths: r.deaths,
         lives: r.lives,
+        isEliminated: r.isEliminated,
+        lastKillSeq: r.lastKillSeq,
       });
     }
     return list;
   }
 
   /**
-   * Authoritatively syncs scores from Host across all clients.
-   * Guarantees 1000% identical scoreboard display across all 8 players!
+   * Authoritatively syncs scores across all clients.
+   * Uses monotonic max/min merging so an older in-flight heartbeat can NEVER roll back a newer knockout!
    */
   public syncAuthoritativeScores(
     frostScore: number,
     blazeScore: number,
-    racerScores: Array<{ racerId: string; kills: number; deaths: number; lives: number }>
+    racerScores: Array<{ racerId: string; kills: number; deaths: number; lives: number; isEliminated?: boolean; lastKillSeq?: number }>
   ) {
-    this.frostScore = frostScore;
-    this.blazeScore = blazeScore;
-
     if (Array.isArray(racerScores)) {
       for (const rData of racerScores) {
         const racer = this.racers.get(rData.racerId);
         if (racer) {
-          racer.kills = rData.kills;
-          racer.deaths = rData.deaths;
-          racer.lives = rData.lives;
+          if (rData.kills > racer.kills) {
+            racer.kills = rData.kills;
+            racer.lastKillSeq = (rData.lastKillSeq !== undefined && rData.lastKillSeq > 0)
+              ? rData.lastKillSeq
+              : ++this.killSequenceCounter;
+          } else if (rData.kills === racer.kills && rData.lastKillSeq !== undefined && rData.lastKillSeq > 0) {
+            racer.lastKillSeq = rData.lastKillSeq;
+          }
+          if (rData.lastKillSeq !== undefined && rData.lastKillSeq > 0) {
+            this.killSequenceCounter = Math.max(this.killSequenceCounter, rData.lastKillSeq);
+          }
+          racer.deaths = Math.max(racer.deaths, rData.deaths);
+          racer.lives = Math.min(racer.lives, rData.lives);
+          if (rData.isEliminated || racer.lives <= 0) {
+            racer.isEliminated = true;
+          }
         }
       }
     }
 
+    this.frostScore = Math.max(this.frostScore, frostScore);
+    this.blazeScore = Math.max(this.blazeScore, blazeScore);
+
+    // In TDM, every Blaze death awards 1 Frost point (kill or ring-out) and every Frost death awards 1 Blaze point
+    if (this.isTDM) {
+      let frostDeaths = 0;
+      let blazeDeaths = 0;
+      let frostKills = 0;
+      let blazeKills = 0;
+      for (const r of this.racers.values()) {
+        if (r.team === 'frost' || r.team === 'cyan') {
+          frostDeaths += r.deaths;
+          frostKills += r.kills;
+        } else if (r.team === 'blaze' || r.team === 'crimson') {
+          blazeDeaths += r.deaths;
+          blazeKills += r.kills;
+        }
+      }
+      this.frostScore = Math.max(this.frostScore, blazeDeaths, frostKills);
+      this.blazeScore = Math.max(this.blazeScore, frostDeaths, blazeKills);
+    }
+
     if (this.onScoreUpdate) this.onScoreUpdate();
+
+    if (!this.isMatchOver) {
+      if (this.winRule === 'lives_3') {
+        this.checkLastKartStanding();
+      } else if (this.winRule.startsWith('kills_')) {
+        if (this.isTDM) {
+          if (this.frostScore >= this.targetKills) {
+            this.finishMatch('frost', 'TEAM FROST');
+          } else if (this.blazeScore >= this.targetKills) {
+            this.finishMatch('blaze', 'TEAM BLAZE');
+          }
+        } else {
+          const sorted = Array.from(this.racers.values()).sort(compareRumbleRacers);
+          if (sorted[0] && sorted[0].kills >= this.targetKills) {
+            this.finishMatch('none', sorted[0].name);
+          }
+        }
+      }
+    }
   }
 }

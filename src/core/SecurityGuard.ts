@@ -30,7 +30,7 @@ export class SecurityGuard {
       if (e.key === 'F12' || e.keyCode === 123) {
         e.preventDefault();
         e.stopPropagation();
-        return false;
+        return;
       }
 
       const ctrlOrMeta = e.ctrlKey || e.metaKey;
@@ -40,21 +40,21 @@ export class SecurityGuard {
         if (e.shiftKey && (e.key === 'I' || e.key === 'i' || e.key === 'J' || e.key === 'j' || e.key === 'C' || e.key === 'c')) {
           e.preventDefault();
           e.stopPropagation();
-          return false;
+          return;
         }
 
         // Ctrl+U (View Source)
         if (e.key === 'u' || e.key === 'U') {
           e.preventDefault();
           e.stopPropagation();
-          return false;
+          return;
         }
 
         // Ctrl+S (Save Page HTML & Assets)
         if (e.key === 's' || e.key === 'S') {
           e.preventDefault();
           e.stopPropagation();
-          return false;
+          return;
         }
       }
     }, { capture: true });

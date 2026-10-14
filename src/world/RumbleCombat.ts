@@ -79,6 +79,12 @@ export function resolveRumbleCombat(
   // When either kart has active protection shield, neither can hit nor be hit!
   if (kartA.isGhost || kartB.isGhost) return;
 
+  const isARemote = isRemoteKart ? isRemoteKart(kartA) : false;
+  const isBRemote = isRemoteKart ? isRemoteKart(kartB) : false;
+
+  // Never simulate combat or send smash packets between two remote karts on a 3rd-party bystander client!
+  if (isARemote && isBRemote) return;
+
   const posA = kartA.group.position;
   const posB = kartB.group.position;
 
@@ -112,8 +118,6 @@ export function resolveRumbleCombat(
   // 2. UNCONDITIONAL 60FPS PHYSICAL ANTI-CLIPPING SEPARATION
   // Runs every single frame without cooldown — guarantees karts NEVER phase through each other!
   const overlap = minDist - dist;
-  const isARemote = isRemoteKart ? isRemoteKart(kartA) : false;
-  const isBRemote = isRemoteKart ? isRemoteKart(kartB) : false;
 
   if (kartA === playerKart && isBRemote) {
     // Remote opponent B is locked to network interpolation; local player takes full separation
@@ -216,19 +220,28 @@ export function resolveRumbleCombat(
 
   // ── SCENARIO 1: REAR-END COLLISION (Peeche se thokna) ──
   // A slams into B's rear: A driving nose-first into B, and B's rear is facing A
-  if (headA > 0.35 && (closingA > 2.5 || kartA.boostTime > 0) && headB < -0.20) {
-    const launchSpeed = 22.0 + Math.max(0, closingA) * 1.35 + boostA;
-    const lift = Math.min(26.0, Math.max(14.0, 10.0 + Math.max(0, closingA) * 0.4));
+  if (headA > 0.35 && (closingA > 2.0 || kartA.boostTime > 0) && headB < -0.20) {
+    const clA = Math.max(0, closingA);
+    const isSuperRamA = kartA.boostTime > 0 || clA > 8.0;
+
+    // Speed-Scaled Launch & Lift:
+    // Low-speed bumper nudge (clA <= 8 m/s, no boost): controlled push (10-18 m/s), low lift (2.5-6.5 m/s) keeps victim on deck!
+    // High-speed rocket ram (clA > 8 m/s or boost): full explosive skyward launch (22-38 m/s, 14-26 m/s lift) for true Ring-Outs!
+    const launchSpeed = isSuperRamA
+      ? (20.0 + clA * 1.25 + boostA)
+      : (8.0 + clA * 1.35);
+    const lift = isSuperRamA
+      ? Math.min(26.0, Math.max(14.0, 10.0 + clA * 0.4 + (boostA > 0 ? 4.0 : 0)))
+      : Math.min(6.5, Math.max(2.5, 1.5 + clA * 0.6));
 
     const targetLaunch = _rcTargetLaunch.set(nx * launchSpeed, lift, nz * launchSpeed);
-    const recoilSpeed = 4.0 + Math.max(0, closingA) * 0.2;
+    const recoilSpeed = 3.5 + clA * 0.2;
     const recoilVel = _rcRammerRecoil.set(-nx * recoilSpeed, 0.5, -nz * recoilSpeed);
 
-    kartB.applyNitroSmash(targetLaunch, false); // B gets launched forward & airborne!
+    kartB.applyNitroSmash(targetLaunch, false); // B gets launched with speed-scaled force!
     kartA.applyNitroSmash(recoilVel, true);      // A stays grounded
-    if (onRemoteHit) {
-      onRemoteHit(kartB, targetLaunch, true);
-      onRemoteHit(kartA, recoilVel, false);
+    if (onRemoteHit && kartA === playerKart) {
+      onRemoteHit(kartB, targetLaunch, isSuperRamA);
     }
 
     if (!isARemote && kartA.rigidBody) {
@@ -237,31 +250,37 @@ export function resolveRumbleCombat(
     }
     rumbleManager.recordHit(kartA, kartB);
 
-    playCombatSounds(kartA, kartB, playerKart, posA, posB, 1.8);
+    playCombatSounds(kartA, kartB, playerKart, posA, posB, isSuperRamA ? 1.8 : 0.9);
 
     if (kartA === playerKart) {
-      triggerImpactShake(1.5);
+      triggerImpactShake(isSuperRamA ? 1.5 : 0.7);
       economy.addCoins(25); economy.addXp(15); sounds.playCoin();
     } else if (kartB === playerKart) {
-      triggerImpactShake(2.0);
+      triggerImpactShake(isSuperRamA ? 2.0 : 0.9);
     }
     return;
   }
 
   // B slams into A's rear: B driving nose-first into A, and A's rear is facing B
-  if (headB > 0.35 && (closingB > 2.5 || kartB.boostTime > 0) && headA < -0.20) {
-    const launchSpeed = 22.0 + Math.max(0, closingB) * 1.35 + boostB;
-    const lift = Math.min(26.0, Math.max(14.0, 10.0 + Math.max(0, closingB) * 0.4));
+  if (headB > 0.35 && (closingB > 2.0 || kartB.boostTime > 0) && headA < -0.20) {
+    const clB = Math.max(0, closingB);
+    const isSuperRamB = kartB.boostTime > 0 || clB > 8.0;
+
+    const launchSpeed = isSuperRamB
+      ? (20.0 + clB * 1.25 + boostB)
+      : (8.0 + clB * 1.35);
+    const lift = isSuperRamB
+      ? Math.min(26.0, Math.max(14.0, 10.0 + clB * 0.4 + (boostB > 0 ? 4.0 : 0)))
+      : Math.min(6.5, Math.max(2.5, 1.5 + clB * 0.6));
 
     const targetLaunch = _rcTargetLaunch.set(-nx * launchSpeed, lift, -nz * launchSpeed);
-    const recoilSpeed = 4.0 + Math.max(0, closingB) * 0.2;
+    const recoilSpeed = 3.5 + clB * 0.2;
     const recoilVel = _rcRammerRecoil.set(nx * recoilSpeed, 0.5, nz * recoilSpeed);
 
-    kartA.applyNitroSmash(targetLaunch, false); // A gets launched forward & airborne!
+    kartA.applyNitroSmash(targetLaunch, false); // A gets launched with speed-scaled force!
     kartB.applyNitroSmash(recoilVel, true);      // B stays grounded
-    if (onRemoteHit) {
-      onRemoteHit(kartA, targetLaunch, true);
-      onRemoteHit(kartB, recoilVel, false);
+    if (onRemoteHit && kartB === playerKart) {
+      onRemoteHit(kartA, targetLaunch, isSuperRamB);
     }
 
     if (!isBRemote && kartB.rigidBody) {
@@ -270,13 +289,13 @@ export function resolveRumbleCombat(
     }
     rumbleManager.recordHit(kartB, kartA);
 
-    playCombatSounds(kartA, kartB, playerKart, posA, posB, 1.8);
+    playCombatSounds(kartA, kartB, playerKart, posA, posB, isSuperRamB ? 1.8 : 0.9);
 
     if (kartB === playerKart) {
-      triggerImpactShake(1.5);
+      triggerImpactShake(isSuperRamB ? 1.5 : 0.7);
       economy.addCoins(25); economy.addXp(15); sounds.playCoin();
     } else if (kartA === playerKart) {
-      triggerImpactShake(2.0);
+      triggerImpactShake(isSuperRamB ? 2.0 : 0.9);
     }
     return;
   }
@@ -293,9 +312,8 @@ export function resolveRumbleCombat(
 
     kartB.applyNitroSmash(targetLaunch, false); // B gets launched sideways into the air!
     kartA.applyNitroSmash(recoilVel, true);      // A stays firmly on wheels
-    if (onRemoteHit) {
+    if (onRemoteHit && kartA === playerKart) {
       onRemoteHit(kartB, targetLaunch, true);
-      onRemoteHit(kartA, recoilVel, false);
     }
 
     if (!isARemote && kartA.rigidBody) {
@@ -326,9 +344,8 @@ export function resolveRumbleCombat(
 
     kartA.applyNitroSmash(targetLaunch, false); // A gets launched sideways into the air!
     kartB.applyNitroSmash(recoilVel, true);      // B stays firmly on wheels
-    if (onRemoteHit) {
+    if (onRemoteHit && kartB === playerKart) {
       onRemoteHit(kartA, targetLaunch, true);
-      onRemoteHit(kartB, recoilVel, false);
     }
 
     if (!isBRemote && kartB.rigidBody) {
@@ -363,8 +380,8 @@ export function resolveRumbleCombat(
       kartA.applyNitroSmash(clashA, false);
       kartB.applyNitroSmash(clashB, false);
       if (onRemoteHit) {
-        onRemoteHit(kartA, clashA, true);
-        onRemoteHit(kartB, clashB, true);
+        if (kartA === playerKart) onRemoteHit(kartB, clashB, true);
+        if (kartB === playerKart) onRemoteHit(kartA, clashA, true);
       }
 
       rumbleManager.recordHit(kartA, kartB);
@@ -387,9 +404,8 @@ export function resolveRumbleCombat(
 
       kartB.applyNitroSmash(targetLaunch, false);
       kartA.applyNitroSmash(recoilVel, true);
-      if (onRemoteHit) {
+      if (onRemoteHit && kartA === playerKart) {
         onRemoteHit(kartB, targetLaunch, true);
-        onRemoteHit(kartA, recoilVel, false);
       }
 
       if (!isARemote && kartA.rigidBody) {
@@ -419,9 +435,8 @@ export function resolveRumbleCombat(
 
       kartA.applyNitroSmash(targetLaunch, false);
       kartB.applyNitroSmash(recoilVel, true);
-      if (onRemoteHit) {
+      if (onRemoteHit && kartB === playerKart) {
         onRemoteHit(kartA, targetLaunch, true);
-        onRemoteHit(kartB, recoilVel, false);
       }
 
       if (!isBRemote && kartB.rigidBody) {
@@ -453,9 +468,8 @@ export function resolveRumbleCombat(
 
     kartB.applyNitroSmash(targetLaunch, false);
     kartA.applyNitroSmash(recoilVel, true);
-    if (onRemoteHit) {
+    if (onRemoteHit && kartA === playerKart) {
       onRemoteHit(kartB, targetLaunch, true);
-      onRemoteHit(kartA, recoilVel, false);
     }
     rumbleManager.recordHit(kartA, kartB);
     playCombatSounds(kartA, kartB, playerKart, posA, posB, 1.8);
@@ -478,9 +492,8 @@ export function resolveRumbleCombat(
 
     kartA.applyNitroSmash(targetLaunch, false);
     kartB.applyNitroSmash(recoilVel, true);
-    if (onRemoteHit) {
+    if (onRemoteHit && kartB === playerKart) {
       onRemoteHit(kartA, targetLaunch, true);
-      onRemoteHit(kartB, recoilVel, false);
     }
     rumbleManager.recordHit(kartB, kartA);
     playCombatSounds(kartA, kartB, playerKart, posA, posB, 1.8);
@@ -500,16 +513,18 @@ export function resolveRumbleCombat(
 
   kartA.applyBumperBump(impulseA, 0.85);
   kartB.applyBumperBump(impulseB, 0.85);
-  if (onRemoteHit) {
-    onRemoteHit(kartA, impulseA, false);
-    onRemoteHit(kartB, impulseB, false);
-  }
 
   if (closingA > closingB + 0.8) {
+    if (onRemoteHit && kartA === playerKart) onRemoteHit(kartB, impulseB, false);
     rumbleManager.recordHit(kartA, kartB);
   } else if (closingB > closingA + 0.8) {
+    if (onRemoteHit && kartB === playerKart) onRemoteHit(kartA, impulseA, false);
     rumbleManager.recordHit(kartB, kartA);
   } else {
+    if (onRemoteHit) {
+      if (kartA === playerKart) onRemoteHit(kartB, impulseB, false);
+      if (kartB === playerKart) onRemoteHit(kartA, impulseA, false);
+    }
     rumbleManager.recordHit(kartA, kartB);
     rumbleManager.recordHit(kartB, kartA);
   }

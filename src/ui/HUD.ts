@@ -4,7 +4,7 @@ import { CelebrationFX } from './CelebrationFX';
 import { Track } from '../world/Track';
 import { RacerProgress } from '../world/CheckpointSystem';
 import { Kart } from '../entities/Kart';
-import { RumbleManager, RumbleRacer, RumbleTeam } from '../world/RumbleManager';
+import { RumbleManager, RumbleRacer, RumbleTeam, compareRumbleRacers } from '../world/RumbleManager';
 import { economy } from '../core/Economy';
 import { RecordManager } from '../core/RecordManager';
 import { sounds } from '../core/Sound';
@@ -180,13 +180,17 @@ export class HUD {
     }
   }
 
-  public updateTouchControlsVisibility() {
+  public isHUDVisible: boolean = false;
+
+  public updateTouchControlsVisibility(forceInRace?: boolean) {
     const touch = document.getElementById('touch-controls');
     const isTouch = isTouchControlsEnabled();
+    const inRace = forceInRace !== undefined ? forceInRace : this.isHUDVisible;
+    const shouldShow = isTouch && inRace;
     if (touch) {
-      touch.style.display = isTouch ? 'block' : 'none';
+      touch.style.display = shouldShow ? 'block' : 'none';
     }
-    if (isTouch) {
+    if (shouldShow) {
       document.body.classList.add('touch-mode');
     } else {
       document.body.classList.remove('touch-mode');
@@ -194,12 +198,14 @@ export class HUD {
   }
 
   public showHUD() {
+    this.isHUDVisible = true;
     const hud = document.getElementById('hud-container');
     if (hud) hud.style.display = 'block';
-    this.updateTouchControlsVisibility();
+    this.updateTouchControlsVisibility(true);
   }
 
   public hideHUD() {
+    this.isHUDVisible = false;
     const hud = document.getElementById('hud-container');
     if (hud) hud.style.display = 'none';
 
@@ -737,6 +743,8 @@ export class HUD {
     racerTimes?: Map<string, number>
   ) {
     sounds.fadeEngineOut(1.0);
+    this.isHUDVisible = false;
+    this.updateTouchControlsVisibility(false);
     const modal = document.getElementById('finish-modal')!;
     const title = document.getElementById('finish-title')!;
     const subtext = document.getElementById('finish-subtext')!;
@@ -1180,7 +1188,7 @@ export class HUD {
         rightLabel = opponent.name;
         rightContent = `${opponent.kills}`;
       } else if (otherRacers.length > 1) {
-        const allSorted = Array.from(manager.racers.values()).sort((a, b) => b.kills - a.kills);
+        const allSorted = Array.from(manager.racers.values()).sort(compareRumbleRacers);
         const leader = allSorted[0];
         const rival = allSorted[1];
         if (leader && leader.id === activeSubjectId) {
@@ -1457,9 +1465,13 @@ export class HUD {
     winningTeam: RumbleTeam | 'draw',
     winnerName: string,
     isPlayerWinner: boolean,
-    racers: RumbleRacer[]
+    racers: RumbleRacer[],
+    authoritativeFrostScore?: number,
+    authoritativeBlazeScore?: number
   ) {
     sounds.fadeEngineOut(1.0);
+    this.isHUDVisible = false;
+    this.updateTouchControlsVisibility(false);
     const modal = document.getElementById('finish-modal')!;
     const title = document.getElementById('finish-title')!;
     const subtext = document.getElementById('finish-subtext')!;
@@ -1503,11 +1515,13 @@ export class HUD {
       if (resultsTable) resultsTable.style.display = 'none';
       tdmResults.style.display = 'grid';
 
-      const frostRacers = racers.filter(r => r.team === 'frost' || r.team === 'cyan').sort((a, b) => b.kills - a.kills || a.deaths - b.deaths);
-      const blazeRacers = racers.filter(r => r.team === 'blaze' || r.team === 'crimson').sort((a, b) => b.kills - a.kills || a.deaths - b.deaths);
+      const frostRacers = racers.filter(r => r.team === 'frost' || r.team === 'cyan').sort(compareRumbleRacers);
+      const blazeRacers = racers.filter(r => r.team === 'blaze' || r.team === 'crimson').sort(compareRumbleRacers);
 
-      const frostScore = frostRacers.reduce((acc, r) => acc + r.kills, 0);
-      const blazeScore = blazeRacers.reduce((acc, r) => acc + r.kills, 0);
+      const sumFrostKills = frostRacers.reduce((acc, r) => acc + r.kills, 0);
+      const sumBlazeKills = blazeRacers.reduce((acc, r) => acc + r.kills, 0);
+      const frostScore = authoritativeFrostScore !== undefined ? Math.max(authoritativeFrostScore, sumFrostKills) : sumFrostKills;
+      const blazeScore = authoritativeBlazeScore !== undefined ? Math.max(authoritativeBlazeScore, sumBlazeKills) : sumBlazeKills;
 
       const frostPtsEl = document.getElementById('frost-squad-pts');
       const blazePtsEl = document.getElementById('blaze-squad-pts');
@@ -1533,15 +1547,14 @@ export class HUD {
         if (!container) return;
         container.innerHTML = '';
 
-        const maxKills = Math.max(...teamRacers.map(r => r.kills), 0);
-
-        teamRacers.forEach(r => {
-          const isMvp = r.kills > 0 && r.kills === maxKills;
+        teamRacers.forEach((r, idx) => {
+          // Strictly 1 MVP per team: #1 ranked player (Highest Kills -> Lowest Deaths -> First to Reach Kill Count)
+          const isMvp = idx === 0 && r.kills > 0;
           const row = document.createElement('div');
           row.className = `rumble-pilot-row ${r.isPlayer ? 'is-self' : ''}`;
           row.innerHTML = `
             <div class="pilot-left">
-              ${isMvp ? '<span class="pilot-mvp-pill">MVP</span>' : ''}
+              ${isMvp ? '<span class="pilot-mvp-pill"><span class="mvp-star">★</span> MVP</span>' : ''}
               <span class="pilot-name" title="${this.escapeHtml(r.name)}">${this.escapeHtml(r.name)}</span>
               ${r.isPlayer ? '<span class="pilot-you-tag">YOU</span>' : ''}
             </div>
@@ -1574,7 +1587,7 @@ export class HUD {
       }
 
       tbody.innerHTML = '';
-      const sorted = [...racers].sort((a, b) => b.kills - a.kills || a.deaths - b.deaths);
+      const sorted = [...racers].sort(compareRumbleRacers);
       sorted.forEach((r, idx) => {
         const row = document.createElement('tr');
         if (r.isPlayer) row.className = 'highlight';

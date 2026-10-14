@@ -83,12 +83,12 @@ export class InputManager {
       const rL = leftBtn.getBoundingClientRect();
       const rR = rightBtn.getBoundingClientRect();
       const midX = (rL.right + rR.left) * 0.5;
-      leftL = rL.left - 25;
+      leftL = 0; // Covers all the way to the left screen edge!
       leftR = midX;
       leftT = rL.top - 30;
       leftB = rL.bottom + 30;
       rightL = midX;
-      rightR = rR.right + 25;
+      rightR = rR.right + 35;
       rightT = rR.top - 30;
       rightB = rR.bottom + 30;
       rectsCached = true;

@@ -18,7 +18,7 @@ import { resolveRumbleCombat, clearRumbleCombatCooldowns } from './world/RumbleC
 import { HUD } from './ui/HUD';
 import { net, RemoteKartTransform, RemotePlayerInfo, SmashPacket, MpGameMode } from './net/MultiplayerManager';
 import { NetworkInterpolator } from './net/NetworkInterpolator';
-import { RumbleManager, RumbleRacer, RumbleTeam } from './world/RumbleManager';
+import { RumbleManager, RumbleRacer, RumbleTeam, compareRumbleRacers } from './world/RumbleManager';
 import { RumbleArenaConfig } from './world/tracks/RumbleArenaConfig';
 import { economy } from './core/Economy';
 import { recordManager, RecordManager } from './core/RecordManager';
@@ -52,6 +52,11 @@ const _scratchSmashVB = new THREE.Vector3();
 const _scratchSmashNormal = new THREE.Vector3();
 const _scratchSmashContact = new THREE.Vector3();
 const _scratchSmashTargetRight = new THREE.Vector3();
+// Remote racer tumble & upright landing scratch objects (zero GC)
+const _scratchUprightQuat = new THREE.Quaternion();
+const _scratchAxisY = new THREE.Vector3(0, 1, 0);
+const _scratchTumbleEuler = new THREE.Euler(0, 0, 0, 'YXZ');
+const _scratchTumbleQuat = new THREE.Quaternion();
 // CyberRings scratch vectors
 const _crToKart = new THREE.Vector3();
 const _crRadDir = new THREE.Vector3();
@@ -100,6 +105,7 @@ interface RemoteRacer {
   smashTimer: number;
   launchVelocity: THREE.Vector3;
   tumbleAngularVel: THREE.Vector3;
+  lastPacketTime: number;
 }
 
 function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
@@ -282,6 +288,7 @@ class Game {
   private rumbleScoreSyncTimer: number = 0;
   private isModeSelectOpen: boolean = false;
   private isStoreOpen: boolean = false;
+  private lastKnownLobbyPlayerIds: Set<string> = new Set();
 
   // 3D Showroom Lobby Turntable (360° Rotating Showcase)
   private showroomGroup!: THREE.Group;
@@ -394,6 +401,7 @@ class Game {
     // 3. Input & HUD
     this.input = new InputManager();
     this.hud = new HUD();
+    this.hud.hideHUD();
 
     updateLoader(80, 'FLUFFING SKY CLOUDS & CURBS...');
     // 4. World
@@ -1589,6 +1597,35 @@ class Game {
     net.onLobbyUpdated = (players, laps, mode, rumbleRule, rumbleFormat, matchState) => {
       this.recordLobbyActivity();
       this.renderLobbyRoster(players);
+
+      // Detect newly joined players and trigger live HUD announcement banner
+      if (this.lastKnownLobbyPlayerIds.size > 0) {
+        const newlyJoined = players.filter((p) => !this.lastKnownLobbyPlayerIds.has(p.peerId));
+        for (const p of newlyJoined) {
+          if (p.peerId !== net.myPeerId) {
+            this.hud.showAlert(`🏎️ ${p.name.toUpperCase()} JOINED THE ROOM! [${players.length}/8]`, 'boost', 3500);
+            sounds.playSelect();
+          }
+        }
+      }
+      this.lastKnownLobbyPlayerIds = new Set(players.map((p) => p.peerId));
+
+      // Live update finish modal button state if match is finished or finish-modal is open!
+      const finishModal = document.getElementById('finish-modal');
+      const isFinishModalVisible = finishModal && finishModal.style.display !== 'none';
+      if (isFinishModalVisible || this.state === GameState.FINISHED) {
+        const restartBtn = document.getElementById('restart-btn') as HTMLButtonElement | null;
+        if (restartBtn && this.isMultiplayer) {
+          if (net.isHost) {
+            restartBtn.innerText = 'CONTINUE TO ROOM ❯';
+            restartBtn.disabled = false;
+          } else {
+            restartBtn.innerText = 'WAITING FOR HOST ❯';
+            restartBtn.disabled = true;
+          }
+        }
+      }
+
       const lapsDisplay = document.getElementById('lobby-laps-display');
       const modeDisplay = document.getElementById('lobby-mode-display');
       if (modeDisplay) {
@@ -1677,15 +1714,25 @@ class Game {
     net.onCountdownTickReceived = (count) => this.handleAuthoritativeCountdownTick(count);
     net.onSmashReceived = (packet) => this.handleRemoteSmash(packet);
     net.onPlayerLeft = (peerId, name) => this.handleRemotePlayerLeft(peerId, name);
+    net.onReturnToLobby = () => this.returnToMultiplayerRoom();
     net.onFirstFinishReceived = (winnerPeerId, winnerName, countdownSeconds) => {
       this.startFinishCountdown(winnerName, countdownSeconds);
     };
-    net.onRumbleFinishReceived = (winningTeam, winnerName) => {
+    net.onRumbleFinishReceived = (winningTeam, winnerName, frostScore, blazeScore, racerScores) => {
+      if (this.rumbleManager && frostScore !== undefined && blazeScore !== undefined && racerScores) {
+        this.rumbleManager.syncAuthoritativeScores(frostScore, blazeScore, racerScores);
+        if (this.player?.kart) {
+          this.hud.updateRumbleHud(this.rumbleManager, this.player.kart);
+        }
+      }
       this.handleRumbleMatchFinish(winningTeam, winnerName, true);
     };
-    net.onRumbleKnockoutReceived = (victimId, attackerId, victimLives) => {
+    net.onRumbleKnockoutReceived = (victimId, attackerId, victimLives, victimDeaths) => {
       if (this.rumbleManager) {
-        this.rumbleManager.applyRemoteKnockout(victimId, attackerId, victimLives);
+        this.rumbleManager.applyRemoteKnockout(victimId, attackerId, victimLives, victimDeaths);
+        if (this.player?.kart) {
+          this.hud.updateRumbleHud(this.rumbleManager, this.player.kart);
+        }
         // If Host, immediately broadcast authoritative synchronized scores to all peers!
         if (net.isHost) {
           net.broadcastRumbleScoreSync(
@@ -1699,23 +1746,28 @@ class Game {
     net.onRumbleScoreSyncReceived = (frostScore, blazeScore, racerScores) => {
       if (this.rumbleManager) {
         this.rumbleManager.syncAuthoritativeScores(frostScore, blazeScore, racerScores);
+        if (this.player?.kart) {
+          this.hud.updateRumbleHud(this.rumbleManager, this.player.kart);
+        }
       }
     };
     net.onHostMigrated = (newHost, isSelf) => {
-      if (isSelf) {
-        this.hud.showAlert('HOST MIGRATED // YOU ARE NOW ROOM HOST!', 'smash');
-      } else {
-        this.hud.showAlert(`HOST MIGRATED // NEW HOST: ${newHost.name.toUpperCase()}`, 'boost');
-      }
+      setTimeout(() => {
+        if (isSelf) {
+          this.hud.showAlert('HOST MIGRATED // YOU ARE NOW ROOM HOST', 'smash', 2500);
+        } else {
+          this.hud.showAlert(`HOST MIGRATED // NEW HOST: ${newHost.name.toUpperCase()}`, 'boost', 2500);
+        }
+      }, 2500);
 
-      // If currently on finish leaderboard, update rematch button authority
+      // If currently on finish leaderboard, update continue button authority
       const restartBtn = document.getElementById('restart-btn') as HTMLButtonElement | null;
       if (restartBtn && this.state === GameState.FINISHED) {
         if (isSelf) {
-          restartBtn.innerText = 'REMATCH (START ALL)';
+          restartBtn.innerText = 'CONTINUE TO ROOM ❯';
           restartBtn.disabled = false;
         } else {
-          restartBtn.innerText = 'WAITING FOR HOST...';
+          restartBtn.innerText = 'WAITING FOR HOST ❯';
           restartBtn.disabled = true;
         }
       }
@@ -1972,13 +2024,11 @@ class Game {
         if (this.isMultiplayer) {
           if (!net.isHost) {
             sounds.playRecoil();
-            this.hud.showAlert('WAITING FOR HOST TO START REMATCH', 'recoil');
+            this.hud.showAlert('WAITING FOR HOST TO RETURN TO ROOM', 'recoil');
             return;
           }
           sounds.playSelect();
-          const finishModal = document.getElementById('finish-modal');
-          if (finishModal) finishModal.style.display = 'none';
-          net.startHostRace();
+          net.returnAllToLobby();
           return;
         }
 
@@ -2017,20 +2067,26 @@ class Game {
       this.quitToLobby();
     };
 
-    // Spectator Mode Controls
+    // Spectator Mode Controls (Pointer & Click support for instant zero-latency touch response)
     const specPrev = document.getElementById('spectator-prev');
     if (specPrev) {
-      specPrev.addEventListener('click', (e) => {
+      const handlePrev = (e: Event) => {
         e.preventDefault();
+        sounds.playSelect();
         this.cycleSpectator(-1);
-      });
+      };
+      specPrev.addEventListener('pointerdown', handlePrev);
+      specPrev.addEventListener('click', handlePrev);
     }
     const specNext = document.getElementById('spectator-next');
     if (specNext) {
-      specNext.addEventListener('click', (e) => {
+      const handleNext = (e: Event) => {
         e.preventDefault();
+        sounds.playSelect();
         this.cycleSpectator(1);
-      });
+      };
+      specNext.addEventListener('pointerdown', handleNext);
+      specNext.addEventListener('click', handleNext);
     }
     const specLeave = document.getElementById('spectator-leave-btn');
     if (specLeave) {
@@ -2317,9 +2373,9 @@ class Game {
       }
     };
 
-    this.rumbleManager.onKnockoutBroadcast = (victimId, attackerId, victimLives) => {
+    this.rumbleManager.onKnockoutBroadcast = (victimId, attackerId, victimLives, victimDeaths) => {
       if (this.isMultiplayer) {
-        net.broadcastRumbleKnockout(victimId, attackerId, victimLives);
+        net.broadcastRumbleKnockout(victimId, attackerId, victimLives, victimDeaths);
         if (net.isHost && this.rumbleManager) {
           net.broadcastRumbleScoreSync(
             this.rumbleManager.frostScore,
@@ -2376,7 +2432,9 @@ class Game {
     if (this.rumbleManager && this.player?.kart) {
       this.hud.updateRumbleHud(this.rumbleManager, this.player.kart);
     }
-    this.startRaceCountdown(startTime);
+    if (!this.isMidRaceSpectator) {
+      this.startRaceCountdown(startTime);
+    }
   }
 
   private spawnRumbleRacers() {
@@ -2513,17 +2571,23 @@ class Game {
           const sp = arenaCfg.getSpawn(team, teamSlot);
 
           if (idx === mySlotIndex) {
-            const pKart = new Kart(`kart-${idx}`, this.selectedKartIndex, this.engine.scene, this.physics, sp.pos, sp.rot);
+            const localDisplayName = peer.name || this.playerName || 'RACER';
+            const spawnPos = this.isMidRaceSpectator ? sp.pos.clone().add(new THREE.Vector3(0, -100, 0)) : sp.pos;
+            const pKart = new Kart(`kart-${idx}`, this.selectedKartIndex, this.engine.scene, this.physics, spawnPos, sp.rot);
             pKart.applySkin(team === 'frost' ? 'paint_frost' : 'paint_blaze');
             pKart.team = team;
             pKart.track = this.track;
             this.allKarts.push(pKart);
             this.player = new PlayerKart(pKart, this.input);
             this.selectedRumbleSide = team;
-            this.rumbleManager!.registerRacer(pKart.id, this.playerName, team, true, pKart);
-            if (economy.isVip()) {
-              const pTag = createBrutalistNameTag(this.playerName, team === 'frost' ? '#00f0ff' : '#ff3344', true);
-              pKart.group.add(pTag);
+            if (this.isMidRaceSpectator) {
+              pKart.group.visible = false;
+            } else {
+              this.rumbleManager!.registerRacer(pKart.id, localDisplayName, team, true, pKart);
+              if (economy.isVip()) {
+                const pTag = createBrutalistNameTag(localDisplayName, team === 'frost' ? '#00f0ff' : '#ff3344', true);
+                pKart.group.add(pTag);
+              }
             }
           } else {
             const rKart = new Kart(`kart-${idx}`, peer.kartType, this.engine.scene, this.physics, sp.pos, sp.rot);
@@ -2555,6 +2619,7 @@ class Game {
               smashTimer: 0,
               launchVelocity: new THREE.Vector3(),
               tumbleAngularVel: new THREE.Vector3(),
+              lastPacketTime: performance.now(),
             });
 
             this.rumbleManager!.registerRacer(rKart.id, peer.name, team, false, rKart, true);
@@ -2566,16 +2631,22 @@ class Game {
           const sp = arenaCfg.getSoloSpawn(idx, totalPlayers);
 
           if (idx === mySlotIndex) {
-            const pKart = new Kart(`kart-${idx}`, this.selectedKartIndex, this.engine.scene, this.physics, sp.pos, sp.rot);
+            const localDisplayName = peer.name || this.playerName || 'RACER';
+            const spawnPos = this.isMidRaceSpectator ? sp.pos.clone().add(new THREE.Vector3(0, -100, 0)) : sp.pos;
+            const pKart = new Kart(`kart-${idx}`, this.selectedKartIndex, this.engine.scene, this.physics, spawnPos, sp.rot);
             pKart.applySkin(economy.getEquippedSkin());
             pKart.team = undefined;
             pKart.track = this.track;
             this.allKarts.push(pKart);
             this.player = new PlayerKart(pKart, this.input);
-            this.rumbleManager!.registerRacer(pKart.id, this.playerName, 'none', true, pKart);
-            if (economy.isVip()) {
-              const pTag = createBrutalistNameTag(this.playerName, '#ffe600', true);
-              pKart.group.add(pTag);
+            if (this.isMidRaceSpectator) {
+              pKart.group.visible = false;
+            } else {
+              this.rumbleManager!.registerRacer(pKart.id, localDisplayName, 'none', true, pKart);
+              if (economy.isVip()) {
+                const pTag = createBrutalistNameTag(localDisplayName, '#ffe600', true);
+                pKart.group.add(pTag);
+              }
             }
           } else {
             const rKart = new Kart(`kart-${idx}`, peer.kartType, this.engine.scene, this.physics, sp.pos, sp.rot);
@@ -2606,6 +2677,7 @@ class Game {
               smashTimer: 0,
               launchVelocity: new THREE.Vector3(),
               tumbleAngularVel: new THREE.Vector3(),
+              lastPacketTime: performance.now(),
             });
 
             this.rumbleManager!.registerRacer(rKart.id, peer.name, 'none', false, rKart, true);
@@ -2625,12 +2697,25 @@ class Game {
       return;
     }
 
+    // Freeze RumbleManager immediately on ALL clients so no post-match knockouts occur during the 4.1s celebration!
+    if (this.rumbleManager) {
+      this.rumbleManager.isMatchOver = true;
+      this.rumbleManager.winningTeam = winningTeam;
+      this.rumbleManager.winnerName = winnerName;
+    }
+
     this.isRumbleOutroActive = true;
     this.pendingRumbleFinish = { winningTeam, winnerName };
 
-    // Broadcast finish event over WebRTC if not from remote
+    // Broadcast finish event AND authoritative final score snapshot over WebRTC if not from remote
     if (this.isMultiplayer && !fromRemote) {
-      net.broadcastRumbleFinish(winningTeam, winnerName);
+      net.broadcastRumbleFinish(
+        winningTeam,
+        winnerName,
+        this.rumbleManager?.frostScore,
+        this.rumbleManager?.blazeScore,
+        this.rumbleManager?.getRacerScoresArray()
+      );
     }
 
     // Determine banner text, subtitle and theme
@@ -2694,7 +2779,7 @@ class Game {
     this.hud.hideRumbleVictoryBanner();
 
     if (!this.pendingRumbleFinish || !this.rumbleManager) return;
-    const { winningTeam, winnerName } = this.pendingRumbleFinish;
+    let { winningTeam, winnerName } = this.pendingRumbleFinish;
     this.pendingRumbleFinish = null;
 
     this.state = GameState.FINISHED;
@@ -2711,9 +2796,11 @@ class Game {
       if (this.selectedRumbleRule === 'lives_3') {
         isPlayerWinner = myRacer !== undefined && !myRacer.isEliminated;
       } else {
-        const allRacers = Array.from(this.rumbleManager.racers.values());
-        const maxKills = Math.max(...allRacers.map(r => r.kills));
-        isPlayerWinner = myRacer !== undefined && myRacer.kills === maxKills;
+        const allSorted = Array.from(this.rumbleManager.racers.values()).sort(compareRumbleRacers);
+        if (allSorted[0]) {
+          winnerName = allSorted[0].name;
+        }
+        isPlayerWinner = myRacer !== undefined && allSorted[0]?.id === myRacer.id;
       }
     }
 
@@ -2721,7 +2808,9 @@ class Game {
       winningTeam,
       winnerName,
       isPlayerWinner,
-      Array.from(this.rumbleManager.racers.values())
+      Array.from(this.rumbleManager.racers.values()),
+      this.rumbleManager.frostScore,
+      this.rumbleManager.blazeScore
     );
 
     const coinsEarned = isPlayerWinner ? 200 : 90;
@@ -2732,16 +2821,21 @@ class Game {
     if (restartBtn) {
       if (this.isMultiplayer) {
         if (net.isHost) {
-          restartBtn.innerText = 'REMATCH (START ALL)';
+          restartBtn.innerText = 'CONTINUE TO ROOM ❯';
           restartBtn.disabled = false;
         } else {
-          restartBtn.innerText = 'WAITING FOR HOST...';
+          restartBtn.innerText = 'WAITING FOR HOST ❯';
           restartBtn.disabled = true;
         }
       } else {
         restartBtn.innerText = 'PLAY AGAIN';
         restartBtn.disabled = false;
       }
+    }
+
+    const changeKartBtn = document.getElementById('change-kart-btn') as HTMLButtonElement | null;
+    if (changeKartBtn) {
+      changeKartBtn.innerText = this.isMultiplayer ? 'LEAVE ROOM' : 'MAIN MENU';
     }
   }
 
@@ -2955,6 +3049,7 @@ class Game {
           smashTimer: 0,
           launchVelocity: new THREE.Vector3(),
           tumbleAngularVel: new THREE.Vector3(),
+          lastPacketTime: performance.now(),
         };
         this.remoteRacers.set(peer.peerId, remote);
         this.checkpoints.registerRacer(kart.id, peer.name, false, pos, rot, peer.isVip);
@@ -2963,9 +3058,17 @@ class Game {
       }
     }
 
+    remote.lastPacketTime = performance.now();
     remote.interpolator.pushSnapshot(data);
 
-    remote.targetPos.set(data.x, data.y, data.z);
+    if (remote.isSmashed) {
+      // While the kart is airborne/smashed, ONLY update the Y position from the network.
+      // This lets us detect early landing (victim's phone lands → their Y returns to floor level)
+      // without snapping the XZ position mid-air (which caused the "block substance in air" feel).
+      remote.targetPos.y = data.y;
+    } else {
+      remote.targetPos.set(data.x, data.y, data.z);
+    }
     remote.targetRot.set(data.qx, data.qy, data.qz, data.qw);
     remote.targetSpeed = data.speed;
     remote.targetSteer = data.steer;
@@ -3019,15 +3122,34 @@ class Game {
         sounds.playCrash(0.9);
         this.player.triggerImpactShake(0.8);
       }
+    } else {
+      // 3rd-party observer visual sync when one remote player launches another remote player.
+      // IMPORTANT: if targetRemote.isSmashed is already true, this is the attacker receiving
+      // their own broadcast SmashPacket echo back — do NOT re-trigger or reset the smash!
+      const targetRemote = this.remoteRacers.get(packet.targetPeerId);
+      if (targetRemote && !targetRemote.kart.isGhost && packet.impulseY > 1.5 && !targetRemote.isSmashed) {
+        targetRemote.isSmashed = true;
+        targetRemote.smashTimer = 3.5;
+        targetRemote.launchVelocity.set(packet.impulseX, Math.max(12.0, Math.abs(packet.impulseY)), packet.impulseZ);
+        targetRemote.tumbleAngularVel.set(
+          (Math.random() - 0.5) * 8.0,
+          (Math.random() - 0.5) * 12.0,
+          (Math.random() - 0.5) * 8.0
+        );
+      }
     }
   }
 
   private handleRemotePlayerLeft(peerId: string, fallbackName?: string) {
     const remote = this.remoteRacers.get(peerId);
-    const displayName = remote ? remote.name : (fallbackName || 'A RACER');
+    const wasInLobby = net.lobbyPlayers.some((p) => p.peerId === peerId);
+    if (!remote && !wasInLobby) {
+      return;
+    }
+    const displayName = (remote && remote.name) ? remote.name : (fallbackName || 'A RACER');
 
-    // Show alert in game's normal cute theme banner
-    this.hud.showAlert(`${displayName} LEFT THE GAME`, 'recoil');
+    // Show alert in game's normal theme banner
+    this.hud.showAlert(`${displayName.toUpperCase()} LEFT THE GAME`, 'recoil', 3200);
 
     // Clean up Three.js Sprite name tag & materials
     if (remote && remote.nameSprite) {
@@ -3142,6 +3264,96 @@ class Game {
     this.hud.setRoomBadge(null);
   }
 
+  private returnToMultiplayerRoom() {
+    clearRumbleCombatCooldowns();
+    sounds.stopEngine();
+    sounds.stopDrift();
+    sounds.isScoreboardActive = false;
+    sounds.isFadingOut = false;
+    if (this.rumbleVictoryTimeout) {
+      clearTimeout(this.rumbleVictoryTimeout);
+      this.rumbleVictoryTimeout = null;
+    }
+    this.isRumbleOutroActive = false;
+    this.rumbleOutroTimer = 0;
+    this.pendingRumbleFinish = null;
+
+    // Hide finish modal & gameplay HUDs
+    const finishModal = document.getElementById('finish-modal');
+    if (finishModal) finishModal.style.display = 'none';
+
+    this.hud.hideHUD();
+    this.hud.hideSmashCombat();
+    this.hud.hideRumbleVictoryBanner();
+    this.hud.hideCountdown();
+    this.hud.hideFinishCountdown();
+    this.hud.hideSpectatorOverlay();
+    speedlines.reset();
+    settingsModal.setIsInRace(false);
+
+    // Reset gameplay flags and spectator state
+    this.state = GameState.MENU;
+    this.isSpectating = false;
+    this.isMidRaceSpectator = false;
+    this.isPlayerFinished = false;
+    this.finishCountdownActive = false;
+    this.firstWinnerName = '';
+    this.raceTimer = 0;
+
+    // Clean up scene karts and Rapier physics rigid bodies
+    this.resetModeState('menu');
+    this.rumbleManager = null;
+
+    // Restore 3D showroom turntable
+    if (this.showroomGroup) {
+      this.showroomGroup.visible = true;
+    }
+    this.updateShowroomKart(this.selectedKartIndex);
+    this.setupMenuCamera();
+
+    // Hide menus & show Multiplayer Room view
+    const startMenu = document.getElementById('start-menu-modal');
+    if (startMenu) startMenu.style.display = 'none';
+    const modeSelectModal = document.getElementById('mode-select-modal');
+    if (modeSelectModal) modeSelectModal.style.display = 'none';
+    const rumbleModal = document.getElementById('rumble-modal');
+    if (rumbleModal) rumbleModal.style.display = 'none';
+
+    const mpModal = document.getElementById('mp-modal');
+    const optionsGrid = document.getElementById('mp-options-grid');
+    const lobbyView = document.getElementById('lobby-view');
+    const codeDisplay = document.getElementById('lobby-code-display');
+    const lapsDisplay = document.getElementById('lobby-laps-display');
+    const modeDisplay = document.getElementById('lobby-mode-display');
+
+    if (mpModal) {
+      mpModal.classList.add('open');
+      mpModal.style.display = 'flex';
+    }
+    if (optionsGrid) optionsGrid.style.display = 'none';
+    if (lobbyView) lobbyView.style.display = 'flex';
+    if (codeDisplay) codeDisplay.innerText = net.roomCode;
+
+    if (modeDisplay) {
+      if (net.selectedMode === 'rumble') {
+        modeDisplay.innerText = `SKY RUMBLE (${net.selectedRumbleFormat === 'tdm' ? 'TDM' : 'FFA'})`;
+      } else if (net.selectedMode === 'hardcore') {
+        modeDisplay.innerText = 'HARDCORE SKY';
+      } else if (net.selectedMode === 'time_attack' || net.selectedMode === 'time_attack_hardcore') {
+        modeDisplay.innerText = `TIME SPRINT (${net.selectedMode === 'time_attack_hardcore' ? 'HARDCORE' : 'CLASSIC'})`;
+      } else {
+        modeDisplay.innerText = 'CLASSIC GRAND PRIX';
+      }
+    }
+    if (lapsDisplay) {
+      lapsDisplay.innerText = `${net.selectedLaps} LAPS`;
+    }
+
+    this.renderLobbyRoster(net.lobbyPlayers);
+    this.hud.setRoomBadge(net.roomCode);
+    this.hud.showAlert('RETURNED TO MULTIPLAYER ROOM', 'boost');
+  }
+
   private resetMpLobbyUI() {
     const lobbyView = document.getElementById('lobby-view');
     const optionsGrid = document.getElementById('mp-options-grid');
@@ -3189,6 +3401,8 @@ class Game {
       joinBtn.disabled = false;
       joinBtn.innerText = '▶ JOIN LOBBY';
     }
+
+    this.lastKnownLobbyPlayerIds.clear();
   }
 
   private startRaceCountdown(targetStartTime?: number) {
@@ -3521,6 +3735,7 @@ class Game {
             smashTimer: 0,
             launchVelocity: new THREE.Vector3(),
             tumbleAngularVel: new THREE.Vector3(),
+            lastPacketTime: performance.now(),
           });
 
           this.checkpoints.registerRacer(kart.id, peer.name, false, pos, startRot, peer.isVip);
@@ -3603,6 +3818,7 @@ class Game {
         smashTimer: 0,
         launchVelocity: new THREE.Vector3(),
         tumbleAngularVel: new THREE.Vector3(),
+        lastPacketTime: performance.now(),
       });
 
       this.checkpoints.registerRacer(kart.id, peer.name, false, pos, startRot, peer.isVip);
@@ -3821,6 +4037,10 @@ class Game {
     if (spectatables.length === 0) return;
     this.spectatedTargetIdx = (this.spectatedTargetIdx + direction + spectatables.length) % spectatables.length;
     sounds.stopDrift();
+    const target = spectatables[this.spectatedTargetIdx % spectatables.length];
+    if (target && target.kart && this.player && this.engine?.camera) {
+      this.player.updateCamera(0.016, this.engine.camera, target.kart);
+    }
     this.updateSpectatorUI();
   }
 
@@ -4033,7 +4253,7 @@ class Game {
       this.hud.showFinishLeaderboard(
         standings,
         playerRank === 1,
-        recordInfo,
+        recordInfo ?? undefined,
         this.racerFinishTimes
       );
 
@@ -4041,16 +4261,21 @@ class Game {
       if (restartBtn) {
         if (this.isMultiplayer) {
           if (net.isHost) {
-            restartBtn.innerText = 'REMATCH (START ALL)';
+            restartBtn.innerText = 'CONTINUE TO ROOM ❯';
             restartBtn.disabled = false;
           } else {
-            restartBtn.innerText = 'WAITING FOR HOST...';
+            restartBtn.innerText = 'WAITING FOR HOST ❯';
             restartBtn.disabled = true;
           }
         } else {
           restartBtn.innerText = 'PLAY AGAIN';
           restartBtn.disabled = false;
         }
+      }
+
+      const changeKartBtn = document.getElementById('change-kart-btn') as HTMLButtonElement | null;
+      if (changeKartBtn) {
+        changeKartBtn.innerText = this.isMultiplayer ? 'LEAVE ROOM' : 'MAIN MENU';
       }
 
       // Coins & XP rewards based on placement
@@ -4415,11 +4640,19 @@ class Game {
 
       // 2. Update Player Kart
       const isRumbleKnockedOut = this.isRumbleMode && !!this.rumbleManager?.isRacerKnockedOut(this.player.kart.id);
-      if (this.isMidRaceSpectator || this.isPlayerFinished || isRumbleKnockedOut) {
+      if (this.isMidRaceSpectator || this.isPlayerFinished || isRumbleKnockedOut || this.isSpectating) {
         // Coast gently while falling, spectating, or finished; ignore drive inputs until respawned on deck
         this.player.input.update(dt);
         this.player.kart.applyInput(0, 0, false, dt, this.physics);
-        if (!this.isSpectating) {
+        if (this.isSpectating) {
+          const spectatables = this.getSpectatableKarts();
+          if (spectatables.length > 0) {
+            const target = spectatables[this.spectatedTargetIdx % spectatables.length];
+            if (target && target.kart) {
+              this.player.updateCamera(dt, this.engine.camera, target.kart);
+            }
+          }
+        } else {
           const coastSpeed = Math.min(1.0, Math.abs(this.player.kart.currentSpeed) / this.player.kart.stats.topSpeed);
           sounds.updateEnginePitch(coastSpeed, false);
           this.player.updateCamera(dt, this.engine.camera);
@@ -4430,8 +4663,9 @@ class Game {
       }
 
       // Localized Shadow Tracker: Sun only recenters when player moves > 25m (eliminates shadow texel swimming & jitter)
-      if (this.player?.kart && this.engine.dirLight) {
-        const pPos = this.player.kart.group.position;
+      const focusKart = (this.isSpectating ? this.getSpectatableKarts()[this.spectatedTargetIdx % Math.max(1, this.getSpectatableKarts().length)]?.kart : undefined) || this.player?.kart;
+      if (focusKart && this.engine.dirLight) {
+        const pPos = focusKart.group.position;
         if (pPos.distanceToSquared(_lastShadowCenter) > 625) {
           _lastShadowCenter.copy(pPos);
           this.engine.dirLight.position.set(pPos.x + 40, pPos.y + 75, pPos.z + 25);
@@ -4623,48 +4857,113 @@ class Game {
         }
       }
 
-      // 3. Update Remote Peer Racers
+      // 3. Update Remote Peer Racers (No AFK kick - players only leave on explicit tab close or LEAVE click)
       for (const remote of this.remoteRacers.values()) {
         const k = remote.kart;
 
         if (remote.isSmashed) {
           remote.smashTimer -= dt;
-          // When friend has respawned back on track (targetPos.y > -2 while timer is low)
-          // or when full 3.5s cloud fall duration has elapsed, smoothly transition back to network stream!
-          if (remote.smashTimer <= 0 || (remote.targetPos.y > -2 && remote.smashTimer < 2.0)) {
+          // TOP-LEVEL EXIT: only the full 3.5s safety timeout.
+          // Natural landing (local Y hits arenaFloorY) is handled INSIDE the flight block below —
+          // that's where blendFromPosition is also called with the correct floor-level Y.
+          // Removing any early "victimHasLanded" check here because if victim lands on their phone
+          // while our local pseudo-physics still has them at Y=8-10m, an early exit would cause
+          // blendFromPosition to bridge a huge Y gap → the sudden "yanked to ground" feeling.
+          // Ghost/shield state is NOT set here — driven by victim's own kart_transform isGhost field.
+          if (remote.smashTimer <= 0) {
             remote.isSmashed = false;
-            remote.interpolator.resetError();
-            k.setGhost(true, 3.5);
+            remote.interpolator.blendFromPosition(k.group.position);
           } else {
-            // Ballistic flight simulation falling through the clouds!
-            remote.launchVelocity.y -= 26.0 * dt; // Sky gravity
-            k.group.position.addScaledVector(remote.launchVelocity, dt);
-            k.group.rotation.x += remote.tumbleAngularVel.x * dt;
-            k.group.rotation.y += remote.tumbleAngularVel.y * dt;
-            k.group.rotation.z += remote.tumbleAngularVel.z * dt;
+            // Gravity: exact match to Rapier world gravity (-28.0 m/s²)
+            remote.launchVelocity.y -= 28.0 * dt;
 
-            // Anti-sink floor clamp: smoothly land remote kart if it reaches road elevation
+            // Horizontal drag: exactly matches Rapier rigidBody linearDamping = 0.32
+            // Formula: vel *= (1 - damping * dt), same as Rapier's internal integration
+            const horizDamp = Math.max(0, 1.0 - dt * 0.32);
+            remote.launchVelocity.x *= horizDamp;
+            remote.launchVelocity.z *= horizDamp;
+
+            k.group.position.addScaledVector(remote.launchVelocity, dt);
+
+            // NOTE: XZ predictive convergence is intentionally REMOVED.
+            // targetPos.xz is now frozen during isSmashed (see handleRemoteTransform).
+            // The pseudo-physics arc naturally matches Rapier since gravity + drag now match exactly.
+            // No invisible sideways pull = no "block substance in air" feeling!
+
+            // Quaternion-based 3D stunt tumble (eliminates Euler wrapping / gimbal lock glitches)
+            _scratchTumbleEuler.set(
+              remote.tumbleAngularVel.x * dt,
+              remote.tumbleAngularVel.y * dt,
+              remote.tumbleAngularVel.z * dt,
+              'YXZ'
+            );
+            _scratchTumbleQuat.setFromEuler(_scratchTumbleEuler);
+            k.group.quaternion.multiply(_scratchTumbleQuat).normalize();
+            remote.tumbleAngularVel.multiplyScalar(Math.max(0, 1.0 - dt * 0.45)); // Air drag
+
+            // Dynamic floor elevation & upright recovery
             if (remote.launchVelocity.y < 0) {
+              // Upright target quaternion (keeps horizontal yaw heading, levels pitch & roll to 0)
+              const fwd = _scratchForward.set(0, 0, 1).applyQuaternion(k.group.quaternion);
+              fwd.y = 0;
+              if (fwd.lengthSq() > 0.001) fwd.normalize();
+              const yawAngle = Math.atan2(fwd.x, fwd.z);
+              _scratchUprightQuat.setFromAxisAngle(_scratchAxisY, yawAngle);
+
               if (this.isRumbleMode) {
-                // In Sky Rumble coliseum: circular arena with radius 96.0m at y = 0
-                const distFromCenter = Math.hypot(k.group.position.x, k.group.position.z);
-                if (distFromCenter < 96.0 && k.group.position.y <= 0) {
-                  k.group.position.y = 0;
-                  remote.launchVelocity.y = 0;
-                  remote.isSmashed = false;
-                  remote.interpolator.resetError();
+                // In Sky Rumble coliseum: compute exact arena floor elevation
+                const dCenter = Math.hypot(k.group.position.x, k.group.position.z);
+                let arenaFloorY = 0.0;
+                if (dCenter <= 11.5) {
+                  arenaFloorY = 0.35;
+                } else if (dCenter < 16.8) {
+                  const t = (16.8 - dCenter) / (16.8 - 11.5);
+                  arenaFloorY = 0.35 * (t * t * (3 - 2 * t));
+                } else {
+                  arenaFloorY = 0.0;
                 }
-                // If distFromCenter >= 96.0, kart is outside the arena: falls freely through clouds!
+
+                // If inside the arena coliseum (radius < 96.0m)
+                if (dCenter < 96.0) {
+                  // As kart descends near deck, smoothly slerp upright towards horizontal
+                  const distToFloor = k.group.position.y - arenaFloorY;
+                  if (distToFloor < 2.5) {
+                    k.group.quaternion.slerp(_scratchUprightQuat, Math.min(1.0, dt * 14.0));
+                  }
+
+                  // Touchdown: land rock-solid on arena floor (or early sync when victim reports landed)
+                  const victimGroundedOnDeck = (
+                    remote.smashTimer < 3.1 &&
+                    remote.targetPos.y <= (arenaFloorY + 0.25) &&
+                    remote.targetPos.y >= (arenaFloorY - 0.25)
+                  );
+                  if (k.group.position.y <= arenaFloorY || victimGroundedOnDeck) {
+                    k.group.position.y = arenaFloorY;
+                    remote.launchVelocity.y = 0;
+                    remote.isSmashed = false;
+                    k.group.quaternion.copy(_scratchUprightQuat);
+                    remote.interpolator.blendFromPosition(k.group.position);
+                  }
+                }
+                // If dCenter >= 96.0, kart is outside arena perimeter: continues falling freely into the abyss!
               } else {
+                // Classic Circuit mode: project onto track surface elevation
                 const t = this.track.getClosestT(k.group.position);
                 const slice = this.track.getTrackSlice(t);
                 if (!slice.isGap) {
                   const dCenter = Math.hypot(k.group.position.x - slice.position.x, k.group.position.z - slice.position.z);
-                  if (dCenter <= slice.halfWidth + 3.0 && k.group.position.y <= slice.position.y) {
-                    k.group.position.y = slice.position.y;
-                    remote.launchVelocity.y = 0;
-                    remote.isSmashed = false;
-                    remote.interpolator.resetError();
+                  if (dCenter <= slice.halfWidth + 3.0) {
+                    const distToFloor = k.group.position.y - slice.position.y;
+                    if (distToFloor < 2.5) {
+                      k.group.quaternion.slerp(_scratchUprightQuat, Math.min(1.0, dt * 14.0));
+                    }
+                    if (k.group.position.y <= slice.position.y) {
+                      k.group.position.y = slice.position.y;
+                      remote.launchVelocity.y = 0;
+                      remote.isSmashed = false;
+                      k.group.quaternion.copy(_scratchUprightQuat);
+                      remote.interpolator.blendFromPosition(k.group.position);
+                    }
                   }
                 }
               }
@@ -4672,6 +4971,7 @@ class Game {
           }
 
           k.rigidBody.setTranslation({ x: k.group.position.x, y: k.group.position.y, z: k.group.position.z }, false);
+          k.rigidBody.setRotation({ x: k.group.quaternion.x, y: k.group.quaternion.y, z: k.group.quaternion.z, w: k.group.quaternion.w }, false);
           k.rigidBody.setLinvel({ x: remote.launchVelocity.x, y: remote.launchVelocity.y, z: remote.launchVelocity.z }, false);
         } else {
           // Smooth snapshot interpolation with Hermite cubic spline & projective dead reckoning
@@ -4716,8 +5016,10 @@ class Game {
           k.steeringWheel.rotation.z = -k.steerAngle * 2.2;
         }
 
-        // Track remote racer progress WITHOUT any fake local respawn!
-        this.checkpoints.updateRemoteProgress(k.id, k.group.position);
+        // Track remote racer circuit progress ONLY in circuit modes (saves 7x 60fps spline searches in Rumble Arena)
+        if (!this.isRumbleMode) {
+          this.checkpoints.updateRemoteProgress(k.id, k.group.position);
+        }
       }
 
       // 4. Check Boost Pads & Canyon Jump Launchers
