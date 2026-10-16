@@ -25,7 +25,7 @@ export class Engine {
 
     const canvas = document.getElementById('game-canvas') as HTMLCanvasElement;
 
-    // Antialias ON everywhere — 2-5 FPS difference is negligible, visual quality better.
+    // Antialias ON everywhere — visual quality matches original CHECK version
     this.renderer = new THREE.WebGLRenderer({
       canvas,
       antialias: true,
@@ -33,8 +33,8 @@ export class Engine {
       precision: 'highp',
     });
 
-    // Mobile: 1.5 DPR — sharp retina look like PC. PC: 2.0 DPR.
-    const dpr = isMobile ? Math.min(window.devicePixelRatio || 1, 1.5) : Math.min(window.devicePixelRatio || 1, 2.0);
+    // Mobile: 1.3 DPR — crisp retina look with 25% lower GPU fillrate load. PC: 2.0 DPR.
+    const dpr = isMobile ? Math.min(window.devicePixelRatio || 1, 1.3) : Math.min(window.devicePixelRatio || 1, 2.0);
     this.renderer.setPixelRatio(dpr);
     this.renderer.setSize(window.innerWidth, window.innerHeight);
 
@@ -98,7 +98,7 @@ export class Engine {
       if (this.currentPreset === 'low') {
         this.renderer.setPixelRatio(1.0);
       } else {
-        const dpr = isMobile ? Math.min(window.devicePixelRatio || 1, 1.5) : Math.min(window.devicePixelRatio || 1, 2.0);
+        const dpr = isMobile ? Math.min(window.devicePixelRatio || 1, 1.3) : Math.min(window.devicePixelRatio || 1, 2.0);
         this.renderer.setPixelRatio(dpr);
       }
     });
@@ -111,7 +111,7 @@ export class Engine {
       this.renderer.setPixelRatio(1.0);
       this.setShadows(false);
     } else {
-      const dpr = isMobile ? Math.min(window.devicePixelRatio || 1, 1.5) : Math.min(window.devicePixelRatio || 1, 2.0);
+      const dpr = isMobile ? Math.min(window.devicePixelRatio || 1, 1.3) : Math.min(window.devicePixelRatio || 1, 2.0);
       this.renderer.setPixelRatio(dpr);
       this.setShadows(true);
     }

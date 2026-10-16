@@ -3414,6 +3414,15 @@ class Game {
     if (!this.isRumbleMode) {
       this.spawnRacers();
     }
+
+    // WebGL Ahead-of-Time (AOT) Shader Pre-Compilation:
+    // Compiles ALL materials, shaders, and shadow maps on the GPU NOW while the loading screen is visible!
+    // Eliminates in-game mid-race 30-60ms shader compilation hitches/freezes!
+    try {
+      this.engine.renderer.compile(this.engine.scene, this.engine.camera);
+    } catch (e) {
+      console.warn('[Engine] Pre-compilation note', e);
+    }
     const totalLaps = this.checkpoints?.totalLaps || this.hostLaps || 3;
     this.hud.resetForNewRace(totalLaps);
     this.hud.showHUD();
@@ -4077,25 +4086,14 @@ class Game {
     const finalRaceCoins = Math.round(baseCoins * vipMultiplier);
     const finalXp = Math.round(baseXp * vipMultiplier);
 
-    // 1. Daily First Race Bonus check & claim
-    let dailyCoins = 0;
+    // Match rewards: base match coins + VIP multiplier
+    // (Daily bonus is claimed exclusively from the Lobby 24h Gift Chest)
     const dailyBadge = document.getElementById('finish-daily-badge');
-    const dailyText = document.getElementById('finish-daily-text');
-    if (economy.canClaimDailyFirstRace()) {
-      dailyCoins = economy.claimDailyFirstRace();
-      if (dailyBadge) {
-        dailyBadge.style.display = 'flex';
-      }
-      if (dailyText) {
-        dailyText.innerText = `DAILY 1ST RACE: +${dailyCoins} COINS!`;
-      }
-    } else {
-      if (dailyBadge) {
-        dailyBadge.style.display = 'none';
-      }
+    if (dailyBadge) {
+      dailyBadge.style.display = 'none';
     }
 
-    const totalCoinsEarned = finalRaceCoins + dailyCoins;
+    const totalCoinsEarned = finalRaceCoins;
 
     // 2. VIP Badges UI
     const vipBadge = document.getElementById('finish-vip-badge');

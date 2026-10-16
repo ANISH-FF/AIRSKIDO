@@ -159,7 +159,18 @@ export class SoundEngine {
       const AudioCtx =
         window.AudioContext ||
         (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-      this.ctx = new AudioCtx();
+      const isMobile =
+        typeof navigator !== 'undefined' &&
+        (/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) ||
+          window.innerWidth <= 840 ||
+          window.innerHeight <= 560);
+      try {
+        this.ctx = new AudioCtx({
+          latencyHint: isMobile ? 'balanced' : 'interactive',
+        });
+      } catch {
+        this.ctx = new AudioCtx();
+      }
     }
     if (this.ctx.state === 'suspended') {
       this.ctx.resume();

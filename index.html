@@ -1319,81 +1319,37 @@
         <span class="record-delta-pill" id="finish-record-delta">-1.24s</span>
       </div>
 
-      <!-- 2-Team Rumble Versus Scorecard (Frost vs Blaze) -->
-      <div id="rumble-tdm-results" class="rumble-tdm-results" style="display: none;">
-        <!-- Team Frost (Cyan / Blue) Squad Card -->
-        <div class="rumble-squad-card squad-frost">
-          <div class="rumble-squad-header">
-            <div class="rumble-squad-brand">
-              <div class="rumble-squad-titles">
-                <span class="rumble-squad-name">FROST</span>
-                <span class="rumble-squad-tag">BLUE SQUAD</span>
-              </div>
-            </div>
-            <div class="rumble-squad-score-col">
-              <span class="rumble-squad-outcome-pill" id="frost-outcome-pill">VICTORY</span>
-              <span class="rumble-squad-pts" id="frost-squad-pts">0</span>
-            </div>
-          </div>
-          <div class="rumble-squad-col-bar">
-            <span class="col-head-pilot">PILOT</span>
-            <div class="col-head-stats">
-              <span class="col-head-k">KILLS</span>
-              <span class="col-head-d">DEATHS</span>
-            </div>
-          </div>
-          <div class="rumble-squad-roster" id="frost-squad-roster">
-            <!-- Dynamically populated roster rows -->
-          </div>
+      <!-- 2-Team Rumble Versus Score Bar (Frost vs Blaze) -->
+      <div id="tdm-versus-bar" class="tdm-versus-bar" style="display: none;">
+        <div class="tdm-bar-squad frost">
+          <span class="tdm-bar-name">FROST</span>
+          <span class="tdm-bar-score" id="tdm-bar-frost-score">0</span>
         </div>
-
-        <!-- Team Blaze (Crimson / Red) Squad Card -->
-        <div class="rumble-squad-card squad-blaze">
-          <div class="rumble-squad-header">
-            <div class="rumble-squad-brand">
-              <div class="rumble-squad-titles">
-                <span class="rumble-squad-name">BLAZE</span>
-                <span class="rumble-squad-tag">RED SQUAD</span>
-              </div>
-            </div>
-            <div class="rumble-squad-score-col">
-              <span class="rumble-squad-outcome-pill" id="blaze-outcome-pill">DEFEAT</span>
-              <span class="rumble-squad-pts" id="blaze-squad-pts">0</span>
-            </div>
-          </div>
-          <div class="rumble-squad-col-bar">
-            <span class="col-head-pilot">PILOT</span>
-            <div class="col-head-stats">
-              <span class="col-head-k">KILLS</span>
-              <span class="col-head-d">DEATHS</span>
-            </div>
-          </div>
-          <div class="rumble-squad-roster" id="blaze-squad-roster">
-            <!-- Dynamically populated roster rows -->
-          </div>
+        <div class="tdm-bar-badge" id="tdm-bar-outcome">VICTORY</div>
+        <div class="tdm-bar-squad blaze">
+          <span class="tdm-bar-score" id="tdm-bar-blaze-score">0</span>
+          <span class="tdm-bar-name">BLAZE</span>
         </div>
       </div>
 
-      <table class="results-table" id="results-table">
-        <thead>
-          <tr>
-            <th>POS</th>
-            <th>RACER</th>
-            <th>TIME</th>
-          </tr>
-        </thead>
-        <tbody id="results-body">
-          <!-- Populated dynamically -->
-        </tbody>
-      </table>
+      <!-- Unified Leaderboard Podium Table Container (Scrollable & Scalable for 8 Racers) -->
+      <div class="results-table-container">
+        <table class="results-table" id="results-table">
+          <thead>
+            <tr>
+              <th>POS</th>
+              <th>RACER</th>
+              <th>TIME</th>
+            </tr>
+          </thead>
+          <tbody id="results-body">
+            <!-- Populated dynamically -->
+          </tbody>
+        </table>
+      </div>
 
-      <!-- Finish Coin, Daily Bonus & Animated XP Box -->
+      <!-- Finish Coin & Animated XP Box -->
       <div id="finish-rewards-box" class="finish-rewards-box">
-        <!-- Daily First Race Badge (if applicable) -->
-        <div id="finish-daily-badge" class="finish-daily-badge" style="display: none;">
-          <span>🎁</span>
-          <span id="finish-daily-text">DAILY 1ST RACE: +200 COINS!</span>
-        </div>
 
         <!-- VIP 1.5x Multiplier Callout Banner -->
         <div id="finish-vip-badge" class="finish-vip-badge" style="display: none;">
@@ -1908,7 +1864,7 @@
           </div>
           <div class="loot-item">
             <span style="font-size: 28px;">💎</span>
-            <span class="loot-qty" style="font-family: var(--font-display); font-size: 18px; font-weight: 900; color: #0088cc;">+15</span>
+            <span class="loot-qty" style="font-family: var(--font-display); font-size: 18px; font-weight: 900; color: #0088cc;">+5</span>
             <span class="loot-label" style="font-size: 10px; font-weight: 800; color: #555;">GEMS</span>
           </div>
           <div class="loot-item">

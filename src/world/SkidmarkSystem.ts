@@ -12,7 +12,8 @@ export class SkidmarkSystem {
   private positions: Float32Array;
   private alphas: Float32Array;
   private segmentMetas: SkidSegmentMeta[];
-  private readonly MAX_SEGMENTS = 700;
+  private readonly MAX_SEGMENTS: number;
+  private readonly isMobile: boolean;
   private insertIdx: number = 0;
   private activeCount: number = 0;
   private fadeThrottle: number = 0;
@@ -25,6 +26,8 @@ export class SkidmarkSystem {
   private static readonly _skidBinormal = new THREE.Vector3();
 
   constructor(scene: THREE.Scene) {
+    this.isMobile = typeof navigator !== 'undefined' && (/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) || (typeof window !== 'undefined' && (window.innerWidth <= 840 || window.innerHeight <= 560)));
+    this.MAX_SEGMENTS = this.isMobile ? 260 : 700;
     this.geometry = new THREE.BufferGeometry();
     const vertCount = this.MAX_SEGMENTS * 4;
     const indexCount = this.MAX_SEGMENTS * 6;
@@ -200,8 +203,9 @@ export class SkidmarkSystem {
 
     if (this.activeCount === 0) return;
 
-    // Throttle GPU alpha decay to 20Hz (saves 66% Math.pow calculations & WebGL buffer re-uploads)
-    this.fadeThrottle = (this.fadeThrottle + 1) % 3;
+    // Throttle GPU alpha decay (20Hz on PC, 12Hz on mobile to save GPU memory bandwidth)
+    const throttleInterval = this.isMobile ? 5 : 3;
+    this.fadeThrottle = (this.fadeThrottle + 1) % throttleInterval;
     if (this.fadeThrottle !== 0) return;
 
     const now = performance.now();

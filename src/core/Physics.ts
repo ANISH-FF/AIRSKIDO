@@ -34,11 +34,14 @@ export class PhysicsEngine {
     this.collisionCallbacks.push(callback);
   }
 
-  public step(dt: number) {
-    // 1:1 Frame-synced physics simulation: exactly 1 step per render frame
-    // Eliminates skipped-frame freeze/jump micro-stutter on 80Hz, 90Hz, 120Hz, and 144Hz displays!
-    const stepDt = Math.min(Math.max(dt, 0.001), 0.033);
-    this.world.timestep = stepDt;
+  public step(dt: number): number {
+    if (isNaN(dt) || dt <= 0) return 0;
+
+    // Single step per frame always — prevents CPU death spiral on mobile.
+    // Substep loops caused: 1 spike → 2-3x Rapier work → bigger spike → loop → 25-30 FPS for 3-4s.
+    // Clamp to 33ms (30 FPS floor) so physics never explodes on a big spike, but CPU is NEVER doubled.
+    const safeDt = Math.min(dt, 0.033);
+    this.world.timestep = safeDt;
     this.world.step(this.eventQueue);
 
     // Drain collision events
@@ -49,6 +52,16 @@ export class PhysicsEngine {
         }
       }
     });
+
+    return 1;
+  }
+
+  public getAccumulator(): number {
+    return 0;
+  }
+
+  public resetAccumulator(): void {
+    // No-op kept for API compatibility
   }
 
   // Reusable RAPIER Ray to avoid creating WASM heap objects on every castRay call

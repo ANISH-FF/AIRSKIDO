@@ -1245,7 +1245,7 @@
     /* ── PREMIUM MOTORSPORT WRONG-WAY TELEMETRY BANNER ── */
     #wrong-way-banner {
       position: absolute;
-      top: 76px;
+      top: 18px;
       left: 50%;
       transform: translateX(-50%);
       background: rgba(13, 18, 28, 0.95);

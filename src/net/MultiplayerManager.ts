@@ -506,20 +506,57 @@ export class MultiplayerManager {
     }
   }
 
+  private isPingingServer: boolean = false;
+
+  private getSignalingPingUrl(): string {
+    if (NET_CONFIG.USE_CUSTOM_SIGNALING && NET_CONFIG.CUSTOM_HOST) {
+      const proto = NET_CONFIG.CUSTOM_SECURE ? 'https' : 'http';
+      const portStr = (NET_CONFIG.CUSTOM_PORT === 80 || NET_CONFIG.CUSTOM_PORT === 443) ? '' : `:${NET_CONFIG.CUSTOM_PORT}`;
+      return `${proto}://${NET_CONFIG.CUSTOM_HOST}${portStr}${NET_CONFIG.CUSTOM_PATH}`;
+    }
+    return 'https://0.peerjs.com';
+  }
+
+  private async pingServer(): Promise<void> {
+    if (!this.isHost || this.isPingingServer) return;
+    this.isPingingServer = true;
+    try {
+      const targetUrl = `${this.getSignalingPingUrl()}?t=${Date.now()}`;
+      const ctrl = new AbortController();
+      const timeout = setTimeout(() => ctrl.abort(), 2000);
+      const t0 = performance.now();
+      const resp = await fetch(targetUrl, {
+        method: 'GET',
+        cache: 'no-store',
+        mode: 'cors',
+        signal: ctrl.signal,
+      });
+      clearTimeout(timeout);
+      if (resp.ok || resp.status === 200 || resp.status === 304 || resp.type === 'opaque') {
+        const rawRtt = Math.max(1, Math.round(performance.now() - t0));
+        // Exponential moving average filter for smooth, realistic latency readout without jumpy spikes
+        this.currentPing = this.currentPing === 0 ? rawRtt : Math.round(this.currentPing * 0.4 + rawRtt * 0.6);
+        if (this.onPingUpdated) {
+          this.onPingUpdated(this.currentPing);
+        }
+      }
+    } catch (e) {
+      // Gracefully retain last known ping during transient network hiccups
+    } finally {
+      this.isPingingServer = false;
+    }
+  }
+
   public startPingLoop() {
     this.stopPingLoop();
-    if (this.isHost) {
-      this.currentPing = 0;
-      if (this.onPingUpdated) this.onPingUpdated(0);
-      return;
-    }
 
-    const pingHost = () => {
+    const doPing = () => {
       if (this.isHost) {
-        this.currentPing = 0;
-        if (this.onPingUpdated) this.onPingUpdated(0);
+        // Genuine Host Network Latency: Host measures real round-trip latency to the signaling server
+        this.pingServer();
         return;
       }
+
       const hostPlayer = this.lobbyPlayers.find((p) => p.isHost);
       const hostTargetId = hostPlayer ? hostPlayer.peerId : this.getPeerIdForRoom(this.roomCode);
       const conn = this.connectedPeers.get(hostTargetId);
@@ -530,8 +567,8 @@ export class MultiplayerManager {
       }
     };
 
-    pingHost();
-    this.pingInterval = window.setInterval(pingHost, 2000);
+    doPing();
+    this.pingInterval = window.setInterval(doPing, 2000);
   }
 
   public stopPingLoop() {
@@ -539,6 +576,7 @@ export class MultiplayerManager {
       clearInterval(this.pingInterval);
       this.pingInterval = null;
     }
+    this.isPingingServer = false;
   }
 
   private handleIncomingConnection(conn: DataConnection) {

@@ -753,6 +753,8 @@ export class HUD {
     modal.classList.remove('has-tdm');
     const tdmResults = document.getElementById('rumble-tdm-results');
     if (tdmResults) tdmResults.style.display = 'none';
+    const tdmVersusBar = document.getElementById('tdm-versus-bar');
+    if (tdmVersusBar) tdmVersusBar.style.display = 'none';
     const resultsTable = document.getElementById('results-table');
     if (resultsTable) resultsTable.style.display = 'table';
 
@@ -1508,80 +1510,98 @@ export class HUD {
       subtext.innerText = `${winnerName} WON THE ARENA CLASH.`;
     }
 
+    modal.classList.remove('has-tdm');
+    if (tdmResults) tdmResults.style.display = 'none';
+    const tdmVersusBar = document.getElementById('tdm-versus-bar');
+    if (resultsTable) resultsTable.style.display = 'table';
+
     const isTdm = racers.some(r => r.team === 'frost' || r.team === 'blaze' || r.team === 'cyan' || r.team === 'crimson');
 
-    if (isTdm && tdmResults) {
-      modal.classList.add('has-tdm');
-      if (resultsTable) resultsTable.style.display = 'none';
-      tdmResults.style.display = 'grid';
+    if (isTdm) {
+      if (tdmVersusBar) {
+        tdmVersusBar.style.display = 'flex';
+        const frostRacers = racers.filter(r => r.team === 'frost' || r.team === 'cyan').sort(compareRumbleRacers);
+        const blazeRacers = racers.filter(r => r.team === 'blaze' || r.team === 'crimson').sort(compareRumbleRacers);
 
-      const frostRacers = racers.filter(r => r.team === 'frost' || r.team === 'cyan').sort(compareRumbleRacers);
-      const blazeRacers = racers.filter(r => r.team === 'blaze' || r.team === 'crimson').sort(compareRumbleRacers);
+        const sumFrostKills = frostRacers.reduce((acc, r) => acc + r.kills, 0);
+        const sumBlazeKills = blazeRacers.reduce((acc, r) => acc + r.kills, 0);
+        const frostScore = authoritativeFrostScore !== undefined ? Math.max(authoritativeFrostScore, sumFrostKills) : sumFrostKills;
+        const blazeScore = authoritativeBlazeScore !== undefined ? Math.max(authoritativeBlazeScore, sumBlazeKills) : sumBlazeKills;
 
-      const sumFrostKills = frostRacers.reduce((acc, r) => acc + r.kills, 0);
-      const sumBlazeKills = blazeRacers.reduce((acc, r) => acc + r.kills, 0);
-      const frostScore = authoritativeFrostScore !== undefined ? Math.max(authoritativeFrostScore, sumFrostKills) : sumFrostKills;
-      const blazeScore = authoritativeBlazeScore !== undefined ? Math.max(authoritativeBlazeScore, sumBlazeKills) : sumBlazeKills;
+        const frostPtsEl = document.getElementById('tdm-bar-frost-score');
+        const blazePtsEl = document.getElementById('tdm-bar-blaze-score');
+        const outcomeBadge = document.getElementById('tdm-bar-outcome');
+        if (frostPtsEl) frostPtsEl.innerText = frostScore.toString();
+        if (blazePtsEl) blazePtsEl.innerText = blazeScore.toString();
 
-      const frostPtsEl = document.getElementById('frost-squad-pts');
-      const blazePtsEl = document.getElementById('blaze-squad-pts');
-      if (frostPtsEl) frostPtsEl.innerText = frostScore.toString();
-      if (blazePtsEl) blazePtsEl.innerText = blazeScore.toString();
-
-      const frostPill = document.getElementById('frost-outcome-pill');
-      const blazePill = document.getElementById('blaze-outcome-pill');
-
-      if (winningTeam === 'frost') {
-        if (frostPill) { frostPill.innerText = 'VICTORY'; frostPill.className = 'rumble-squad-outcome-pill won'; }
-        if (blazePill) { blazePill.innerText = 'DEFEAT'; blazePill.className = 'rumble-squad-outcome-pill lost'; }
-      } else if (winningTeam === 'blaze') {
-        if (frostPill) { frostPill.innerText = 'DEFEAT'; frostPill.className = 'rumble-squad-outcome-pill lost'; }
-        if (blazePill) { blazePill.innerText = 'VICTORY'; blazePill.className = 'rumble-squad-outcome-pill won'; }
-      } else {
-        if (frostPill) { frostPill.innerText = 'TIED'; frostPill.className = 'rumble-squad-outcome-pill tied'; }
-        if (blazePill) { blazePill.innerText = 'TIED'; blazePill.className = 'rumble-squad-outcome-pill tied'; }
+        if (outcomeBadge) {
+          if (winningTeam === 'frost') {
+            outcomeBadge.innerText = 'FROST VICTORY';
+            outcomeBadge.className = 'tdm-bar-badge won-frost';
+          } else if (winningTeam === 'blaze') {
+            outcomeBadge.innerText = 'BLAZE VICTORY';
+            outcomeBadge.className = 'tdm-bar-badge won-blaze';
+          } else {
+            outcomeBadge.innerText = 'TIED MATCH';
+            outcomeBadge.className = 'tdm-bar-badge tied';
+          }
+        }
       }
-
-      const renderRoster = (containerId: string, teamRacers: RumbleRacer[]) => {
-        const container = document.getElementById(containerId);
-        if (!container) return;
-        container.innerHTML = '';
-
-        teamRacers.forEach((r, idx) => {
-          // Strictly 1 MVP per team: #1 ranked player (Highest Kills -> Lowest Deaths -> First to Reach Kill Count)
-          const isMvp = idx === 0 && r.kills > 0;
-          const row = document.createElement('div');
-          row.className = `rumble-pilot-row ${r.isPlayer ? 'is-self' : ''}`;
-          row.innerHTML = `
-            <div class="pilot-left">
-              ${isMvp ? '<span class="pilot-mvp-pill"><span class="mvp-star">★</span> MVP</span>' : ''}
-              <span class="pilot-name" title="${this.escapeHtml(r.name)}">${this.escapeHtml(r.name)}</span>
-              ${r.isPlayer ? '<span class="pilot-you-tag">YOU</span>' : ''}
-            </div>
-            <div class="pilot-stat-cols">
-              <span class="col-val-k" title="${r.kills} Kills">${r.kills}</span>
-              <span class="col-val-d" title="${r.deaths} Deaths">${r.deaths}</span>
-            </div>
-          `;
-          container.appendChild(row);
-        });
-      };
-
-      renderRoster('frost-squad-roster', frostRacers);
-      renderRoster('blaze-squad-roster', blazeRacers);
-    } else {
-      modal.classList.remove('has-tdm');
-      if (tdmResults) tdmResults.style.display = 'none';
-      if (resultsTable) resultsTable.style.display = 'table';
 
       const thead = document.querySelector('#results-table thead');
       if (thead) {
         thead.innerHTML = `
           <tr>
-            <th>POS</th>
-            <th>PILOT</th>
-            <th>KILLS</th>
-            <th>DEATHS</th>
+            <th style="width: 46%;">PILOT</th>
+            <th style="width: 22%; text-align: center;">SQUAD</th>
+            <th style="width: 16%; text-align: center;">KILLS</th>
+            <th style="width: 16%; text-align: center;">DEATHS</th>
+          </tr>
+        `;
+      }
+
+      tbody.innerHTML = '';
+      const allRacersSorted = [...racers].sort(compareRumbleRacers);
+
+      allRacersSorted.forEach((r, idx) => {
+        const row = document.createElement('tr');
+        if (r.isPlayer) row.className = 'highlight';
+
+        const isMvp = idx === 0 && r.kills > 0;
+        const isFrost = r.team === 'frost' || r.team === 'cyan';
+        const squadClass = isFrost ? 'frost' : 'blaze';
+        const squadName = isFrost ? 'FROST' : 'BLAZE';
+
+        const isVip = r.isPlayer ? economy.isVip() : false;
+        let pilotTag = '';
+        if (r.isPlayer) {
+          pilotTag = isVip ? `${VIP_CROWN_SVG} (YOU - VIP)` : '(YOU)';
+        } else if (r.name.toLowerCase().includes('bot') || r.name.toLowerCase().includes('ai')) {
+          pilotTag = '(AI)';
+        } else {
+          pilotTag = '(ONLINE)';
+        }
+
+        const mvpBadge = isMvp ? '<span class="pilot-mvp-pill"><span class="mvp-star">★</span> MVP</span> ' : '';
+
+        row.innerHTML = `
+          <td>${mvpBadge}${this.escapeHtml(r.name)} <span class="pilot-role-tag">${pilotTag}</span></td>
+          <td style="text-align: center;"><span class="tdm-squad-tag ${squadClass}">${squadName}</span></td>
+          <td class="tdm-stat-cell" style="text-align: center;">${r.kills}</td>
+          <td class="tdm-stat-cell" style="text-align: center;">${r.deaths}</td>
+        `;
+        tbody.appendChild(row);
+      });
+    } else {
+      if (tdmVersusBar) tdmVersusBar.style.display = 'none';
+
+      const thead = document.querySelector('#results-table thead');
+      if (thead) {
+        thead.innerHTML = `
+          <tr>
+            <th style="width: 60%;">PILOT</th>
+            <th style="width: 20%; text-align: center;">KILLS</th>
+            <th style="width: 20%; text-align: center;">DEATHS</th>
           </tr>
         `;
       }
@@ -1592,13 +1612,23 @@ export class HUD {
         const row = document.createElement('tr');
         if (r.isPlayer) row.className = 'highlight';
 
-        const tag = r.isPlayer ? '(YOU)' : '';
+        const isMvp = idx === 0 && r.kills > 0;
+        const isVip = r.isPlayer ? economy.isVip() : false;
+        let pilotTag = '';
+        if (r.isPlayer) {
+          pilotTag = isVip ? `${VIP_CROWN_SVG} (YOU - VIP)` : '(YOU)';
+        } else if (r.name.toLowerCase().includes('bot') || r.name.toLowerCase().includes('ai')) {
+          pilotTag = '(AI)';
+        } else {
+          pilotTag = '(ONLINE)';
+        }
+
+        const mvpBadge = isMvp ? '<span class="pilot-mvp-pill"><span class="mvp-star">★</span> MVP</span> ' : '';
 
         row.innerHTML = `
-          <td>#${idx + 1}</td>
-          <td>${this.escapeHtml(r.name)} ${tag}</td>
-          <td>${r.kills}</td>
-          <td>${r.deaths}</td>
+          <td>${mvpBadge}${this.escapeHtml(r.name)} <span class="pilot-role-tag">${pilotTag}</span></td>
+          <td class="tdm-stat-cell" style="text-align: center;">${r.kills}</td>
+          <td class="tdm-stat-cell" style="text-align: center;">${r.deaths}</td>
         `;
         tbody.appendChild(row);
       });

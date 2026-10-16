@@ -1462,7 +1462,7 @@
     text-shadow: 4px 4px 0px #000 !important;
   }
   #wrong-way-banner {
-    top: 60px !important;
+    top: 10px !important;
     padding: 5px 12px 5px 10px !important;
     gap: 8px !important;
     border-width: 2px !important;
@@ -1548,6 +1548,61 @@
     padding: 3px 12px !important;
     border-width: 2px !important;
     margin-top: 5px !important;
+  }
+
+  /* Scalable Mobile Leaderboard Podium Table (Seamless fit for 8 Racers) */
+  .results-table-container {
+    max-height: 140px !important;
+    border-width: 2px !important;
+    box-shadow: 2px 2px 0 #000 !important;
+    margin: 4px 0 !important;
+  }
+  .results-table thead th {
+    font-size: 10px !important;
+    padding: 3.5px 6px !important;
+    letter-spacing: 0.5px !important;
+  }
+  .results-table td {
+    font-size: 11px !important;
+    padding: 3px 6px !important;
+  }
+  .tdm-versus-bar {
+    gap: 6px !important;
+    margin: 2px auto 4px !important;
+  }
+  .tdm-bar-squad {
+    padding: 2px 8px !important;
+    gap: 5px !important;
+    border-radius: 7px !important;
+    border-width: 1.5px !important;
+    box-shadow: 1.5px 1.5px 0 #000 !important;
+  }
+  .tdm-bar-name {
+    font-size: 10.5px !important;
+  }
+  .tdm-bar-score {
+    font-size: 14px !important;
+  }
+  .tdm-bar-badge {
+    font-size: 9px !important;
+    padding: 2px 6px !important;
+    border-width: 1.5px !important;
+  }
+  .tdm-squad-tag {
+    font-size: 8.5px !important;
+    padding: 1px 5px !important;
+    border-radius: 4px !important;
+    border-width: 1px !important;
+  }
+  .pilot-mvp-pill {
+    font-size: 8px !important;
+    padding: 0 4px !important;
+  }
+  .pilot-role-tag {
+    font-size: 8px !important;
+  }
+  .tdm-stat-cell {
+    font-size: 11px !important;
   }
 
   /* Touch Controls Ergonomics (Shifted inward for natural thumb reach + wider targets) */

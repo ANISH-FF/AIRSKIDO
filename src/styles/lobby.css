@@ -2759,37 +2759,185 @@
       font-weight: 800;
     }
 
-    /* Finish Podium Table */
+    /* Finish Podium Table & Scrollable Container */
+    .results-table-container {
+      width: 100%;
+      max-height: 220px;
+      overflow-y: auto;
+      overflow-x: hidden;
+      border: var(--brut-border);
+      border-radius: 12px;
+      box-shadow: 3px 3px 0 #000;
+      background: var(--brut-white);
+      margin: 6px 0;
+      -webkit-overflow-scrolling: touch;
+    }
+    .results-table-container::-webkit-scrollbar {
+      width: 6px;
+    }
+    .results-table-container::-webkit-scrollbar-thumb {
+      background: #000;
+      border-radius: 4px;
+    }
+    .results-table-container::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
     .results-table {
       width: 100%;
       border-collapse: collapse;
-      margin: 8px 0;
+      margin: 0;
       text-align: left;
-      border: var(--brut-border);
-      border-radius: 12px;
-      overflow: hidden;
+      border: none;
       background: var(--brut-white);
     }
-    .results-table th {
+    .results-table thead th {
+      position: sticky;
+      top: 0;
+      z-index: 2;
       background: var(--brut-yellow);
       color: #000;
       font-family: var(--font-display);
-      font-size: 13px;
-      font-weight: 800;
-      letter-spacing: 1px;
-      padding: 8px 12px;
+      font-size: 12.5px;
+      font-weight: 900;
+      letter-spacing: 0.8px;
+      padding: 6px 10px;
       border-bottom: 2px solid #000;
     }
     .results-table td {
-      padding: 8px 12px;
+      padding: 6px 10px;
       border-bottom: 1.5px solid #eee;
-      font-size: 15px;
+      font-size: 13.5px;
       font-weight: 800;
       color: #000;
     }
     .results-table tr.highlight {
       background: #FFF9D2;
       border-left: 4px solid var(--brut-red);
+    }
+    .results-table tr:hover {
+      background: #f8fafc;
+    }
+    .results-table tr.highlight:hover {
+      background: #fef08a;
+    }
+
+    /* ── TDM SQUAD VERSUS BAR & BADGES ── */
+    .tdm-versus-bar {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
+      max-width: 440px;
+      margin: 2px auto 6px;
+      flex-shrink: 0;
+    }
+    .tdm-bar-squad {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 14px;
+      border-radius: 10px;
+      border: 2px solid #000;
+      box-shadow: 2.5px 2.5px 0 #000;
+      font-family: var(--font-display);
+    }
+    .tdm-bar-squad.frost {
+      background: #00d2ff;
+      color: #000;
+    }
+    .tdm-bar-squad.blaze {
+      background: #ff385c;
+      color: #fff;
+      text-shadow: 1px 1px 0 #000;
+    }
+    .tdm-bar-name {
+      font-size: 13px;
+      font-weight: 900;
+      letter-spacing: 0.8px;
+    }
+    .tdm-bar-score {
+      font-family: var(--font-telemetry, monospace);
+      font-size: 18px;
+      font-weight: 900;
+    }
+    .tdm-bar-badge {
+      font-family: var(--font-display);
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: 1px;
+      padding: 4px 10px;
+      border-radius: 8px;
+      border: 2px solid #000;
+      box-shadow: 2px 2px 0 #000;
+      background: #FFE600;
+      color: #000;
+      white-space: nowrap;
+    }
+    .tdm-bar-badge.won-frost {
+      background: #00d2ff;
+      color: #000;
+    }
+    .tdm-bar-badge.won-blaze {
+      background: #ff385c;
+      color: #fff;
+      text-shadow: 1px 1px 0 #000;
+    }
+    .tdm-bar-badge.tied {
+      background: #FFE600;
+      color: #000;
+    }
+    .tdm-squad-tag {
+      display: inline-block;
+      font-family: var(--font-display);
+      font-size: 10px;
+      font-weight: 900;
+      letter-spacing: 0.6px;
+      padding: 2px 7px;
+      border-radius: 6px;
+      border: 1.5px solid #000;
+      box-shadow: 1px 1px 0 #000;
+      text-transform: uppercase;
+    }
+    .tdm-squad-tag.frost {
+      background: #00d2ff;
+      color: #000;
+    }
+    .tdm-squad-tag.blaze {
+      background: #ff385c;
+      color: #fff;
+      text-shadow: 0.5px 0.5px 0 #000;
+    }
+    .tdm-stat-cell {
+      font-family: var(--font-telemetry, monospace);
+      font-weight: 900;
+      font-size: 13.5px;
+    }
+    .pilot-role-tag {
+      font-size: 10px;
+      font-weight: 800;
+      color: #64748b;
+      margin-left: 4px;
+    }
+    .pilot-mvp-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      font-family: var(--font-display);
+      font-size: 9.5px;
+      font-weight: 900;
+      background: #FFE600;
+      color: #000;
+      border: 1.5px solid #000;
+      border-radius: 6px;
+      padding: 1px 5px;
+      box-shadow: 1px 1px 0 #000;
+      margin-right: 5px;
+      vertical-align: middle;
+    }
+    .mvp-star {
+      font-size: 10px;
+      color: #000;
     }
 
     /* Responsive scaling for phones */

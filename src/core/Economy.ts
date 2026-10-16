@@ -19,6 +19,7 @@ export interface EconomyState {
 const STORAGE_KEY = 'airskido_economy_v2';
 
 export class EconomyManager {
+  public static readonly MAX_LEVEL = 100;
   private state: EconomyState;
   public onVipChange?: (isVip: boolean) => void;
   private changeListeners: Array<(state: EconomyState) => void> = [];
@@ -39,7 +40,7 @@ export class EconomyManager {
         return {
           coins: typeof parsed.coins === 'number' ? parsed.coins : 1500,
           gems: typeof parsed.gems === 'number' ? parsed.gems : 45,
-          level: typeof parsed.level === 'number' ? parsed.level : 1,
+          level: typeof parsed.level === 'number' ? Math.min(EconomyManager.MAX_LEVEL, Math.max(1, parsed.level)) : 1,
           xp: typeof parsed.xp === 'number' ? parsed.xp : 40,
           lastDailyClaim: typeof parsed.lastDailyClaim === 'number' ? parsed.lastDailyClaim : 0,
           lastDailyRaceDate: typeof parsed.lastDailyRaceDate === 'string' ? parsed.lastDailyRaceDate : '',
@@ -88,7 +89,7 @@ export class EconomyManager {
   public loadStateFromCloud(cloudState: Partial<EconomyState>) {
     if (typeof cloudState.coins === 'number') this.state.coins = cloudState.coins;
     if (typeof cloudState.gems === 'number') this.state.gems = cloudState.gems;
-    if (typeof cloudState.level === 'number') this.state.level = cloudState.level;
+    if (typeof cloudState.level === 'number') this.state.level = Math.min(EconomyManager.MAX_LEVEL, Math.max(1, cloudState.level));
     if (typeof cloudState.xp === 'number') this.state.xp = cloudState.xp;
     if (Array.isArray(cloudState.unlockedItems)) this.state.unlockedItems = [...cloudState.unlockedItems];
     if (typeof cloudState.equippedSkin === 'string') this.state.equippedSkin = cloudState.equippedSkin;
@@ -293,9 +294,29 @@ export class EconomyManager {
     earnedXp: number;
     bonusCoins: number;
   } {
+    const MAX_LEVEL = EconomyManager.MAX_LEVEL;
     const oldLevel = this.state.level;
     const oldXp = this.state.xp;
     const oldNeeded = this.getXpNeeded();
+
+    if (this.state.level >= MAX_LEVEL) {
+      this.state.level = MAX_LEVEL;
+      this.state.xp = oldNeeded; // Full XP bar at MAX Level
+      this.saveState();
+      this.updateUI();
+      return {
+        leveledUp: false,
+        oldLevel: MAX_LEVEL,
+        newLevel: MAX_LEVEL,
+        oldXp: oldNeeded,
+        newXp: oldNeeded,
+        oldNeeded,
+        xpNeeded: oldNeeded,
+        earnedXp: 0,
+        bonusCoins: 0,
+      };
+    }
+
     const multiplier = this.isVip() ? 1.5 : 1.0;
     const earnedXp = Math.round(amount * multiplier);
     this.state.xp += earnedXp;
@@ -303,12 +324,17 @@ export class EconomyManager {
     let needed = oldNeeded;
     let bonusCoins = 0;
 
-    while (this.state.xp >= needed) {
+    while (this.state.xp >= needed && this.state.level < MAX_LEVEL) {
       this.state.xp -= needed;
       this.state.level += 1;
       leveledUp = true;
       bonusCoins += 200; // +200 Coins reward on each level up!
       needed = this.getXpNeeded();
+    }
+
+    if (this.state.level >= MAX_LEVEL) {
+      this.state.level = MAX_LEVEL;
+      this.state.xp = needed; // Cap at 100% full bar
     }
 
     if (bonusCoins > 0) {
@@ -361,7 +387,7 @@ export class EconomyManager {
 
   public claimDaily(): { coins: number; gems: number } {
     const coinsReward = 250;
-    const gemsReward = 15;
+    const gemsReward = 5; // Daily gift diamonds set to 5
     this.state.coins += coinsReward;
     this.state.gems += gemsReward;
     this.state.lastDailyClaim = Date.now();
@@ -388,12 +414,14 @@ export class EconomyManager {
     // 3. Level & XP
     const lvlEl = document.getElementById('level-badge-display');
     if (lvlEl) {
-      lvlEl.innerText = `LVL ${this.state.level}`;
+      lvlEl.innerText = this.state.level >= EconomyManager.MAX_LEVEL ? 'LVL 100 (MAX)' : `LVL ${this.state.level}`;
     }
 
     const xpFill = document.getElementById('xp-bar-fill');
     if (xpFill) {
-      const pct = Math.min(100, Math.round((this.state.xp / this.getXpNeeded()) * 100));
+      const pct = this.state.level >= EconomyManager.MAX_LEVEL
+        ? 100
+        : Math.min(100, Math.round((this.state.xp / this.getXpNeeded()) * 100));
       xpFill.style.width = `${pct}%`;
     }
 
